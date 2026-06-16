@@ -798,8 +798,8 @@ body {
 }
 
 .craft-board-overlay .craft-cost-dot {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
 }
 
 /* Can-afford highlight in board overlay context */
@@ -6251,7 +6251,7 @@ html { overflow-x: hidden; }
 }
 
 /* Session 34f: Computer (CPU) turn — passive status indicator in the bar */
-.ab-cpu-status { color: rgba(255,255,255,0.7); font-style: italic; display: inline-flex; align-items: center; gap: 7px; }
+.ab-cpu-status { color: var(--text-muted); font-style: italic; display: inline-flex; align-items: center; gap: 7px; }
 .ab-cpu-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--gold, #c9a84c);
