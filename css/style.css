@@ -5684,7 +5684,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    max-width: 1100px;
+    max-width: min(1100px, 100%);   /* Session 34d: never exceed viewport width */
     margin: 4px auto 0;
     overflow: hidden;
     position: relative;
@@ -5708,6 +5708,7 @@ body {
     gap: 6px;
     overflow-x: auto;
     flex: 1;
+    min-width: 0;   /* Session 34d: shrink + scroll internally instead of forcing the feed (and the whole page) wider than the viewport */
     scrollbar-width: none;
     -ms-overflow-style: none;
     padding: 2px 0;
@@ -6223,4 +6224,13 @@ body {
     /* Extra clearance so the bottom bar stays clear of phone browser chrome */
     .action-bar-wrapper {
         padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Session 34d: belt-and-suspenders guards against horizontal overflow that
+   blows out the mobile layout viewport (page shrinks + right margin + media
+   queries stop matching). Root clip + let the player strip scroll if crowded. */
+html { overflow-x: hidden; }
+@media (max-width: 560px) {
+    .player-strip { overflow-x: auto; justify-content: flex-start; scrollbar-width: none; }
+    .player-strip::-webkit-scrollbar { display: none; }
 }
