@@ -394,8 +394,15 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 0;
-    padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
     pointer-events: none;   /* empty areas pass taps through to the board */
+    /* Session 34b: docked tray scrim so on big screens the bar reads as the
+       bottom control area instead of a pill floating in empty space. */
+    background: linear-gradient(to top,
+        rgba(28, 20, 12, 0.92) 0%,
+        rgba(28, 20, 12, 0.60) 55%,
+        rgba(28, 20, 12, 0) 100%);
+    border-top: 1px solid rgba(0, 0, 0, 0.22);
 }
 .action-bar-wrapper > * {
     pointer-events: auto;
@@ -403,6 +410,11 @@ body {
     max-width: 1100px;
 }
 .action-bar:empty { display: none; }
+/* No bar content (e.g. setup screen behind the modal) — collapse the tray. */
+.action-bar-wrapper:not(:has(.action-bar:not(:empty))) {
+    background: none;
+    border-top: none;
+}
 
 /* Session 18: Persistent tangled cat banner — full-width, very prominent */
 .tangled-cat-banner {
