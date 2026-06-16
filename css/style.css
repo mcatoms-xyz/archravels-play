@@ -6234,3 +6234,18 @@ html { overflow-x: hidden; }
     .player-strip { overflow-x: auto; justify-content: flex-start; scrollbar-width: none; }
     .player-strip::-webkit-scrollbar { display: none; }
 }
+
+/* Session 34e: on phones, keep every modal within the viewport so it can't
+   grow bigger than the screen and clip off-center (craft popup appearing
+   "low and to the right"). .modal-overlay .modal-content (0,2,0) beats the
+   per-modal max/min-width rules. */
+@media (max-width: 560px) {
+    .modal-overlay { padding: 8px; overflow-y: auto; }
+    .modal-overlay .modal-content {
+        max-width: calc(100vw - 16px);
+        min-width: 0;
+        max-height: calc(100dvh - 16px);
+        overflow-y: auto;
+        padding: 18px 16px;
+    }
+}
