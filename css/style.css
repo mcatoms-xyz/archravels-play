@@ -6249,3 +6249,22 @@ html { overflow-x: hidden; }
         padding: 18px 16px;
     }
 }
+
+/* Session 34f: Computer (CPU) turn — passive status indicator in the bar */
+.ab-cpu-status { color: rgba(255,255,255,0.7); font-style: italic; display: inline-flex; align-items: center; gap: 7px; }
+.ab-cpu-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold, #c9a84c);
+    box-shadow: 0 0 6px var(--gold-glow, rgba(201,168,76,0.6));
+    animation: cpuDotPulse 1.1s ease-in-out infinite;
+}
+@keyframes cpuDotPulse { 0%,100%{opacity:0.35; transform:scale(0.85);} 50%{opacity:1; transform:scale(1.1);} }
+
+/* Session 34f: the gold forward-progression CTA always anchors to the
+   bottom-left of the control bar, so players always know what advances the
+   game. It's the first/leftmost action button; on phones the button row
+   spans full width and left-aligns so the gold CTA sits bottom-left. */
+.ab-buttons .btn-cta { order: -1; }
+@media (max-width: 560px) {
+    .ab-buttons { width: 100%; justify-content: flex-start; }
+}

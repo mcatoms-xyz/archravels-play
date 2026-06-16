@@ -854,6 +854,18 @@ var UI = {
         var bar = this.els.actionBar;
         var phase = Game.state.phase;
 
+        // Session 34f: on a Computer (CPU) turn, show a passive status with NO
+        // controls, so the human doesn't think they're supposed to act.
+        var actor = Game.state.player;
+        if (actor && actor.isAI &&
+            (phase === 'chooseSpace' || phase === 'playerActions' ||
+             phase === 'restock' || phase === 'finalCraft')) {
+            this._renderComputerTurnBar(bar, actor);
+            this._renderActionGridOverlay('active');
+            this._renderTangledCatBanner();
+            return;
+        }
+
         if (phase === 'gameOver') {
             this._renderGameOverBar(bar);
             this._renderActionGridOverlay('active');
@@ -883,6 +895,26 @@ var UI = {
 
         // Session 18: Persistent tangled cat banner — visible for the entire turn
         this._renderTangledCatBanner();
+    },
+
+    /**
+     * Session 34f: passive action bar shown during a Computer (CPU) turn.
+     * No buttons — just a clear status so the human knows it isn't their move.
+     */
+    _renderComputerTurnBar: function(bar, player) {
+        var turnNum = (Game.state.turn && Game.state.turn.number) || '';
+        bar.innerHTML =
+            '<div class="ab-phase">' +
+                '<span class="ab-phase-icon">🧶</span>' +
+                '<span class="ab-phase-label">Turn ' + turnNum + '</span>' +
+            '</div>' +
+            '<div class="ab-divider"></div>' +
+            '<div class="ab-middle">' +
+                '<span class="ab-status-text ab-cpu-status">' +
+                    '<span class="ab-cpu-dot"></span>' +
+                    (player.name || 'Computer') + ' is playing…' +
+                '</span>' +
+            '</div>';
     },
 
     /**
