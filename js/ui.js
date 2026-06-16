@@ -142,7 +142,7 @@ var UI = {
         // Build number is incremented each session: S1–S9b = builds 1–10
         var editionEl = document.getElementById('navEdition');
         if (editionEl) {
-            editionEl.textContent = 'DIGITAL EDITION v0.2  [build 30 · Session 21]';
+            editionEl.textContent = 'DIGITAL EDITION · BETA';
         }
 
         // Build the yarn bowl HTML (6 color slots)
