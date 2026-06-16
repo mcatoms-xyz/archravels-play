@@ -6186,3 +6186,41 @@ body {
     outline-offset: 4px;
     border-radius: 14px;
 }
+
+/* =====================================================================
+   Session 34c — Phone layout pass (<=560px). From Waid / Galaxy S26:
+   fill screen width, compact+stack the nav & footer, right-size dots,
+   keep the bottom control bar clear of mobile browser chrome.
+   ===================================================================== */
+@media (max-width: 560px) {
+    /* Play area fills the screen edge-to-edge by default */
+    .game-layout { padding-left: 0; padding-right: 0; }
+    .board-image { max-width: 100vw; }
+    .board-section { border-radius: 0; max-width: 100vw; }
+    .player-area { padding: 0 6px; gap: 10px; }
+    .player-board-wrapper { max-width: 100%; }
+
+    /* Nav: drop the long edition string + tighten so the row can't break */
+    .nav-bar { padding: 0 10px; gap: 8px; }
+    .nav-edition { display: none; }
+    .nav-title { font-size: 16px; letter-spacing: 0.3px; }
+    .nav-left { gap: 6px; min-width: 0; flex-shrink: 0; }
+    .nav-center { gap: 6px; font-size: 12px; min-width: 0; flex: 1 1 auto;
+                  justify-content: flex-end; overflow: hidden; }
+    .nav-player-name, .nav-phase {
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-phase { max-width: 42vw; }
+
+    /* Footer: stack tight + centered instead of overflowing one row */
+    .game-footer { flex-direction: column; align-items: center; gap: 4px;
+        text-align: center;
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
+    .footer-left, .footer-center, .footer-right { justify-content: center; }
+
+    /* Dots read oversized against the smaller board — trim to match */
+    .craft-cost-dot { width: 12px; height: 12px; }
+
+    /* Extra clearance so the bottom bar stays clear of phone browser chrome */
+    .action-bar-wrapper {
+        padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}
