@@ -1,0 +1,6147 @@
+/* =====================================================================
+   ArchRavels Digital Prototype — Stylesheet
+   Sessions 1–24
+
+   FONTS (Session 8b — @font-face, replaces Google Fonts import)
+   Session 11: Removed unused FabCraft font; added fallbacks.
+   Paths are relative to css/ → ../Other Images Textures Details/...
+   ===================================================================== */
+
+@font-face {
+    font-family: 'VintageAvalanche';
+    src: url('../Other Images Textures Details/Fonts - Final/Vintage Avalanche.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'VintageAvalanche';
+    src: url('../Other Images Textures Details/Fonts - Final/Vintage Avalanche Black.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SantElia';
+    src: url('../Other Images Textures Details/Fonts - Final/SantElia/SantEliaRough-Line.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SantElia';
+    src: url('../Other Images Textures Details/Fonts - Final/SantElia/SantEliaRoughAlt-BoldThrDEMO.otf') format('opentype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+/* =====================================================================
+   ArchRavels Digital Prototype — Stylesheet (continued)
+
+   DESIGN PALETTE (warm, crafty, approachable):
+     --bg           warm tan craft table surface
+     --panel        cream/parchment for info panels
+     --text         dark walnut brown
+     --accent       sage green (from the game's own palette)
+     --gold         warm gold for highlights / selection
+   ===================================================================== */
+
+:root {
+    --bg: #b8a88a;
+    --bg-dark: #9c8c70;
+    --panel: #f0e6d2;
+    --panel-hover: #f7f0e0;
+    --panel-border: #c4b090;
+    --border: #c4b090;
+    --card-bg: #f0e6d2;
+    --text: #3a2e1f;
+    --text-light: #6b5c48;
+    --text-muted: #6b5a44;
+    --accent: #5a7a3a;
+    --accent-dark: #4a6a2a;
+    --gold: #c9a84c;
+    --gold-glow: rgba(201, 168, 76, 0.5);
+    --shadow: rgba(58, 46, 31, 0.25);
+    --shadow-deep: rgba(58, 46, 31, 0.45);
+    /* Session 11: consolidated font stacks */
+    --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* Session 23: Semantic color tokens */
+    --color-error: #c0392b;
+    --color-error-light: #e74c3c;
+    --color-success: #3a6a1a;
+    --color-bowl-brown: #8B5E3C;
+    /* Session 23: Shadow scale (sm/md map roughly to existing --shadow/--shadow-deep) */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+    /* Session 23: Radius scale */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    /* Session 8b: fabric texture background; gradient fallback if image fails */
+    background-color: #a89478;
+    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-repeat: repeat;
+    background-size: 420px 420px;
+    font-family: var(--font-system);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+
+/* =================================================================
+   GAME HEADER
+   ================================================================= */
+
+/* Session 8b: logo image replaces text header */
+.game-header {
+    text-align: center;
+    padding: 8px 0 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.game-logo {
+    height: 64px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(1px 2px 4px rgba(58, 46, 31, 0.35));
+}
+
+.game-header .subtitle {
+    display: block;
+    font-family: var(--font-system);
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 0;
+}
+
+
+/* =================================================================
+   MAIN LAYOUT
+   ================================================================= */
+
+.game-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 0;
+    gap: 14px;
+    position: relative;
+}
+.game-layout::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(rgba(0,0,0,0.40), rgba(0,0,0,0.40)),
+        url('../Other Images Textures Details/ArchRavels-BoxTop-Inside-Landscape.png') center / cover no-repeat;
+    pointer-events: none;
+    z-index: 0;
+}
+.game-layout > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* =================================================================
+   GAME BOARD
+   ================================================================= */
+
+.board-section {
+    position: relative;
+    display: inline-block;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+        0 8px 32px var(--shadow-deep),
+        0 2px 8px rgba(0,0,0,0.15),
+        inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.board-image {
+    display: block;
+    max-height: 60vh;   /* S8: increased from 55vh so the project zone at the
+                           bottom of the board is more fully visible */
+    max-width: 92vw;
+}
+
+
+/* =================================================================
+   BAZAAR LABEL & DECK COUNTER
+   ================================================================= */
+
+.bazaar-label {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    text-align: center;
+    font-family: var(--font-system);
+    font-size: clamp(13px, 1.8vw, 22px);
+    color: #f5e6c8;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    background: linear-gradient(180deg, rgba(50,40,28,0.55) 0%, transparent 100%);
+    padding: 6px 0 22px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.deck-counter {
+    display: inline-block;
+    font-size: 0.7em;
+    opacity: 0.8;
+    margin-left: 8px;
+    font-family: var(--font-system);
+    font-weight: 600;
+}
+
+
+/* =================================================================
+   YARN BAZAAR OVERLAY — 2×3 grid
+   ================================================================= */
+
+.yarn-bazaar-overlay {
+    position: absolute;
+    /* Session 15c: ghost card slots on board art:
+       Cols: 30.1-50.2%, 53-73.1%, 75.8-95.9%
+       Rows: 8.7-36.5%, 40.2-67.8% */
+    top: 9%;
+    left: 30%;
+    width: 66%;
+    height: 59%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 6% 4%;
+    padding: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Session 15b: Deck card back overlays (yarn deck + project deck) */
+.deck-card-back {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+}
+.deck-card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    filter: brightness(0.85);
+    box-shadow: 2px 3px 8px rgba(0,0,0,0.4);
+    background: rgba(60, 45, 25, 0.5);  /* subtle bg behind rounded corners */
+}
+.deck-card-count {
+    position: absolute;
+    bottom: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-system);
+    font-size: clamp(10px, 1.4vw, 16px);
+    font-weight: 800;
+    color: #f5e6c8;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+    background: rgba(30, 20, 10, 0.7);
+    padding: 1px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+/* Yarn deck — left column, top area (753×753 = 1:1 square, ghost slot x=6-26%, y=9-36%) */
+.yarn-deck-back {
+    top: 9%;
+    left: 6%;
+    width: 20%;
+    height: 27%;
+}
+/* Project deck — fills embroidery hoop fabric area (x=3-28%, y=75-98%) */
+.project-deck-back {
+    top: 78%;
+    left: 8%;
+    width: 20%;
+    height: 18%;
+}
+.project-deck-back img {
+    filter: brightness(1);
+}
+
+/* --- Bazaar card slot --- */
+
+.bazaar-slot {
+    border-radius: 8px;
+    overflow: hidden;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 3px solid transparent;
+    position: relative;
+}
+
+.bazaar-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 5px;
+}
+
+.bazaar-slot:hover {
+    transform: scale(1.04);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* Selected state — golden glow */
+.bazaar-slot.selected {
+    border-color: var(--gold);
+    transform: scale(1.06);
+    box-shadow:
+        0 0 0 2px var(--gold),
+        0 0 20px var(--gold-glow),
+        0 8px 24px rgba(0,0,0,0.3);
+}
+
+.bazaar-slot.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 4%; right: 6%;
+    width: clamp(16px, 2vw, 24px);
+    height: clamp(16px, 2vw, 24px);
+    background: var(--gold);
+    color: var(--text);
+    font-size: clamp(10px, 1.2vw, 16px);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    pointer-events: none;
+    line-height: 1;
+}
+
+/* Empty slot */
+.bazaar-slot.empty {
+    border: 2.5px dashed rgba(245, 230, 200, 0.4);
+    background: rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
+.bazaar-slot.empty:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.empty-label {
+    font-family: var(--font-system);
+    font-size: clamp(9px, 1.2vw, 16px);
+    color: rgba(245, 230, 200, 0.45);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+}
+
+/* New card fade-in */
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.bazaar-slot.new-card img {
+    animation: cardFadeIn 0.35s ease-out;
+}
+
+
+/* =================================================================
+   ACTION BAR — Session 17 single-row redesign
+   One flex row: [phase icon+label] [divider] [middle: chips/status] [buttons]
+   No more separate status strip — everything inline in one bar.
+
+   .action-bar-wrapper  — outer container (grid area + centering)
+   .action-bar          — the single row bar
+   .ab-phase            — left: icon + label
+   .ab-divider          — vertical separator
+   .ab-middle           — center: chips, status text, warnings (flex-grows)
+   .ab-buttons          — right: action buttons
+   ================================================================= */
+
+.action-bar-wrapper {
+    width: 100%;
+    max-width: 1100px;
+    min-height: 52px;
+}
+
+/* Session 18: Persistent tangled cat banner — full-width, very prominent */
+.tangled-cat-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 16px;
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #c0392b 100%);
+    color: #fff;
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px 10px 0 0;
+    border: 2px solid #a93226;
+    border-bottom: none;
+    animation: tangledPulse 2s ease-in-out infinite;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.tangled-cat-banner + .action-bar {
+    border-radius: 0 0 10px 10px;
+}
+.tangled-cat-banner-img {
+    width: 24px;
+    height: 24px;
+    animation: tangledWiggle 1.5s ease-in-out infinite;
+    filter: brightness(1.5);
+}
+.tangled-cat-banner-text strong {
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+@keyframes tangledPulse {
+    0%, 100% { background-position: 0% 50%; opacity: 1; }
+    50% { opacity: 0.9; }
+}
+@keyframes tangledWiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+}
+
+.action-bar {
+    width: 100%;
+    background-color: var(--panel);
+    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-repeat: repeat;
+    background-size: 220px 220px;
+    background-blend-mode: multiply;
+    border: 2px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    box-shadow: 0 3px 12px var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+}
+
+/* Phase identity — icon + label, stays compact */
+.ab-phase {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.ab-phase-icon { font-size: 18px; }
+.ab-phase-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+/* Vertical divider between phase and middle content */
+.ab-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--panel-border);
+    flex-shrink: 0;
+}
+
+/* Middle area — status text, chips, warnings — flexes to fill */
+.ab-middle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.ab-status-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Warning / bonus banners inline */
+.ab-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+.ab-warning-tangled {
+    background: rgba(192,57,43,0.12);
+    color: #a03020;
+}
+.ab-warning-tangled img { width: 18px; height: 18px; }
+.ab-warning-bonus {
+    background: rgba(90,122,58,0.15);
+    color: var(--color-success);
+}
+
+/* Buttons — right-aligned group */
+.ab-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* --- Legacy class aliases (kept for action chip styles used by mockup compat) --- */
+.action-bar-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    align-self: center;
+    justify-content: flex-end;
+}
+
+
+/* --- Buttons --- */
+
+.btn {
+    display: inline-block;
+    font-family: var(--font-system);
+    font-size: 16px;
+    padding: 5px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+
+/* Session 24: Call-to-action — gold-highlighted forward-progression button */
+.btn-cta {
+    background: linear-gradient(135deg, #c9a84c, #b8922e);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(201, 168, 76, 0.45);
+    animation: ctaPulse 2s ease-in-out infinite;
+}
+.btn-cta:hover:not(:disabled) {
+    background: linear-gradient(135deg, #d4b055, #c9a84c);
+    box-shadow: 0 3px 12px rgba(201, 168, 76, 0.6);
+}
+@keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(201, 168, 76, 0.45); }
+    50% { box-shadow: 0 2px 14px rgba(201, 168, 76, 0.7); }
+}
+
+.btn-secondary {
+    background: var(--panel-border);
+    color: var(--text);
+}
+.btn-secondary:hover:not(:disabled) { background: #b8a080; }
+
+
+/* =================================================================
+   PLAYER AREA
+   ================================================================= */
+
+.player-area-label {
+    font-family: var(--font-system);
+    font-size: 22px;
+    color: var(--text-light);
+    text-align: center;
+    width: 100%;
+    max-width: 1100px;
+    border-bottom: 2px solid var(--panel-border);
+    padding-bottom: 4px;
+    margin-bottom: -6px;
+}
+
+.player-area {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+/* Player Board wrapper — shows the full board image; all interactive
+   zones are overlaid inside using absolute positioning.
+   Session 9: aspect-ratio crop removed; full board is displayed.
+   Z-index stacking: wood-bg(1) → board-image(2) → overlays(3). */
+.player-board-wrapper {
+    flex: 1;
+    border-radius: 12px;
+    overflow: visible;          /* Session 15b: allow craft cost dots to hang below board */
+    position: relative;
+    box-shadow: 0 6px 24px var(--shadow-deep);
+    border: 2px solid var(--panel-border);
+    /* Safety fill so any sub-pixel transparent seams show dark, not fabric */
+    background-color: #3a2810;
+}
+
+.player-board-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 2;
+    border-radius: 10px;       /* Session 15b: self-clip since wrapper is overflow:visible */
+    /* Transparent margins trimmed from PNGs — image is now 2119×1359,
+       fills wrapper cleanly at 100% with no negative margins needed.
+       Aspect ratio: 1359/2119 = 64.13%  (height as % of width) */
+}
+
+
+/* =================================================================
+   SESSION 9d: YARN BOWL NOTCH — WOOD TEXTURE BACKGROUND
+   The player board PNG has a transparent circular cutout on its
+   left side where a real yarn bowl would sit. We place this div
+   at z-index 1 (below the board image) so the wood texture shows
+   through the transparent notch area.
+
+   Notch pixel analysis (TRIMMED 2119 × 1359 board PNG):
+     centre y ≈ 50%  |  vertical span y = 25% – 75%  (50% tall)
+     deepest x ≈ 8.8%  |  board opaque left edge x ≈ 8.9% at centre
+   We use border-radius to approximate the D-shaped cutout.
+   ================================================================= */
+.bowl-wood-bg {
+    position: absolute;
+    top: 23%;
+    left: 0;
+    width: 11%;
+    height: 54%;
+    /* D-shape: flat on left (clipped by wrapper overflow), arc on right */
+    border-radius: 0 100% 100% 0 / 0 50% 50% 0;
+    /* Warm brown fill */
+    background-color: var(--color-bowl-brown);
+    background-image: none;
+    z-index: 1;
+}
+
+
+/* =================================================================
+   SESSION 9: YARN BOWL OVERLAY
+   Yarn tokens rendered by JS into this absolutely-positioned div
+   that sits inside the notch at z-index 3 (above the board image).
+   ================================================================= */
+.yarn-bowl-overlay {
+    position: absolute;
+    /* Session 15b: Tokens should spread from ~12% down to ~74%.
+       Notch transparent area: y=26-74%. Tokens can sit above the notch. */
+    top: 5%;
+    left: 0%;
+    width: 9%;
+    height: 70%;         /* 5% to 75% — full vertical spread */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 4% 0;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+.yarn-bowl-overlay .yarn-token-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Yarn token images — sized to fill the bowl comfortably */
+.yarn-bowl-overlay .yarn-token-img {
+    width: clamp(24px, 2.8vw, 42px);
+    height: clamp(24px, 2.8vw, 42px);
+}
+
+/* Overlay yarn count — bold white on top of ball */
+.yarn-bowl-overlay .yarn-count {
+    font-family: var(--font-system);
+    font-weight: 800;
+    font-size: clamp(12px, 1.5vw, 18px);
+    line-height: 1;
+    color: #ffffff;
+    text-shadow:
+        1px  1px 0 #000,
+       -1px -1px 0 #000,
+        1px -1px 0 #000,
+       -1px  1px 0 #000,
+        0    2px 4px rgba(0,0,0,0.8);
+}
+
+
+/* =================================================================
+   SESSION 9: CRAFT BOARD OVERLAY
+   5 craft pattern cards overlaid directly on the board's bottom
+   tile strip.
+
+   Strip pixel analysis (2587 × 1831 board PNG):
+     top border y ≈ 69%  |  active zone y ≈ 70% – 87%
+     full strip x = 9% – 91%  (total width 82%)
+     dividers at x = 21.5%, 40.5%, 59.6%, 78.5%
+     Slot 0 (char art): 9–21.5%   Slot 1 (Hat): 21.5–40.5%
+     Slot 2 (Tile1): 40.5–59.6%  Slot 3 (Tile2): 59.6–78.5%
+     Slot 4 (Blanket): 78.5–91%
+   ================================================================= */
+.craft-board-overlay {
+    position: absolute;
+    /* Session 15b: top:76% h:24% matches actual board craft strip zone.
+       Cost dots overflow below the board edge (wrapper is overflow:visible).
+       Session 15c: switched to CSS grid with exact divider positions from board art.
+       Dividers at x=15.1%, 38.4%, 61.7%, 84.9% */
+    top: 78%;
+    left: 0%;
+    width: 100%;
+    height: 22%;
+    display: grid;
+    grid-template-columns: 14.6% 22.3% 22.3% 22.2% 14.6%;
+    gap: 0 1%;
+    z-index: 3;
+    pointer-events: auto;
+    align-items: stretch;
+}
+
+/* Craft slots inside the board overlay — simplified display for small space */
+.craft-board-overlay .craft-slot {
+    padding: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 14, 6, 0.55);   /* darker for readability */
+    border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.45) !important;
+    overflow: visible;          /* Session 15b: allow cost dots to overflow below board */
+    gap: 2px;
+}
+
+/* Craft images fill the cell — no fixed px sizing in the overlay */
+.craft-board-overlay .craft-slot-img {
+    width: 90%;
+    max-width: none;
+    height: auto;
+    max-height: 80%;   /* leave room for cost dots */
+    object-fit: contain;
+    border-radius: 3px;
+    border: none;     /* override base .craft-slot-img border */
+    box-shadow: none;
+}
+
+/* Hide name and cost text — not readable at this scale */
+.craft-board-overlay .craft-slot-name {
+    display: none;
+}
+
+.craft-board-overlay .craft-cost-label {
+    display: none;
+}
+
+.craft-board-overlay .craft-cost-dot {
+    width: 18px;
+    height: 18px;
+}
+
+/* Can-afford highlight in board overlay context */
+.craft-board-overlay .craft-slot.can-afford {
+    border-color: rgba(90, 180, 60, 0.8) !important;
+    background: rgba(20, 14, 6, 0.55);
+}
+
+/* Session 22: Dim unaffordable craft slots on board overlay — all 5 positions */
+.craft-board-overlay .craft-slot.cannot-afford {
+    opacity: 0.55;
+    filter: saturate(0.5) brightness(0.85);
+    cursor: default;
+    pointer-events: none;
+}
+
+/* ---- OUTER SLOTS (slots 0 & 4): hat & blanket.
+   Session 20: Blank boards no longer have printed art — show tile images. ---- */
+.craft-board-overlay .craft-slot:first-child,
+.craft-board-overlay .craft-slot:last-child {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    overflow: visible;          /* Session 15b: let cost dots overflow below */
+    position: relative;
+}
+.craft-board-overlay .craft-slot:first-child .craft-slot-img,
+.craft-board-overlay .craft-slot:last-child .craft-slot-img {
+    /* Session 20: Show tile images on blank boards (previously display:none) */
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    box-shadow: none !important;
+}
+/* Session 15b: show cost dots on hat & blanket — hang below board edge */
+.craft-board-overlay .craft-slot:first-child .craft-slot-cost,
+.craft-board-overlay .craft-slot:last-child .craft-slot-cost {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    position: absolute;
+    bottom: -34px;              /* Session 19: pushed further below board edge for clear visibility */
+    left: 0; right: 0;
+}
+.craft-board-overlay .craft-slot:first-child:hover,
+.craft-board-overlay .craft-slot:last-child:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ---- MIDDLE SLOTS (slots 1–3): pattern tile images fill the board craft zones.
+   Session 15b: Images fill slot top-down, cost dots overflow below board edge. ---- */
+.craft-board-overlay .craft-slot:not(:first-child):not(:last-child) {
+    overflow: visible;          /* cost dots hang below the board edge */
+    padding: 0;
+    border: none !important;
+    justify-content: flex-start;
+    align-items: center;
+    background: transparent;
+    border-radius: 0;
+    position: relative;         /* anchor for absolute cost dots */
+}
+.craft-board-overlay .craft-slot:not(:first-child):not(:last-child) .craft-slot-img {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100%;
+    height: 100%;
+    object-fit: fill;           /* fill the board zone completely */
+    border-radius: 0;
+    flex: 1 1 0;
+    min-height: 0;              /* allow flex shrink below content size */
+    border: none !important;
+    box-shadow: none !important;
+}
+/* Cost dots sit below the tile image, hanging past the board edge */
+.craft-board-overlay .craft-slot:not(:first-child):not(:last-child) .craft-slot-cost {
+    display: flex;
+    flex-shrink: 0;
+    position: absolute;
+    bottom: -34px;              /* Session 19: pushed further below board edge for clear visibility */
+    left: 0; right: 0;
+    justify-content: center;
+}
+
+
+/* =================================================================
+   SESSION 15b: SR BOARD REMINDER OVERLAY
+   Mini thumbnails of held Special Requests on the player board.
+   Positioned at top-right of the board, like physical game placement.
+   ================================================================= */
+.sr-board-reminder {
+    position: absolute;
+    /* Session 15b: Right of yarn stack, above pattern tiles */
+    bottom: 26%;
+    left: 10%;
+    z-index: 4;
+    display: none;           /* shown by JS when player holds SRs */
+    flex-direction: row;
+    gap: 6px;
+    pointer-events: auto;
+}
+.sr-reminder-card {
+    width: clamp(44px, 5.5vw, 66px);   /* ~10% bigger than before */
+    border-radius: 4px;
+    overflow: visible;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.4);
+    position: relative;
+    opacity: 0.9;
+    transition: opacity 0.2s, transform 0.2s;
+    cursor: pointer;
+}
+.sr-reminder-card:hover {
+    opacity: 1;
+    transform: scale(1.08);
+}
+.sr-reminder-card > img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+.sr-reminder-card.sr-reminder-fav {
+    border-color: #ff6b6b;
+    box-shadow: 0 2px 8px rgba(255,107,107,0.5);
+}
+.sr-reminder-heart {
+    position: absolute;
+    top: -2px;
+    right: 1px;
+    font-size: 10px;
+    color: #ff6b6b;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Session 15b: SR hover preview — pops up above the thumbnail on hover */
+.sr-hover-preview {
+    position: absolute;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    background-color: rgb(35, 30, 25);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    z-index: 50;
+    pointer-events: auto;
+    width: max-content;
+    max-width: 500px;
+}
+
+/* Show on hover */
+.sr-reminder-card:hover .sr-hover-preview {
+    display: flex;
+}
+
+/* Triangle pointer at bottom */
+.sr-hover-preview::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: rgb(35, 30, 25);
+}
+
+.sr-preview-img {
+    width: 180px;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+}
+
+.sr-preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--font-system);
+    white-space: normal;
+    min-width: 140px;
+}
+
+.sr-preview-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f0e6d2;
+}
+
+.sr-preview-points {
+    font-size: 16px;
+    color: var(--gold);
+}
+
+.sr-preview-cost {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.sr-preview-cost .craft-cost-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.sr-preview-cost-label {
+    font-size: 16px;
+    color: rgba(240,230,210,0.7);
+    font-style: italic;
+}
+
+.sr-preview-craft-btn {
+    margin-top: 6px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--gold);
+    background: var(--gold);
+    color: var(--text);
+    font-family: var(--font-system);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    align-self: flex-start;
+}
+.sr-preview-craft-btn:hover {
+    background: #e8b84d;
+}
+.sr-preview-craft-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    color: rgba(240,230,210,0.5);
+}
+
+/* =================================================================
+   SESSION 9: ACTION SPACE GRID OVERLAY
+   Floats a 2×2 clickable grid over the board's printed action spaces.
+
+   Pixel analysis (2587 × 1831 board PNG):
+     Grid left x ≈ 52%  |  Grid right x ≈ 88%  → width 36%
+     Grid top y ≈ 22%   |  Grid bottom y ≈ 69% → height 47%
+     Vertical midpoint x ≈ 64.8%
+     Horizontal midpoint y ≈ 38.9%
+
+   During chooseSpace phase: 4 clickable buttons; unavailable = greyed.
+   During playerActions/restock: selected cell highlighted gold,
+   others dimmed — board context for the current turn.
+   ================================================================= */
+/* =================================================================
+   Session 20: ACTION GRID — Transparent buttons, icon-glow hover
+   Icons float on the board naturally. Hovering shows a character-colored
+   drop-shadow glow hugging the icon artwork edges + scale-up.
+   ================================================================= */
+.action-grid-overlay {
+    position: absolute;
+    top: 18%;
+    left: 59%;
+    width: 35.5%;
+    height: 53%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0;
+    padding: 0;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+/* Base cell button — invisible hit area */
+.action-grid-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 8%;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: transparent;
+    overflow: visible;
+    box-shadow: none;
+    transition: none;
+}
+/* Top row icons align to bottom, bottom row to top — cluster toward center */
+.action-grid-btn:nth-child(-n+2) { justify-content: flex-end; }
+.action-grid-btn:nth-child(n+3) { justify-content: flex-start; }
+
+/* Button itself stays invisible on hover — icon handles the highlight */
+.action-grid-btn:hover {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+.action-grid-btn:active {
+    background: transparent;
+}
+
+/* Icon container — holds 1 or 2 icons */
+.action-grid-icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+
+/* Combo: stack icons vertically with gap, treated as one unit on hover */
+.action-grid-icons.action-grid-combo {
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.15s, filter 0.15s;
+}
+
+/* Single icon — fill most of the button */
+.action-grid-icon {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+    pointer-events: none;
+    transition: transform 0.15s, filter 0.15s;
+}
+
+/* Combo icons — force both to same width */
+.action-grid-icon.action-grid-icon-sm {
+    width: 65%;
+    max-height: 46%;
+    object-fit: contain;
+}
+
+/* Text label hidden — icons are self-descriptive */
+.action-grid-label {
+    display: none;
+}
+
+/* Hover: scale up — applies to all types */
+.action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon { transform: scale(1.22); }
+.action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo { transform: scale(1.22); }
+.action-grid-btn:active:not(:disabled) .action-grid-icons:not(.action-grid-combo) .action-grid-icon { transform: scale(1.0); filter: none; }
+.action-grid-btn:active:not(:disabled) .action-grid-icons.action-grid-combo { transform: scale(1.0); filter: none; }
+
+/* Per-type hover glow — character-colored drop-shadow hugging icon edges */
+.action-type-thriftyShopper .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon,
+.action-type-thriftyShopper .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo {
+    filter: drop-shadow(0 0 6px rgba(34, 120, 34, 0.9)) drop-shadow(0 0 14px rgba(28, 100, 28, 0.6)) drop-shadow(0 0 24px rgba(20, 80, 20, 0.3));
+}
+.action-type-masterCrafter .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon,
+.action-type-masterCrafter .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo {
+    filter: drop-shadow(0 0 6px rgba(30, 80, 180, 0.9)) drop-shadow(0 0 14px rgba(20, 60, 150, 0.6)) drop-shadow(0 0 24px rgba(15, 45, 120, 0.3));
+}
+.action-type-colorSpecialist .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon,
+.action-type-colorSpecialist .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo {
+    filter: drop-shadow(0 0 6px rgba(210, 120, 20, 0.9)) drop-shadow(0 0 14px rgba(180, 100, 10, 0.6)) drop-shadow(0 0 24px rgba(150, 80, 0, 0.3));
+}
+.action-type-yarnSpinner .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon,
+.action-type-yarnSpinner .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo {
+    filter: drop-shadow(0 0 6px rgba(180, 30, 30, 0.9)) drop-shadow(0 0 14px rgba(150, 20, 20, 0.6)) drop-shadow(0 0 24px rgba(120, 10, 10, 0.3));
+}
+.action-type-maker .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon,
+.action-type-maker .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo {
+    filter: drop-shadow(0 0 6px rgba(190, 160, 20, 0.9)) drop-shadow(0 0 14px rgba(160, 130, 10, 0.6)) drop-shadow(0 0 24px rgba(130, 100, 0, 0.3));
+}
+.action-type-expert .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons:not(.action-grid-combo) .action-grid-icon,
+.action-type-expert .action-grid-btn:hover:not(:disabled):not(.action-grid-other) .action-grid-icons.action-grid-combo {
+    filter: drop-shadow(0 0 6px rgba(120, 40, 160, 0.9)) drop-shadow(0 0 14px rgba(100, 30, 140, 0.6)) drop-shadow(0 0 24px rgba(80, 20, 120, 0.3));
+}
+
+/* Greyed out — space used last turn, cannot choose */
+.action-grid-btn.action-grid-unavailable,
+.action-grid-btn:disabled:not(.action-grid-selected):not(.action-grid-other) {
+    cursor: not-allowed;
+}
+.action-grid-btn.action-grid-unavailable .action-grid-icon,
+.action-grid-btn:disabled:not(.action-grid-selected):not(.action-grid-other) .action-grid-icon {
+    opacity: 0.25;
+    filter: saturate(0.3);
+}
+
+/* Currently selected space — golden glow hugging icon edges */
+.action-grid-btn.action-grid-selected {
+    cursor: default;
+}
+.action-grid-btn.action-grid-selected .action-grid-icon {
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 14px rgba(255, 180, 0, 0.6));
+}
+
+/* Other unselected spaces during playerActions/restock — dimmed */
+.action-grid-btn.action-grid-other {
+    cursor: default;
+}
+.action-grid-btn.action-grid-other .action-grid-icon {
+    opacity: 0.2;
+    filter: saturate(0.3);
+}
+
+/* Shared panel */
+/* Session 8b: fabric texture layered on panels via blend mode */
+.panel {
+    background-color: var(--panel);
+    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-repeat: repeat;
+    background-size: 220px 220px;
+    background-blend-mode: multiply;
+    border: 2px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 16px var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.section-label {
+    font-family: var(--font-system);
+    font-size: 20px;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(196, 176, 144, 0.5);
+}
+
+
+/* Craft Patterns Strip — 5 slots: hat | tile1 | tile2 | tile3 | blanket */
+.craft-strip {
+    width: 100%;
+    max-width: 1100px;
+    background-color: var(--panel);
+    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-repeat: repeat;
+    background-size: 220px 220px;
+    background-blend-mode: multiply;
+    border: 2px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.craft-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+
+/* Individual craft slot */
+.craft-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+    position: relative;
+}
+
+.craft-slot:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px var(--shadow-deep);
+}
+
+.craft-slot.can-afford {
+    border-color: var(--accent);
+    background: rgba(90, 122, 58, 0.08);
+}
+
+.craft-slot.can-afford:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px var(--gold-glow), 0 6px 16px var(--shadow-deep);
+}
+
+.craft-slot.cannot-afford {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.craft-slot.cannot-afford:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.craft-slot-img {
+    width: clamp(60px, 7.5vw, 100px);
+    border-radius: 6px;
+    box-shadow: 0 3px 10px var(--shadow);
+    border: 2px solid var(--panel-border);
+}
+
+.craft-slot-name {
+    font-family: var(--font-system);
+    font-size: 14px;
+    color: var(--text);
+    text-align: center;
+}
+
+.craft-slot-cost {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    margin-bottom: 12px;
+}
+
+/* -----------------------------------------------------------------
+   DOT SIZING SYSTEM — yarn tokens, cost indicators, badges
+   7px  – player strip dots (very compact status display)
+   14px – craft cost dots (standard on-board indicators)
+   16px – game moment yarn dots (modal context, slightly larger)
+   18px – craft grid dots (Session 22: enlarged for readability)
+   20px – color picker / opponent panel dots (spacious context)
+   ----------------------------------------------------------------- */
+
+/* Small color dots showing yarn cost */
+.craft-cost-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Session 22: Per-dot have/short treatment on craft grid — matches off-turn context */
+.craft-cost-dot.dot-have {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.craft-cost-dot.dot-short {
+    opacity: 0.35;
+    outline: 2px solid var(--color-error);
+    outline-offset: 1px;
+    animation: otc-pulse 1.5s ease-in-out infinite;
+}
+
+/* Session 15b: Neutral dots for "any color" costs (hat, blanket, learned patterns) */
+.craft-cost-dot-neutral {
+    background-color: #7a6b5a;
+    border-color: rgba(255,255,255,0.7);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.craft-cost-label {
+    font-family: var(--font-system);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+
+/* Finished Objects — right panel in player area */
+.finished-objects-section {
+    flex-shrink: 0;
+    min-width: 120px;
+    max-width: 200px;
+    align-items: center;
+}
+
+.finished-objects-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex: 1;
+    align-items: center;
+    align-content: center;
+}
+
+/* Each finished item container */
+.finished-item-wrap {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    animation: itemAppear 0.4s ease-out;
+}
+
+.finished-item {
+    width: clamp(50px, 6vw, 70px);
+    border-radius: 6px;
+    box-shadow: 0 3px 10px var(--shadow);
+    border: 2px solid var(--panel-border);
+}
+
+/* Session 10: Point tag — uses real ArchRavels point tag PNG asset */
+.point-tag {
+    position: absolute;
+    bottom: -6px;
+    right: -8px;
+    width: 32px;
+    height: 22px;
+    background: url('../Other Images Textures Details/Details and Borders/PointTag-CMYK.png') center/contain no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(8deg);
+    z-index: 2;
+    /* Remove old CSS pseudo-elements */
+    border: none;
+    box-shadow: none;
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.35));
+}
+
+.point-tag::before {
+    display: none;
+}
+
+.point-tag::after {
+    display: none;
+}
+
+.point-tag-value {
+    font-family: var(--font-system);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text);
+    /* Position value text over the tag body, offset left from the grommet */
+    margin-right: 6px;
+    margin-top: 1px;
+    text-shadow: 0 0 2px rgba(255,255,255,0.4);
+}
+
+/* Total points display */
+.finished-objects-total {
+    text-align: center;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(196, 176, 144, 0.5);
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: var(--accent);
+    display: none;
+}
+
+.finished-objects-total.has-points {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Session 10: Mini inline tag icon — uses real asset */
+.point-tag-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 16px;
+    background: url('../Other Images Textures Details/Details and Borders/PointTag-CMYK.png') center/contain no-repeat;
+    transform: rotate(6deg);
+    position: relative;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+.point-tag-inline::after {
+    display: none;
+}
+
+@keyframes itemAppear {
+    from { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* Empty state for finished objects */
+.finished-empty {
+    font-family: var(--font-system);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 12px 8px;
+    font-style: italic;
+}
+
+/* =================================================================
+   Session 15b: Finished Objects DRAWER — slides out from right edge
+   ================================================================= */
+
+/* Tab hotspot — sits over the right-edge strip, stops at top of craft area */
+.fo-drawer-tab {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5%;          /* covers the ~96-100% strip */
+    height: 76%;         /* stops at top edge of blanket/craft area */
+    z-index: 6;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;       /* badge at the bottom = on the curve */
+    justify-content: center;
+    padding-bottom: 1%;
+    /* Darken strip slightly to hint it's interactive */
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.05) 0%,
+        rgba(0, 0, 0, 0.12) 80%,
+        rgba(0, 0, 0, 0.22) 100%
+    );
+    border-left: 1px solid rgba(0, 0, 0, 0.15);  /* colored per-character via JS */
+    transition: background 0.2s, border-left-color 0.3s;
+}
+
+.fo-drawer-tab:hover {
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.08) 0%,
+        rgba(0, 0, 0, 0.2) 80%,
+        rgba(0, 0, 0, 0.3) 100%
+    );
+}
+
+/* Count badge — sits right on the curve where the strip art bends */
+.fo-drawer-count {
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 800;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    border: 2px solid rgba(255,255,255,0.7);
+}
+
+.fo-drawer-count.empty {
+    display: none;
+}
+
+/* The drawer panel — positioned inside player-board-wrapper, slides from right */
+.fo-drawer {
+    position: absolute;
+    top: 0;
+    right: 5%;           /* starts just left of the tab strip */
+    width: 55%;
+    height: 100%;
+    background-color: rgba(245, 238, 225, 0.95);
+    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    background-blend-mode: multiply;
+    border-left: 2px solid var(--panel-border);
+    border-radius: 10px 0 0 10px;
+    z-index: 5;
+    overflow: visible;
+    padding: 12px 14px 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: -4px 0 16px rgba(0,0,0,0.2), 0 4px 20px rgba(0,0,0,0.15);
+    transform: translateX(110%);
+    transition: transform 0.3s ease, visibility 0s linear 0.3s;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.fo-drawer.open {
+    transform: translateX(0);
+    pointer-events: auto;
+    visibility: visible;
+    transition: transform 0.3s ease, visibility 0s linear 0s;
+}
+.fo-drawer.open .fo-drawer-title {
+    opacity: 1;
+}
+
+.fo-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    min-height: 32px;
+}
+
+/* Session 15c: Green pill badge for drawer title */
+.fo-drawer-title {
+    position: absolute;
+    top: 6px;
+    left: -14px;
+    opacity: 0;
+    transition: opacity 0.2s ease 0.1s;
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    background: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.6);
+    z-index: 10;
+    white-space: nowrap;
+}
+
+/* Session 15c: Character name — dark subtle text on panel */
+.fo-drawer-charname {
+    flex: 1;
+    text-align: left;
+    font-family: 'SantElia', var(--font-system);
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: 1px;
+    padding: 0 8px 0 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fo-drawer-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.fo-drawer-close:hover {
+    color: var(--text);
+}
+
+/* Override finished-objects-grid inside drawer for better layout */
+.fo-drawer .finished-objects-grid {
+    flex: 1;
+    align-content: flex-start;
+    overflow-y: auto;
+}
+
+/* Override finished-objects-total inside drawer */
+.fo-drawer .finished-objects-total {
+    flex-shrink: 0;
+}
+
+/* Hide the old standalone finished-objects-section since we use the drawer now */
+.finished-objects-section {
+    display: none !important;
+}
+
+
+/* Yarn Bowl — compact panel on the left */
+.yarn-bowl-section {
+    flex-shrink: 0;
+    width: auto;
+}
+
+.yarn-bowl-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px 28px;
+    flex: 1;
+    align-content: center;
+}
+
+.yarn-token-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Wrapper positions the count badge on top of the yarn ball */
+.yarn-token-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.yarn-token-img {
+    width: clamp(144px, 16vw, 216px);
+    height: clamp(144px, 16vw, 216px);
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px var(--shadow));
+    transition: transform 0.2s ease;
+}
+
+.yarn-token-img:hover { transform: scale(1.1); }
+
+.yarn-count {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-system);
+    font-size: clamp(36px, 5vw, 54px);
+    font-weight: 800;
+    color: #fff;
+    text-shadow:
+        1px  1px 0 rgba(0,0,0,0.7),
+       -1px -1px 0 rgba(0,0,0,0.7),
+        1px -1px 0 rgba(0,0,0,0.7),
+       -1px  1px 0 rgba(0,0,0,0.7),
+        0    2px 4px rgba(0,0,0,0.5);
+    pointer-events: none;
+    line-height: 1;
+    z-index: 1;
+}
+
+/* Pulse animation when yarn count changes */
+@keyframes yarnPulse {
+    0%   { transform: translate(-50%, -50%) scale(1);   }
+    40%  { transform: translate(-50%, -50%) scale(1.5); color: #fff; text-shadow: 0 0 8px var(--accent), 1px 1px 0 rgba(0,0,0,0.7), -1px -1px 0 rgba(0,0,0,0.7); }
+    100% { transform: translate(-50%, -50%) scale(1);   }
+}
+
+.yarn-count.pulse {
+    animation: yarnPulse 0.5s ease;
+}
+
+.yarn-color-name {
+    font-family: var(--font-system);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+/* =================================================================
+   COLOR PICKER MODAL
+   For AnyColor / wild cards
+   ================================================================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(42, 30, 15, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: var(--panel);
+    border: 3px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+    text-align: center;
+    max-width: 400px;
+    position: relative;
+    overflow: hidden;
+}
+.modal-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png') center / cover no-repeat;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 14px;
+}
+.modal-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+.modal-title {
+    font-family: var(--font-system);
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.color-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.color-pick-btn {
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: #fff;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+.color-pick-btn:hover {
+    transform: scale(1.08);
+    border-color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+
+/* =================================================================
+   TAKE YARN CONFIRMATION MODAL
+   Shows a preview of what yarn the player will receive
+   ================================================================= */
+
+.confirm-take-content {
+    max-width: 440px;
+    min-width: 300px;
+}
+
+.confirm-take-body {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+/* Each selected card row */
+.confirm-card-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(196, 176, 144, 0.4);
+}
+
+.confirm-card-row:last-child {
+    border-bottom: none;
+}
+
+.confirm-card-thumb {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid var(--panel-border);
+    box-shadow: 0 2px 6px var(--shadow);
+    flex-shrink: 0;
+}
+
+.confirm-card-info {
+    flex: 1;
+}
+
+.confirm-card-name {
+    font-family: var(--font-system);
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.confirm-yarn-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.confirm-yarn-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.confirm-yarn-tag.wild-tag {
+    background: linear-gradient(135deg, #c0392b, #d4ac0d, #1e8449, #2874a6, #7d3c98);
+    background-size: 200% 200%;
+    animation: wildShimmer 3s ease infinite;
+}
+
+@keyframes wildShimmer {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Total summary bar */
+.confirm-total-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: rgba(90, 122, 58, 0.1);
+    border: 2px solid rgba(90, 122, 58, 0.25);
+    border-radius: 10px;
+}
+
+.confirm-total-label {
+    font-family: var(--font-system);
+    font-size: 18px;
+    color: var(--accent);
+    margin-right: 4px;
+}
+
+.confirm-take-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.confirm-take-buttons .btn {
+    min-width: 100px;
+    font-size: 18px;
+    padding: 8px 24px;
+}
+
+
+/* =================================================================
+   CRAFT CONFIRMATION MODAL
+   ================================================================= */
+
+.craft-confirm-content {
+    max-width: 400px;
+    min-width: 280px;
+}
+
+.craft-confirm-body {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.craft-confirm-item-img {
+    width: 80px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.craft-confirm-item-name {
+    font-family: var(--font-system);
+    font-size: 22px;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+.craft-confirm-cost {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    background: rgba(192, 57, 43, 0.08);
+    border: 2px solid rgba(192, 57, 43, 0.2);
+    border-radius: 10px;
+}
+
+.craft-confirm-cost-label {
+    width: 100%;
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+
+/* =================================================================
+   CRAFT COLOR PICKER MODAL
+   For general patterns — choose which yarn colors to spend
+   ================================================================= */
+
+.craft-color-content {
+    max-width: 420px;
+    min-width: 300px;
+}
+
+.craft-color-body {
+    margin-bottom: 16px;
+}
+
+.craft-color-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(196, 176, 144, 0.3);
+}
+
+.craft-color-row:last-child {
+    border-bottom: none;
+}
+
+.craft-color-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.craft-color-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.craft-color-label {
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.craft-color-available {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.craft-color-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.craft-color-controls button {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--panel-border);
+    border-radius: 6px;
+    background: var(--panel);
+    font-family: var(--font-system);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    color: var(--text);
+}
+
+.craft-color-controls button:hover {
+    background: var(--panel-hover);
+}
+
+.craft-color-controls button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.craft-color-count {
+    font-family: var(--font-system);
+    font-size: 18px;
+    color: var(--text);
+    min-width: 20px;
+    text-align: center;
+}
+
+.craft-color-summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px;
+    background: rgba(90, 122, 58, 0.1);
+    border: 2px solid rgba(90, 122, 58, 0.25);
+    border-radius: 8px;
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: var(--accent);
+}
+
+
+/* =================================================================
+   SESSION 5: ACTION SPACE SELECTOR
+   ================================================================= */
+
+/* Container for the 4 action space buttons */
+.action-space-choices {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    padding-top: 4px;
+}
+
+/* Individual action space button */
+.action-space-btn {
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    padding: 6px 14px;
+    flex: 1;
+    min-width: 100px;
+    max-width: 180px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
+}
+
+.action-space-btn:hover:not(:disabled) {
+    background: var(--accent-dark);
+    transform: scale(1.04);
+    box-shadow: 0 4px 14px var(--shadow-deep);
+}
+
+/* Unavailable space (used last turn) */
+.action-space-btn.action-space-unavailable {
+    background: var(--panel-border);
+    color: var(--text-muted);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* =================================================================
+   SESSION 5: ACTION CHIPS (turn status indicators)
+   ================================================================= */
+
+.action-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.action-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.shop-chip {
+    background: rgba(40, 116, 166, 0.15);
+    color: #2874a6;
+    border: 1.5px solid rgba(40, 116, 166, 0.3);
+}
+
+.craft-chip {
+    background: rgba(90, 122, 58, 0.15);
+    color: var(--accent-dark);
+    border: 1.5px solid rgba(90, 122, 58, 0.3);
+}
+
+.exchange-chip {
+    background: rgba(211, 84, 0, 0.15);
+    color: #d35400;
+    border: 1.5px solid rgba(211, 84, 0, 0.3);
+}
+
+.done-chip {
+    background: rgba(90, 122, 58, 0.1);
+    color: var(--text-muted);
+    border: 1.5px solid rgba(196, 176, 144, 0.5);
+}
+
+
+/* =================================================================
+   SESSION 5: EXCHANGE MODAL
+   ================================================================= */
+
+.exchange-content {
+    max-width: 440px;
+    min-width: 320px;
+}
+
+.exchange-section {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(196, 176, 144, 0.4);
+}
+
+.exchange-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 4px;
+}
+
+.exchange-section-label {
+    font-family: var(--font-system);
+    font-size: 18px;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+}
+
+
+/* =================================================================
+   SESSION 6: BAZAAR EVENT & SR INDICATORS
+   ================================================================= */
+
+/* Event card — orange pulsing border so it's instantly recognisable */
+.bazaar-slot.bazaar-event {
+    border-color: #e67e22;
+    box-shadow:
+        0 0 0 2px #e67e22,
+        0 0 14px rgba(230, 126, 34, 0.5);
+    animation: eventPulse 1.8s ease-in-out infinite;
+    cursor: default;
+}
+
+.bazaar-slot.bazaar-event:hover {
+    transform: none;
+}
+
+@keyframes eventPulse {
+    0%, 100% { box-shadow: 0 0 0 2px #e67e22, 0 0 10px rgba(230,126,34,0.4); }
+    50%        { box-shadow: 0 0 0 3px #e67e22, 0 0 22px rgba(230,126,34,0.7); }
+}
+
+/* SR card — purple pulsing border */
+.bazaar-slot.bazaar-sr {
+    border-color: #8e44ad;
+    box-shadow:
+        0 0 0 2px #8e44ad,
+        0 0 14px rgba(142, 68, 173, 0.5);
+    animation: srPulse 1.8s ease-in-out infinite;
+    cursor: default;
+}
+
+.bazaar-slot.bazaar-sr:hover {
+    transform: none;
+}
+
+@keyframes srPulse {
+    0%, 100% { box-shadow: 0 0 0 2px #8e44ad, 0 0 10px rgba(142,68,173,0.4); }
+    50%        { box-shadow: 0 0 0 3px #8e44ad, 0 0 22px rgba(142,68,173,0.7); }
+}
+
+
+/* =================================================================
+   SESSION 6: ACTION BAR — EVENT WARNINGS & BONUSES
+   ================================================================= */
+
+.event-warning {
+    width: 100%;
+    background: rgba(192, 57, 43, 0.12);
+    border: 2px solid rgba(192, 57, 43, 0.35);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: var(--color-error);
+    text-align: center;
+}
+
+.event-bonus {
+    width: 100%;
+    background: rgba(39, 174, 96, 0.12);
+    border: 2px solid rgba(39, 174, 96, 0.35);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: #27ae60;
+    text-align: center;
+}
+
+/* Session 10: Tangled Cat visual indicator */
+.tangled-cat-warning {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.tangled-cat-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
+    animation: catWiggle 1.5s ease-in-out infinite;
+}
+@keyframes catWiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+}
+
+/* SR count chip in action bar */
+.sr-chip {
+    background: rgba(142, 68, 173, 0.15);
+    color: #7d3c98;
+    border: 1.5px solid rgba(142, 68, 173, 0.3);
+}
+
+
+/* =================================================================
+   SESSION 17: GAME MOMENT MODAL
+   Prominent announcement overlay for key game moments:
+   project completion, SR crafting, event reveals, SR awards.
+   ================================================================= */
+
+.game-moment-overlay {
+    z-index: 110;
+    background: rgba(20, 14, 6, 0.75);
+}
+
+.game-moment-content {
+    background: var(--panel);
+    border: 3px solid var(--gold);
+    border-radius: 18px;
+    padding: 28px 36px 24px;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.5), 0 0 40px rgba(196, 164, 105, 0.15);
+    text-align: center;
+    max-width: 380px;
+    min-width: 280px;
+    position: relative;
+    overflow: visible;
+    animation: momentAppear 0.35s ease-out;
+}
+
+.game-moment-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png') center / cover no-repeat;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 16px;
+}
+
+.game-moment-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes momentAppear {
+    0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.game-moment-title {
+    font-family: 'SantElia', var(--font-system);
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--text);
+    line-height: 1.2;
+    text-align: left;
+    margin-bottom: 12px;
+}
+
+.game-moment-badge {
+    position: absolute;
+    top: -12px;
+    right: -10px;
+    font-family: var(--font-system);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    color: #fff;
+    background: var(--accent);
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.6);
+    z-index: 10;
+}
+
+.game-moment-badge.moment-project  { background: #6a8c3a; }
+.game-moment-badge.moment-sr       { background: #b57730; }
+.game-moment-badge.moment-event    { background: #8b5c9e; }
+.game-moment-badge.moment-favorite { background: var(--color-error); }
+
+/* Player name — sits above the name+badge header */
+.game-moment-player {
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+    text-align: left;
+}
+
+.game-moment-card {
+    display: block;
+    width: clamp(120px, 28vw, 200px);
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    border: 2px solid var(--panel-border);
+    margin: 0 auto 24px;
+}
+
+/* Point tag inside game moment title — ensure rotation and vertical alignment */
+.game-moment-title .pt-tag {
+    transform: rotate(-6deg);
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.game-moment-desc {
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+/* Player name highlight in game moment descriptions */
+.game-moment-desc .player-name {
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* Yarn dot icons in game moment descriptions */
+.gm-yarn-dots {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.gm-yarn-dot {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    vertical-align: middle;
+}
+
+.gm-yarn-dot-neutral {
+    background-color: #7a6b5a;
+    border-color: rgba(255,255,255,0.7);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* Session 18: Rainbow gradient dot for "any color" yarn requirements */
+.gm-yarn-dot-rainbow {
+    background: conic-gradient(
+        #e74c3c 0deg,
+        #f39c12 60deg,
+        #f1c40f 120deg,
+        #2ecc71 180deg,
+        #3498db 240deg,
+        #9b59b6 300deg,
+        #e74c3c 360deg
+    );
+    border-color: rgba(255,255,255,0.8);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* Small spacer between color groups in yarn dot rows */
+.gm-yarn-gap {
+    display: inline-block;
+    width: 6px;
+}
+
+/* Label sits on its own line below the dots */
+.gm-yarn-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 4px;
+}
+
+.game-moment-btn {
+    font-size: 15px;
+    padding: 8px 28px;
+}
+
+/* Point tag in game moment title — reuses .pt-tag from scorecard */
+
+/* Confetti layer — sits behind the modal content inside the overlay */
+.gm-confetti-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+/* Modal content must sit above confetti */
+.game-moment-overlay .game-moment-content {
+    z-index: 2;
+}
+
+.gm-confetti-piece {
+    position: absolute;
+    top: -12px;
+    opacity: 0;
+    animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+    0% {
+        opacity: 1;
+        transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(calc(100vh + 20px)) translateX(var(--drift, 0px)) rotate(720deg) scale(0.5);
+    }
+}
+
+
+/* =================================================================
+   SESSION 6: EVENT MODAL
+   ================================================================= */
+
+.event-modal-content {
+    max-width: 360px;
+    min-width: 280px;
+    text-align: center;
+}
+
+.event-card-img {
+    display: block;
+    width: clamp(100px, 22vw, 160px);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px var(--shadow-deep);
+    border: 2px solid var(--panel-border);
+    margin: 0 auto 14px;
+}
+
+.event-modal-msg {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 6px;
+}
+
+.event-extra-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.event-extra-yarn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: rgba(90, 122, 58, 0.1);
+    border: 2px solid rgba(90, 122, 58, 0.25);
+    border-radius: 10px;
+    width: 100%;
+}
+
+.event-extra-label {
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: var(--accent);
+    margin-right: 2px;
+}
+
+
+/* =================================================================
+   SESSION 6: SPECIAL REQUEST TAKE MODAL
+   ================================================================= */
+
+.sr-take-content {
+    max-width: 340px;
+    min-width: 260px;
+    text-align: center;
+}
+
+.sr-take-card-img {
+    display: block;
+    width: clamp(110px, 25vw, 180px);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px var(--shadow-deep);
+    border: 3px solid #8e44ad;
+    margin: 0 auto 12px;
+}
+
+.sr-take-name {
+    font-family: var(--font-system);
+    font-size: 22px;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.sr-take-favorite {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #f9ca24, #f0932b);
+    color: #fff;
+    font-family: var(--font-system);
+    font-size: 15px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(240, 147, 43, 0.4);
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.sr-take-yarn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: rgba(192, 57, 43, 0.08);
+    border: 2px solid rgba(192, 57, 43, 0.2);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.sr-take-points {
+    font-family: var(--font-system);
+    font-size: 20px;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+
+/* -- SR Give Picker (Session 9b) -- */
+.sr-give-picker {
+    text-align: center;
+    margin-top: 10px;
+}
+.sr-give-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+.sr-give-player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.sr-give-player-btn {
+    padding: 10px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.sr-give-player-btn:hover {
+    background: rgba(210, 160, 60, 0.12);
+    border-color: var(--accent);
+}
+
+/* =================================================================
+   SESSION 6: YARN SALE MODAL
+   ================================================================= */
+
+.yarn-sale-content {
+    max-width: 380px;
+    min-width: 280px;
+    text-align: center;
+}
+
+.event-yarn-pick-summary {
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 12px;
+}
+
+.event-yarn-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* Pick buttons reuse .color-pick-btn style from the color picker modal */
+.event-pick-btn {
+    font-size: 14px;
+    padding: 8px 6px;
+}
+
+.event-pick-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+    transform: none !important;
+}
+
+.event-chosen-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    background: rgba(90, 122, 58, 0.1);
+    border: 2px solid rgba(90, 122, 58, 0.25);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.event-pick-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+
+/* =================================================================
+   SESSION 6: DONATE MODAL
+   ================================================================= */
+
+.donate-content {
+    max-width: 360px;
+    min-width: 280px;
+}
+
+/* Color picker grid inside donate modal (reuses .color-pick-btn) */
+.donate-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 10px 0 6px;
+}
+
+.donate-note {
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+
+/* =================================================================
+   SESSION 6: CRAFT CIRCLE MODAL
+   Each player may craft 1 item immediately using their current stash
+   ================================================================= */
+
+.craft-circle-content {
+    max-width: 480px;
+    min-width: 300px;
+    text-align: center;
+}
+
+/* Session 22+23: Event modal titles with card art (Craft Circle, Yarn Sale, Donate) */
+.craft-circle-title,
+.event-modal-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-title-card {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.craft-circle-msg {
+    font-family: var(--font-system);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    background: rgba(90, 122, 58, 0.08);
+    border: 1.5px solid rgba(90, 122, 58, 0.2);
+    border-radius: 8px;
+}
+
+/* Grid of craftable items during Craft Circle */
+.craft-circle-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+
+/* Shown when player can't afford anything */
+.craft-circle-empty {
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-muted);
+    padding: 14px 10px;
+    text-align: center;
+}
+
+/* Items in the Craft Circle grid reuse .craft-slot + .craft-tile styles.
+   We just add a teal accent border to distinguish from normal crafting. */
+.craft-circle-grid .craft-slot {
+    border: 2px solid rgba(39, 174, 96, 0.4);
+    background: rgba(39, 174, 96, 0.06);
+}
+
+.craft-circle-grid .craft-slot:hover:not(.craft-slot-disabled) {
+    border-color: rgba(39, 174, 96, 0.75);
+    background: rgba(39, 174, 96, 0.12);
+}
+
+
+/* =================================================================
+   SESSION 22: OFF-TURN PLAYER CONTEXT
+   Contextual info shown in modals when a player acts off-turn.
+   Two modes: 'color-pick' (yarn bowl + patterns + SRs) and
+   'craft-circle' (yarn bowl + project progress).
+   ================================================================= */
+
+.otc-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+/* Player name header — SantElia treatment */
+.otc-player-name {
+    font-family: 'SantElia', var(--font-system);
+    font-weight: 800;
+    font-size: 20px;
+    text-align: center;
+    color: var(--text);
+    letter-spacing: 0.3px;
+    margin-bottom: -2px;
+}
+
+/* Yarn bowl strip — dark brown bg with token chips */
+.otc-bowl {
+    background: #5c4a38;
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.otc-bowl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.otc-bowl-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(240, 230, 210, 0.6);
+}
+
+.otc-bowl-total {
+    font-size: 10px;
+    color: rgba(240, 230, 210, 0.4);
+}
+
+.otc-bowl-chips {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.otc-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 20px;
+    padding: 3px 10px 3px 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.otc-chip img {
+    width: 20px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.otc-chip.zero { opacity: 0.3; }
+
+/* Section headers (Patterns / SRs) */
+.otc-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    padding-bottom: 2px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Pattern / SR card grids */
+.otc-pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.otc-sr-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+/* Individual need card — icon left, stacked name + dots right */
+.otc-need-card {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: white;
+    border-radius: 8px;
+    padding: 6px 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.otc-need-card img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.otc-need-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.otc-need-card-name {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.otc-need-card-dots {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+}
+
+/* Yarn cost dots — have (solid) and short (faded + pulsing red outline) */
+.otc-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.otc-dot.have {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+.otc-dot.short {
+    opacity: 0.3;
+    outline: 2px solid var(--color-error);
+    outline-offset: 1px;
+    animation: otc-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes otc-pulse {
+    0%, 100% { outline-color: rgba(192, 57, 43, 0.8); }
+    50% { outline-color: rgba(192, 57, 43, 0.25); }
+}
+
+/* Ready to craft — all yarn met */
+.otc-need-card.ready {
+    background: rgba(90, 122, 58, 0.08);
+    border: 1.5px solid rgba(90, 122, 58, 0.35);
+}
+
+/* Instruction divider before color picker */
+.otc-pick-instruction {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 6px 0 2px;
+    border-top: 1.5px solid rgba(0,0,0,0.08);
+    margin-top: 2px;
+}
+
+/* Project progress rows (craft-circle mode) */
+.otc-projects {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-top: 4px;
+    border-top: 1px dashed rgba(0,0,0,0.1);
+}
+
+.otc-project-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.otc-project-name {
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.otc-project-items {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.otc-proj-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    padding: 2px;
+}
+
+.otc-proj-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.otc-proj-item.have {
+    background: rgba(90, 122, 58, 0.18);
+    border: 1.5px solid var(--accent);
+}
+
+.otc-proj-item.need {
+    background: rgba(0,0,0,0.04);
+    border: 1.5px dashed rgba(0,0,0,0.18);
+    opacity: 0.35;
+    filter: saturate(0.3);
+}
+
+.otc-project-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    min-width: 24px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+
+/* =================================================================
+   SESSION 6: SPECIAL REQUESTS STRIP
+   ================================================================= */
+
+/* Outer strip — same feel as craft-strip */
+/* Session 15b: SR strip hidden — SRs now shown via board overlay thumbnails + detail panel */
+.sr-strip {
+    display: none !important;
+    width: 100%;
+    max-width: 1100px;
+    background-color: var(--panel);
+    background-image:
+        linear-gradient(135deg, rgba(142, 68, 173, 0.1) 0%, transparent 100%),
+        url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-repeat: repeat;
+    background-size: auto, 220px 220px;
+    background-blend-mode: normal, multiply;
+    border: 2px solid rgba(142, 68, 173, 0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.sr-strip .section-label {
+    color: #8e44ad;
+    border-color: rgba(142, 68, 173, 0.25);
+}
+
+.sr-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+/* SR craft slot — slightly larger image than regular craft slots */
+.sr-craft-slot {
+    min-width: 90px;
+}
+
+.sr-img {
+    width: clamp(70px, 9vw, 120px) !important;
+    border: 2px solid rgba(142, 68, 173, 0.4) !important;
+}
+
+/* Favorite heart inline in SR name */
+.sr-favorite-heart {
+    color: var(--color-error-light);
+    font-size: 1em;
+    vertical-align: middle;
+    cursor: help;
+}
+
+/* Points label under SR in the grid */
+.sr-points-label {
+    font-family: var(--font-system);
+    font-size: 14px;
+    color: #8e44ad;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Points display in craft confirm modal for SRs */
+.sr-points-confirm {
+    font-family: var(--font-system);
+    font-size: 18px;
+    color: #8e44ad;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+
+/* =================================================================
+   SESSION 6: POINT TAG — FAVORITE BONUS
+   Golden glow variant for crafted Favorite Request items
+   ================================================================= */
+
+/* Session 10: Favorite & project tag variants — glow effects on the real asset */
+.point-tag-favorite {
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.35))
+            drop-shadow(0 0 6px rgba(249, 202, 36, 0.6));
+}
+.point-tag-favorite .point-tag-value {
+    color: #8B6914;
+    font-weight: 900;
+}
+
+.point-tag-project {
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.35))
+            drop-shadow(0 0 6px rgba(108, 92, 231, 0.5));
+}
+.point-tag-project .point-tag-value {
+    color: #5b4cdb;
+    font-weight: 900;
+}
+
+.finished-project-wrap {
+    border: 2px solid #6c5ce7;
+    border-radius: 6px;
+    padding: 2px;
+    background: rgba(108, 92, 231, 0.08);
+}
+
+.finished-project-card {
+    border-radius: 4px;
+}
+
+
+/* =================================================================
+   SESSION 10b: FINISHED OBJECTS — ZONE LAYOUT + STACKING
+   ================================================================= */
+
+/* Session 15c: FO zones — Items → SRs → Projects */
+.fo-zone {
+    width: 100%;
+    margin-bottom: 21px;
+}
+
+.fo-zone:last-child {
+    margin-bottom: 0;
+}
+
+.fo-zone-header {
+    font-family: var(--font-system);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    padding: 0 4px 4px;
+    border-bottom: 1px solid rgba(196, 176, 144, 0.4);
+    margin-bottom: 8px;
+}
+
+.fo-zone-items {
+    display: flex;
+    gap: 10px 20px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* Projects & SRs: tighter horizontal gap + larger card width */
+.fo-zone-projects .fo-zone-items,
+.fo-zone-srs .fo-zone-items {
+    gap: 10px 6px;
+}
+.fo-zone-projects .finished-item,
+.fo-zone-srs .finished-item {
+    width: 94px !important;
+}
+
+/* Session 15c: Item tokens — silhouette shapes, no borders */
+.fo-item-token .finished-item {
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: drop-shadow(0 2px 4px rgba(58, 46, 31, 0.4));
+}
+
+/* Per-item size tweaks */
+.fo-item-token .finished-item[alt="Scarf"] { width: 50px !important; }
+.fo-item-token .finished-item[alt="Bear"] { width: 50px !important; }
+.fo-item-token .finished-item[alt="Blanket"] { width: 76px !important; }
+
+/* Stacked duplicate: layered drop-shadows for depth */
+.fo-stacked {
+    position: relative;
+}
+
+.fo-stack-bg {
+    display: none;
+}
+
+.fo-stacked.fo-item-token .finished-item {
+    filter: drop-shadow(3px 3px 0px rgba(160, 140, 110, 0.5))
+            drop-shadow(6px 6px 0px rgba(160, 140, 110, 0.3))
+            drop-shadow(0 2px 4px rgba(58, 46, 31, 0.4));
+}
+
+.fo-stacked .finished-item {
+    position: relative;
+    z-index: 1;
+}
+
+/* Count badge — bottom-left of items */
+.fo-count-badge {
+    position: absolute;
+    bottom: 2px;
+    left: 2px;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-system);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 8px;
+    z-index: 3;
+    box-shadow: 0 1px 4px var(--shadow);
+    line-height: 1.3;
+}
+
+/* Session 15c: Hover zoom — all items, projects, SRs */
+.finished-item-wrap {
+    z-index: 1;
+}
+.finished-item-wrap:hover {
+    z-index: 100;
+}
+.finished-item-wrap .finished-item {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+.finished-item-wrap .finished-item:hover {
+    transform: scale(2.2);
+    z-index: 100;
+    position: relative;
+}
+.fo-zone:has(.finished-item:hover),
+.fo-drawer .finished-objects-grid:has(.finished-item:hover),
+.fo-zone-items:has(.finished-item:hover) {
+    overflow: visible;
+}
+
+/* Session 15c: Hover point tag for item tokens — appears after zoom */
+.fo-hover-tag {
+    position: absolute;
+    top: -55px;
+    right: -65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 44px 6px 18px;
+    background: url('../Other Images Textures Details/Details and Borders/PointTag-CMYK.png') center/contain no-repeat;
+    width: 120px;
+    height: 42px;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    z-index: 200;
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.35));
+    transform: rotate(20deg);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+.fo-hover-tag.visible { opacity: 1; }
+.fo-hover-tag-num {
+    display: inline-block;
+    transform: rotate(-30deg);
+    margin-left: 4px;
+    margin-top: 10px;
+}
+
+/* Session 15c: Total badge — point tag in drawer header */
+.finished-objects-total.has-points {
+    background: url('../Other Images Textures Details/Details and Borders/PointTag-CMYK.png') center/contain no-repeat !important;
+    width: 162px !important;
+    height: 55px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 44px 6px 18px;
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text);
+    filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.3));
+    transform: rotate(20deg);
+    position: absolute;
+    top: 4px;
+    right: -30px;
+    z-index: 9;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+.fo-total-num {
+    display: inline-block;
+    transform: rotate(-30deg);
+    margin-left: -4px;
+    margin-top: 8px;
+}
+
+/* Zone-specific accents */
+.fo-zone-projects .fo-zone-header {
+    color: #6c5ce7;
+}
+
+.fo-zone-srs .fo-zone-header {
+    color: var(--accent-dark);
+}
+
+
+/* =================================================================
+   SESSION 7: PROJECT STRIP
+   ================================================================= */
+
+.project-strip {
+    width: 100%;
+    max-width: 1100px;
+    background: linear-gradient(135deg,
+        rgba(201, 168, 76, 0.12) 0%,
+        var(--panel) 100%);
+    border: 2px solid rgba(201, 168, 76, 0.4);
+    border-radius: 12px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.project-strip .section-label {
+    color: var(--gold);
+    border-color: rgba(201, 168, 76, 0.3);
+}
+
+.project-grid {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.project-deck-count {
+    text-align: center;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Individual project card in the strip */
+.project-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: var(--panel);
+    border: 2px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-width: 120px;
+    max-width: 180px;
+    cursor: default;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.project-card.project-completable {
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.35);
+    animation: pulse-gold 2s ease-in-out infinite;
+}
+
+@keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.2); }
+    50%       { box-shadow: 0 0 18px rgba(201, 168, 76, 0.5); }
+}
+
+.project-card-img {
+    width: clamp(80px, 11vw, 140px);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow);
+    border: 1.5px solid var(--panel-border);
+}
+
+.project-card-name {
+    font-family: var(--font-system);
+    font-size: 15px;
+    color: var(--text);
+    text-align: center;
+    font-weight: 700;
+}
+
+.project-card-req {
+    font-family: var(--font-system);
+    font-size: 12px;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.4;
+}
+
+.project-card-pts {
+    font-family: var(--font-system);
+    font-size: 16px;
+    color: var(--text-light);
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: rgba(90, 122, 58, 0.1);
+}
+
+.project-card-pts.project-pts-ready {
+    background: rgba(201, 168, 76, 0.2);
+    color: var(--gold);
+}
+
+
+/* =================================================================
+   SESSION 7: RESTOCK ACTIONS BAR
+   Buttons for Finish Project / Learn Pattern / Frog It
+   ================================================================= */
+
+.restock-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px 0 4px;
+    width: 100%;
+}
+
+/* Accent button variant — warm gold for restock session actions */
+.btn-accent {
+    background: linear-gradient(135deg, #c9a84c, #b8922e);
+    color: #fff;
+    border-color: #b8922e;
+    font-size: 13px;
+    padding: 6px 14px;
+}
+
+.btn-accent:hover {
+    background: linear-gradient(135deg, #d4b055, #c9a84c);
+}
+
+/* Warn button variant — muted red for destructive/cautious actions */
+.btn-warn {
+    background: linear-gradient(135deg, #7f8c8d, #6c7a7b);
+    color: #fff;
+    border-color: #6c7a7b;
+    font-size: 13px;
+    padding: 6px 14px;
+}
+
+.btn-warn:hover {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+}
+
+
+/* =================================================================
+   SESSION 7: FINISH PROJECT MODAL
+   ================================================================= */
+
+.finish-project-content {
+    max-width: 480px;
+    min-width: 300px;
+    text-align: left;
+}
+
+.restock-modal-msg {
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    background: rgba(201, 168, 76, 0.1);
+    border: 1.5px solid rgba(201, 168, 76, 0.25);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.finish-project-list,
+.learn-pattern-list,
+.frog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.finish-project-row,
+.learn-tile-row,
+.frog-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--panel);
+    border: 2px solid var(--panel-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.finish-project-row:hover,
+.learn-tile-row:hover,
+.frog-row:hover {
+    border-color: var(--gold);
+    background: var(--panel-hover);
+}
+
+.finish-project-img,
+.frog-item-img {
+    width: clamp(60px, 9vw, 90px);
+    border-radius: 8px;
+    box-shadow: 0 3px 10px var(--shadow);
+    border: 1.5px solid var(--panel-border);
+    flex-shrink: 0;
+}
+
+.finish-project-info,
+.frog-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.finish-project-name,
+.frog-item-name {
+    font-family: var(--font-system);
+    font-size: 17px;
+    color: var(--text);
+    font-weight: 700;
+}
+
+.finish-project-req {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.finish-project-pts {
+    font-family: var(--font-system);
+    font-size: 15px;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.frog-item-yarn {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+
+/* =================================================================
+   SESSION 7: LEARN PATTERN MODAL
+   ================================================================= */
+
+.learn-pattern-content {
+    max-width: 520px;
+    min-width: 300px;
+    text-align: left;
+}
+
+.learn-tile-imgs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.learn-tile-img {
+    width: clamp(45px, 6vw, 70px);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 1.5px solid var(--panel-border);
+}
+
+.learn-tile-arrow {
+    font-size: 20px;
+    color: var(--text-muted);
+}
+
+.learn-tile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.learn-tile-name {
+    font-family: var(--font-system);
+    font-size: 17px;
+    color: var(--text);
+    font-weight: 700;
+}
+
+.learn-tile-trade-in {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-error);
+    margin-bottom: 2px;
+}
+
+.learn-tile-cost {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.learn-tile-after {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+
+/* =================================================================
+   SESSION 7: FROG IT MODAL
+   ================================================================= */
+
+.frog-it-content {
+    max-width: 440px;
+    min-width: 280px;
+    text-align: left;
+}
+
+.frog-confirm-note {
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+/* =================================================================
+   SESSION 7: COMPLETED PROJECT POINTS BADGE
+   ================================================================= */
+
+.proj-pts-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(201, 168, 76, 0.18);
+    border: 1.5px solid rgba(201, 168, 76, 0.4);
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-size: 13px;
+    font-family: var(--font-system);
+    color: var(--gold);
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+
+/* =================================================================
+   SESSION 8: PROJECT BOARD OVERLAY
+   Positions 3 face-up project cards over the designated card slots
+   in the bottom section of the board image (same overlay approach
+   used for Bazaar cards). The board image's bottom ~28% contains
+   an embroidery-hoop zone on the left and 3 landscape card slots
+   on the right — this overlay sits directly on top of those slots.
+   ================================================================= */
+
+/* 3-column grid overlay aligned with the board's project card zones */
+.project-board-overlay {
+    position: absolute;
+    /* Session 15c: ghost card outlines on board art:
+       Cards at x=30.5-50.4%, 51.9-71.8%, 73.2-93.1%; y=77-96.2% */
+    top: 77%;
+    left: 31%;
+    width: 62%;
+    height: 19.5%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0 2.5%;
+    padding: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Individual project card slot — must stretch to fill grid cell */
+.project-overlay-slot {
+    border-radius: 8px;
+    overflow: visible;           /* Session 19: allow hover preview to overflow above */
+    pointer-events: auto;
+    cursor: default;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    background: rgba(0, 0, 0, 0.04);
+    min-height: 0;
+    align-self: stretch;
+    box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+.project-overlay-slot > img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    display: block;
+    border-radius: 5px;
+    clip-path: inset(0 round 5px);  /* Session 19: clip image edges since parent is overflow:visible */
+}
+
+/* Empty project slot (before deck is dealt or after deck runs out) */
+.project-overlay-slot.project-slot-empty {
+    border: 2.5px dashed rgba(245, 230, 200, 0.35);
+    background: rgba(0, 0, 0, 0.07);
+}
+
+/* Completable project — golden glow matches existing pulse-gold animation */
+.project-overlay-slot.project-completable {
+    border-color: var(--gold);
+    box-shadow:
+        0 0 0 1px var(--gold),
+        0 0 18px var(--gold-glow),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* Small points badge pinned to bottom-right of each overlay card */
+.project-pts-overlay {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(30, 24, 14, 0.72);
+    color: #f5e6c8;
+    font-family: var(--font-system);
+    font-size: clamp(10px, 1.3vw, 16px);
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 8px;
+    pointer-events: none;
+    line-height: 1.4;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+}
+
+.project-overlay-slot.project-completable .project-pts-overlay {
+    background: rgba(201, 168, 76, 0.85);
+    color: #fff;
+}
+
+/* Session 19: Project card hover preview — just an enlarged card image */
+.project-hover-preview {
+    position: absolute;
+    z-index: 20;
+    display: none;
+    pointer-events: none;
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 0, 0, 0.25);
+    width: clamp(180px, 18vw, 260px);
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: hidden;
+}
+.project-hover-preview.preview-visible {
+    display: block;
+}
+.project-hover-preview img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    clip-path: none;
+    border-radius: 8px;
+    display: block;
+    margin: 0;
+}
+
+/* Deck count badge — floats over the embroidery hoop area (bottom-left of board) */
+.project-deck-badge {
+    position: absolute;
+    bottom: 7%;
+    left: 2%;
+    width: 22%;
+    text-align: center;
+    font-family: var(--font-system);
+    font-size: clamp(10px, 1.4vw, 18px);
+    color: rgba(245, 230, 200, 0.88);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.75);
+    pointer-events: none;
+    z-index: 2;
+    line-height: 1.3;
+}
+
+
+/* =================================================================
+   SESSION 7: NON-SPECIFIC SR COST DISPLAY
+   ================================================================= */
+
+.sr-cost-desc {
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+
+/* =================================================================
+   SESSION 9b: AI LOG OVERLAY
+   Floating panel showing AI actions step-by-step.
+   ================================================================= */
+
+.ai-log-overlay {
+    position: fixed;
+    top: 130px;
+    left: 24px;                 /* Session 15b: moved from right to left */
+    width: 320px;
+    max-height: 70vh;
+    background: rgba(30, 30, 40, 0.95);
+    border: 2px solid var(--accent, #d4a04a);
+    border-radius: 14px;
+    padding: 16px 18px;
+    z-index: 90;  /* below modal overlays (z-index: 100) */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    overflow-y: auto;
+}
+
+/* Session 15b: AI log header with minimize toggle */
+.ai-log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.ai-log-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent, #d4a04a);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-log-title::before {
+    content: '🤖';
+}
+
+.ai-log-toggle {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.ai-log-toggle:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+/* Minimized state: hide messages, compact the panel */
+.ai-log-overlay.minimized {
+    padding: 10px 14px;
+    max-height: none;
+    width: auto;
+    min-width: 200px;
+}
+.ai-log-overlay.minimized .ai-log-header {
+    margin-bottom: 0;
+}
+.ai-log-overlay.minimized .ai-log-messages {
+    display: none;
+}
+
+.ai-log-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ai-log-msg {
+    font-size: 13px;
+    color: #e0ddd5;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent, #d4a04a);
+    opacity: 0;
+    animation: aiMsgFadeIn 0.35s ease forwards;
+}
+
+@keyframes aiMsgFadeIn {
+    from { opacity: 0; transform: translateX(12px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.ai-log-msg.ai-msg-thinking {
+    color: #aaa;
+    font-style: italic;
+    border-left-color: #666;
+}
+
+.ai-log-msg.ai-msg-done {
+    border-left-color: #4caf50;
+    color: #8bc34a;
+    font-weight: 600;
+}
+
+/* Setup screen: AI badge and slot styling */
+.setup-ai-badge {
+    display: inline-block;
+    background: var(--accent, #d4a04a);
+    color: #1a1a2e;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+}
+
+.setup-ai-slot {
+    opacity: 0.85;
+}
+
+.setup-ai-character {
+    font-size: 14px;
+    color: var(--text-muted, #999);
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* -- Spectate toggle -- */
+.setup-spectate-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted, #999);
+    cursor: pointer;
+}
+.setup-spectate-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent, #d4a04a);
+}
+
+/* -- In-game takeover button -- */
+/* Session 15b: Takeover bar hidden — moved to opponent peek panel */
+.takeover-bar {
+    display: none !important;
+}
+.takeover-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 2px solid var(--accent, #d4a04a);
+    background: rgba(26, 26, 46, 0.9);
+    color: var(--accent, #d4a04a);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.15s;
+}
+.takeover-btn:hover {
+    background: rgba(210, 160, 60, 0.15);
+}
+.takeover-btn.active {
+    background: var(--accent, #d4a04a);
+    color: #1a1a2e;
+}
+
+.session-footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+/* Game footer — copyright and credits (left-right split) */
+.game-footer {
+    padding: 8px 24px 6px;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(196, 176, 144, 0.25);
+    margin-top: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.footer-left-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.footer-publisher-logo {
+    width: 32px;
+    height: auto;
+}
+.footer-center {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.footer-cat {
+    width: 28px;
+    height: auto;
+    opacity: 0.4;
+}
+.footer-build {
+    font-size: 9px;
+    color: var(--text-muted);
+    opacity: 0.5;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.footer-copyright {
+    font-size: 11px;
+    color: var(--text-light);
+    letter-spacing: 0.3px;
+}
+.footer-rights {
+    font-size: 10px;
+    color: var(--text-light);
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+}
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.footer-right-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+}
+.footer-logo {
+    width: 32px;
+    height: auto;
+    opacity: 0.55;
+}
+.footer-tagline {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--text-light);
+    letter-spacing: 0.5px;
+}
+.footer-credits {
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+.footer-credits strong {
+    color: var(--text);
+    font-weight: 700;
+}
+.footer-divider {
+    color: var(--gold);
+    font-size: 14px;
+}
+
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+
+/* Session 15b: Wide-screen side-by-side layout — game board left, player board right */
+@media (min-width: 1400px) {
+    .game-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto auto;
+        grid-template-areas:
+            "action action"
+            "board  player"
+            "sr     sr"
+            "feed   feed";
+        gap: 14px;
+        align-items: start;
+    }
+    .board-section {
+        grid-area: board;
+        max-height: 70vh;
+        justify-self: end;
+        align-self: start;
+    }
+    .board-section .board-image {
+        max-height: 65vh;
+        max-width: 100%;
+    }
+    .player-area {
+        grid-area: player;
+        max-width: none;
+        justify-self: start;
+    }
+    .action-bar-wrapper {
+        grid-area: action;
+        max-width: 1100px;
+        justify-self: center;
+    }
+    .sr-strip {
+        grid-area: sr;
+        max-width: 800px;
+        justify-self: center;
+    }
+    /* Session 15b: Move AI log to bottom-left so it doesn't cover the board */
+    .ai-log-overlay {
+        top: auto;
+        bottom: 24px;
+        left: 24px;
+        max-height: 40vh;
+    }
+}
+
+@media (max-width: 880px) {
+    .player-area {
+        flex-direction: column;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .player-board-wrapper {
+        width: 100%;
+        max-width: 500px;
+    }
+    .yarn-bowl-section {
+        width: 100%;
+        max-width: 300px;
+    }
+    .finished-objects-section {
+        max-width: 100%;
+        min-width: auto;
+    }
+    .finished-objects-grid {
+        flex-direction: row;
+    }
+    .craft-grid {
+        flex-wrap: wrap;
+    }
+    .panel {
+        width: 100%;
+        max-width: 400px;
+    }
+    .action-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .ab-middle {
+        flex-basis: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* =====================================================================
+   SESSION 8c: Unique Ability & Game Over Styles
+   ===================================================================== */
+
+/* Bonus chip (craftAnyColors indicator) */
+.action-chip.bonus-chip {
+    background: linear-gradient(135deg, #e74c3c, #f39c12, #2ecc71, #3498db, #9b59b6);
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Session 15b: Tangled cat chip — persistent warning during playerActions */
+.action-chip.tangled-chip {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--color-error);
+    border: 1.5px solid rgba(231, 76, 60, 0.4);
+}
+.tangled-cat-icon-sm {
+    width: 16px; height: 16px; object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+/* Game Over scoring modal */
+/* Legacy game-over styles removed in Session 15 — replaced by enhanced scorecard */
+
+
+/* =====================================================================
+   SESSION 9: SETUP SCREEN
+   ===================================================================== */
+
+.setup-content {
+    max-width: 560px;
+    text-align: center;
+}
+
+.setup-logo {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.setup-logo-img {
+    max-width: 200px;
+    height: auto;
+}
+
+.setup-edition {
+    font-family: var(--font-system);
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.setup-section {
+    margin: 16px 0;
+}
+
+.setup-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.setup-player-count {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.setup-count-btn {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--border, #bbb);
+    border-radius: 10px;
+    background: var(--panel);
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.setup-count-btn:hover {
+    border-color: var(--gold);
+    background: #fffbe6;
+}
+
+.setup-count-btn.active {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: #fff;
+}
+
+/* --- Character Picker: 2-column tile grid (3-col for 5-6 players) --- */
+.setup-players {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    min-height: 140px;
+}
+
+/* Session 15b: Widen for 5-6 players */
+.setup-content.setup-wide {
+    max-width: 820px;
+}
+.setup-players.setup-3col {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+.setup-players.setup-3col .setup-tile {
+    padding: 10px;
+}
+
+.setup-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    border: 2px solid var(--panel-border);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.4);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.setup-tile:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+.setup-tile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.setup-tile-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.setup-tile-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.setup-tile-type {
+    font-family: 'SantElia', var(--font-system);
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.setup-tile-player {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.setup-type-select {
+    font-family: 'SantElia', var(--font-system);
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 6px;
+    padding: 2px 4px;
+    width: 100%;
+    cursor: pointer;
+}
+
+.setup-character-select {
+    padding: 7px 10px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 8px;
+    font-size: 0.9em;
+    background: rgba(255,255,255,0.7);
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Session 10b: Human/AI toggle button on each setup seat */
+.setup-ai-toggle {
+    display: inline-block;
+    font-family: var(--font-system);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border: 1.5px solid;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: background 0.15s, color 0.15s;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.setup-ai-toggle-human {
+    background: rgba(90, 122, 58, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.setup-ai-toggle-human:hover {
+    background: rgba(90, 122, 58, 0.3);
+}
+
+.setup-ai-toggle-ai {
+    background: rgba(70, 130, 180, 0.15);
+    border-color: rgba(70, 130, 180, 0.6);
+    color: rgba(70, 130, 180, 0.9);
+}
+
+.setup-ai-toggle-ai:hover {
+    background: rgba(70, 130, 180, 0.3);
+}
+
+/* Session 11: Removed legacy .setup-player-slot, .setup-player-label, .setup-char-row */
+
+
+/* =====================================================================
+   SESSION 9: PASS DEVICE SCREEN
+   ===================================================================== */
+
+.pass-device-content {
+    max-width: 400px;
+    text-align: center;
+    padding: 40px 30px;
+}
+
+.pass-device-icon {
+    font-size: 3em;
+    margin-bottom: 10px;
+}
+
+.pass-device-content .modal-title {
+    font-size: 1.6em;
+    margin-bottom: 8px;
+}
+
+.pass-device-msg {
+    color: var(--text-muted, #666);
+    margin-bottom: 10px;
+}
+
+
+/* =====================================================================
+   SESSION 9: PLAYER INDICATOR BANNER
+   ===================================================================== */
+
+.player-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 8px 16px;
+    background: var(--gold);
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    border-radius: 0 0 10px 10px;
+    margin: 0 auto 8px;
+    max-width: 600px;
+}
+
+.player-indicator-name {
+    font-size: 1.1em;
+}
+
+.player-indicator-turn {
+    font-size: 0.9em;
+    opacity: 0.85;
+}
+
+
+/* =====================================================================
+   SESSION 9: EMPTY BAZAAR SLOT (clickable in MP)
+   ===================================================================== */
+
+.bazaar-slot.empty.empty-clickable {
+    cursor: pointer;
+    border: 2px dashed var(--gold);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.bazaar-slot.empty.empty-clickable:hover {
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.bazaar-slot.empty.empty-clickable.selected {
+    border-color: var(--gold);
+    background: rgba(255, 200, 50, 0.25);
+    box-shadow: 0 0 8px rgba(200, 160, 0, 0.4);
+}
+
+.bazaar-slot.empty .empty-label {
+    font-style: normal;
+}
+
+
+/* =====================================================================
+   SESSION 9: PLAYER SELECTOR (Tangled Cat, Donate target)
+   ===================================================================== */
+
+.player-selector-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.player-select-btn {
+    min-width: 100px;
+}
+
+
+/* =====================================================================
+   SESSION 9: MULTIPLAYER GAME OVER SCORES
+   ===================================================================== */
+
+.mp-score-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+}
+
+.mp-score-block:last-child {
+    border-bottom: none;
+}
+
+.mp-score-name {
+    font-weight: 700;
+    font-size: 1.1em;
+    min-width: 100px;
+}
+
+.mp-score-total {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 70px;
+}
+
+.mp-score-detail {
+    font-size: 0.8em;
+    color: var(--text-muted, #666);
+    flex-basis: 100%;
+}
+
+/* ── Game Over Score Table ── */
+/* =====================================================================
+   SESSION 15: ENHANCED SCORECARD (replaces Session 10 game-over styles)
+   ===================================================================== */
+
+/* Winner banner */
+.go-winner-banner {
+    text-align: center;
+    padding: 12px 0 16px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid rgba(0,0,0,0.08);
+}
+.go-winner-medal { font-size: 2.2em; line-height: 1; }
+.go-winner-name { font-size: 1.5em; font-weight: 800; color: #2c3e50; margin: 4px 0; }
+.go-winner-who { font-weight: 600; font-size: 0.7em; color: var(--text-muted, #8a7a6a); }
+.go-winner-score {
+    font-size: 1.1em; font-weight: 600; color: var(--gold, #d4883a);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+/* Point tag asset — reusable inline tag */
+.pt-tag {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: url('../Other Images Textures Details/Details and Borders/PointTag-CMYK.png') center/contain no-repeat;
+    filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
+    transform: rotate(6deg); flex-shrink: 0;
+}
+.pt-tag-value {
+    font-weight: 800; color: var(--walnut, #3e2c1c);
+    margin-right: 4px; margin-top: 1px;
+    text-shadow: 0 0 2px rgba(255,255,255,0.4);
+}
+.pt-tag.pt-lg { width: 48px; height: 32px; }
+.pt-tag.pt-lg .pt-tag-value { font-size: 16px; margin-right: 7px; }
+.pt-tag.pt-md { width: 36px; height: 24px; }
+.pt-tag.pt-md .pt-tag-value { font-size: 13px; margin-right: 5px; }
+.pt-tag.pt-sm { width: 28px; height: 18px; }
+.pt-tag.pt-sm .pt-tag-value { font-size: 10px; margin-right: 4px; }
+.pt-tag.pt-total { width: 84px; height: 56px; }
+.pt-tag.pt-total .pt-tag-value { font-size: 23px; margin-right: 17px; }
+.pt-tag.pt-penalty { filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3)) hue-rotate(-30deg) saturate(1.5); }
+.pt-tag.pt-penalty .pt-tag-value { color: #c0392b; }
+.pt-tag.pt-winner { filter: drop-shadow(0 0 6px rgba(212, 136, 58, 0.6)) drop-shadow(1px 2px 3px rgba(0,0,0,0.3)); }
+
+/* Game stats bar */
+.go-game-stats {
+    display: flex; justify-content: center; gap: 24px;
+    padding: 10px 0; margin-bottom: 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.go-stat { text-align: center; }
+.go-stat-value { font-size: 1.1em; font-weight: 700; color: var(--walnut, #3e2c1c); }
+.go-stat-label { font-size: 0.75em; color: var(--text-muted, #8a7a6a); text-transform: uppercase; letter-spacing: 0.3px; }
+
+/* Score table */
+.go-score-table {
+    width: 100%; border-collapse: collapse; font-size: 0.9em;
+    margin-top: 10px; table-layout: fixed;
+}
+.go-cat-header {
+    background: #f5f0ea; border-bottom: 2px solid #d5c8b8; width: 150px;
+}
+.go-player-header {
+    background: #f5f0ea; padding: 8px 10px; text-align: center;
+    border-bottom: 2px solid #d5c8b8; border-left: 1px solid rgba(0,0,0,0.06);
+    vertical-align: bottom;
+}
+.go-player-header .go-player-rank { display: block; font-size: 1.3em; line-height: 1; margin-bottom: 4px; }
+.go-player-type-icon { display: block; width: 28px; height: 28px; object-fit: contain; margin: 4px auto 3px; }
+.go-player-header .go-player-charname { display: block; font-size: 0.9em; font-weight: 800; color: var(--walnut, #3e2c1c); line-height: 1.2; }
+.go-player-header .go-player-type { display: block; font-size: 0.7em; font-weight: 600; color: var(--text-muted, #8a7a6a); font-style: italic; }
+.go-player-header .go-player-who {
+    display: inline-block; font-size: 0.65em; font-weight: 700; color: #fff;
+    border-radius: 3px; padding: 1px 5px; margin-top: 3px; letter-spacing: 0.3px;
+}
+.go-who-human { background: var(--sage, #7a9a6d); }
+.go-who-ai { background: #8a7a6a; }
+.go-player-header .go-player-time { display: block; font-size: 0.65em; color: var(--text-muted, #8a7a6a); margin-top: 2px; }
+
+/* Category cells */
+.go-cat-cell {
+    text-align: left; padding: 10px 10px; border-bottom: 1px solid #eee;
+    white-space: normal; line-height: 1.3; vertical-align: middle;
+}
+.go-cat-inner { display: flex; align-items: center; gap: 4px; }
+.go-cat-icons { display: flex; align-items: center; flex-shrink: 0; gap: 2px; }
+.go-cat-icon { font-size: 1.05em; line-height: 1; }
+.go-cat-icon-img { width: 20px; height: 20px; object-fit: contain; opacity: 0.7; }
+.go-cat-label { font-weight: 600; color: #555; font-size: 0.9em; line-height: 1.3; }
+
+/* Value cells */
+.go-val-cell {
+    text-align: center; padding: 10px 10px; border-bottom: 1px solid #eee;
+    font-weight: 600; font-size: 1.15em; color: var(--walnut, #3e2c1c);
+    overflow: hidden; text-overflow: ellipsis; vertical-align: middle;
+    border-left: 1px solid rgba(0,0,0,0.06);
+}
+.go-penalty { color: var(--color-error-light); }
+.go-fav-detail { font-size: 0.8em; color: var(--text-muted, #8a7a6a); }
+.go-fav-yes { color: var(--sage, #7a9a6d); font-weight: 600; }
+
+/* Expandable category rows */
+.go-cat-expandable { cursor: pointer; user-select: none; transition: background 0.15s; }
+.go-cat-expandable:hover { background: rgba(0,0,0,0.03); }
+.go-expand-arrow {
+    display: inline-block; font-size: 0.65em; color: var(--text-muted, #8a7a6a);
+    margin-right: 4px; transition: transform 0.15s; vertical-align: middle;
+}
+
+/* Detail rows */
+.go-detail-row .go-detail-cat-cell { padding: 0; border-bottom: 1px solid #eee; vertical-align: top; }
+.go-detail-row .go-detail-td {
+    padding: 8px 8px 10px; border-bottom: 1px solid #eee;
+    border-left: 1px solid rgba(0,0,0,0.06); vertical-align: top; text-align: center;
+}
+
+/* Crafted item chips */
+.go-detail-chips { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+.go-detail-chip {
+    font-size: 0.7em; font-weight: 500; color: var(--walnut, #3e2c1c);
+    background: rgba(0,0,0,0.05); padding: 2px 7px; border-radius: 10px; white-space: nowrap;
+}
+.go-crafted-item {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.72em; font-weight: 600; color: var(--walnut, #3e2c1c);
+    background: rgba(0,0,0,0.04); padding: 3px 8px 3px 3px; border-radius: 12px; white-space: nowrap;
+}
+.go-crafted-icon { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
+.go-crafted-count { font-weight: 800; color: var(--gold, #d4883a); margin-left: 1px; }
+
+/* Learned tiles detail */
+.go-learned-tiles { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.go-learned-tile {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(0,0,0,0.03); border-radius: 8px; padding: 4px 8px 4px 4px;
+}
+.go-learned-tile.is-learned { background: rgba(122, 154, 109, 0.12); border: 1px solid rgba(122, 154, 109, 0.25); }
+.go-learned-tile.not-learned { opacity: 0.5; border: 1px solid transparent; }
+.go-tile-img { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
+.go-tile-info { font-size: 0.7em; line-height: 1.3; }
+.go-tile-name { font-weight: 700; color: var(--walnut, #3e2c1c); }
+.go-tile-status { font-size: 0.85em; font-weight: 600; }
+.go-tile-status.learned { color: var(--sage, #7a9a6d); }
+.go-tile-status.unlearned { color: var(--text-muted, #8a7a6a); }
+
+/* SR cards in detail row */
+.go-sr-cards { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.go-sr-card {
+    position: relative; width: 80px; border-radius: 6px; overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12); transition: transform 0.15s ease; cursor: pointer;
+}
+.go-sr-card:hover { transform: scale(1.05); }
+.go-sr-card img { display: block; width: 100%; height: auto; }
+.go-sr-card.completed { border: 2px solid var(--sage, #7a9a6d); }
+.go-sr-card.completed .go-sr-badge {
+    position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--sage, #7a9a6d); color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.go-sr-card.failed { border: 2px solid var(--color-error-light); }
+.go-sr-card.failed img { filter: saturate(0.35) brightness(0.85); }
+.go-sr-card.failed .go-sr-badge {
+    position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--color-error-light); color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.go-sr-fav-badge {
+    position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; color: var(--color-error-light); font-size: 13px;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.go-sr-card-label {
+    padding: 4px 6px; background: rgba(255,255,255,0.95); text-align: center;
+    font-size: 0.7em; font-weight: 600; color: var(--walnut, #3e2c1c); line-height: 1.2;
+}
+
+/* Compact SR lines for many SRs */
+.go-sr-lines { display: flex; flex-direction: column; gap: 3px; }
+.go-sr-line { display: flex; align-items: center; gap: 5px; font-size: 0.7em; padding: 2px 0; }
+.go-sr-line-status {
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.go-sr-line-status.completed { background: var(--sage, #7a9a6d); }
+.go-sr-line-status.failed { background: var(--color-error-light); }
+.go-sr-line-name {
+    font-weight: 600; color: var(--walnut, #3e2c1c); flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.go-sr-line-fav { color: var(--color-error-light); font-size: 0.9em; }
+
+/* SR card zoom lightbox */
+.go-sr-zoom-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 9999; justify-content: center; align-items: center; cursor: pointer;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.go-sr-zoom-backdrop.active { display: flex; }
+.go-sr-zoom-inner { position: relative; max-width: 380px; width: 90vw; animation: srZoomIn 0.2s ease-out; }
+.go-sr-zoom-inner img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 16px 64px rgba(0,0,0,0.5); }
+.go-sr-zoom-label { text-align: center; margin-top: 12px; color: #fff; font-size: 1.1em; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+.go-sr-zoom-label .zoom-fav { color: #ff6b6b; margin-right: 4px; }
+.go-sr-zoom-label .zoom-status { display: block; font-size: 0.75em; font-weight: 500; margin-top: 4px; opacity: 0.8; }
+.go-sr-zoom-hint { text-align: center; color: rgba(255,255,255,0.4); font-size: 0.75em; margin-top: 8px; }
+@keyframes srZoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Total row */
+.go-total-row { border-top: 2px solid #ccc; }
+.go-total-label { font-weight: 800 !important; font-size: 1.3em; color: #2c3e50; border-bottom: none; padding: 18px 10px !important; vertical-align: middle; }
+.go-total-val {
+    text-align: center; padding: 18px 10px; font-weight: 800; font-size: 1.4em; color: #2c3e50;
+    border-bottom: none; border-left: 1px solid rgba(0,0,0,0.06); vertical-align: middle;
+}
+
+/* Dynamic modal widths per player count — Session 15 */
+.go-modal-wide { max-height: 75vh; overflow-y: auto; margin-top: 100px; }
+.go-modal-wide.go-players-2 { max-width: 520px !important; min-width: 420px; }
+.go-modal-wide.go-players-3 { max-width: 660px !important; min-width: 500px; }
+.go-modal-wide.go-players-4 { max-width: 800px !important; min-width: 600px; }
+.go-modal-wide.go-players-5 { max-width: 940px !important; min-width: 700px; }
+.go-modal-wide.go-players-6 { max-width: 1080px !important; min-width: 800px; }
+
+/* Session 15c: New Game button on scorecard */
+.go-new-game-btn {
+    background: var(--accent) !important;
+    color: #fff !important;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.go-new-game-btn:hover {
+    background: var(--accent-dark) !important;
+}
+
+
+/* =====================================================================
+   STICKY NAV BAR
+   ===================================================================== */
+
+.nav-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 16px;
+    background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    color: #f0e6d2;
+    font-family: var(--font-system);
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.nav-logo {
+    height: 34px;
+    width: auto;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
+
+.nav-title {
+    font-family: 'VintageAvalanche', serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    letter-spacing: 1px;
+}
+
+.nav-edition {
+    font-family: var(--font-system);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(240, 230, 210, 0.5);
+    white-space: nowrap;
+}
+
+.nav-center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.nav-player-name {
+    font-weight: 700;
+    color: #fff;
+}
+
+.nav-phase {
+    font-weight: 400;
+    color: rgba(240, 230, 210, 0.7);
+    font-size: 13px;
+}
+
+/* Session 15: Running game clock */
+.nav-timer {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(240, 230, 210, 0.55);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+}
+
+.nav-right {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.nav-menu-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #f0e6d2;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    line-height: 1;
+}
+
+.nav-menu-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.nav-menu-dropdown {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: var(--panel);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    min-width: 160px;
+    overflow: hidden;
+    z-index: 600;
+}
+
+.nav-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.nav-menu-item:hover {
+    background: rgba(201, 168, 76, 0.15);
+}
+
+/* Push page content below sticky nav */
+.game-layout {
+    padding-top: 56px;
+}
+
+/* Hide old game header & player indicator (replaced by nav) */
+.game-header,
+.player-indicator {
+    display: none !important;
+}
+
+
+/* =====================================================================
+   SESSION 12: PLAYER AVATAR STRIP
+   Horizontal strip below the nav bar showing all players as small cards.
+   Click a non-active player to open the opponent board viewer.
+   ===================================================================== */
+
+.player-strip {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    z-index: 490;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: linear-gradient(180deg, #4a3c2a 0%, #5a4a35 100%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.player-strip-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px 5px 8px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.12);
+    border-left: 4px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.12s;
+    min-width: 140px;
+    position: relative;
+}
+
+.player-strip-card:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+}
+
+.player-strip-card.active {
+    border-color: var(--gold);
+    background: rgba(201, 168, 76, 0.2);
+    cursor: default;
+    box-shadow: 0 0 8px rgba(201, 168, 76, 0.3);
+}
+
+.player-strip-card.active:hover {
+    transform: none;
+}
+
+.player-strip-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: rgba(255,255,255,0.1);
+    padding: 2px;
+    flex-shrink: 0;
+}
+
+.player-strip-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.player-strip-name {
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-strip-detail {
+    font-family: var(--font-system);
+    font-size: 10px;
+    color: rgba(240, 230, 210, 0.6);
+    white-space: nowrap;
+}
+
+.player-strip-ai-badge {
+    font-size: 9px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: rgba(240, 230, 210, 0.7);
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+.player-strip-yarn-dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 1px;
+}
+
+.player-strip-yarn-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+/* Push game layout down to accommodate strip */
+.game-layout.has-strip {
+    padding-top: 120px;
+}
+
+
+
+/* =====================================================================
+   SESSION 12: OPPONENT BOARD VIEWER — Slide-out Panel
+   Shows an opponent's full board state when you click their avatar card.
+   ===================================================================== */
+
+.opponent-panel-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 700;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.opponent-panel-backdrop.visible {
+    opacity: 1;
+}
+
+.opponent-panel {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    max-width: 90vw;
+    height: 100vh;
+    z-index: 710;
+    background: var(--panel);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.35);
+    overflow-y: auto;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.opponent-panel.open {
+    right: 0;
+}
+
+.opponent-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
+    color: #f0e6d2;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    border-top: 4px solid rgba(255,255,255,0.2);
+}
+
+.opponent-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-system);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.opponent-panel-title img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    padding: 2px;
+}
+
+.opponent-panel-close {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #f0e6d2;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    transition: background 0.15s;
+}
+
+.opponent-panel-close:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.opponent-panel-body {
+    padding: 16px;
+}
+
+/* --- Sections inside the opponent panel --- */
+
+.opp-section {
+    margin-bottom: 16px;
+}
+
+.opp-section-label {
+    font-family: var(--font-system);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+.opp-last-space {
+    font-family: var(--font-system);
+    font-size: 14px;
+    color: var(--text);
+    padding: 8px 12px;
+    background: rgba(90, 122, 58, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(90, 122, 58, 0.2);
+}
+
+.opp-last-space .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Yarn bowl grid in opponent panel */
+.opp-yarn-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.opp-yarn-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-family: var(--font-system);
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    min-width: 52px;
+    justify-content: center;
+}
+
+.opp-yarn-chip .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    border: 1px solid rgba(0,0,0,0.15);
+}
+
+.opp-yarn-total {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* Items / SRs / Projects in opponent panel */
+.opp-item-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.opp-item-card {
+    width: 60px;
+    text-align: center;
+}
+
+.opp-item-card img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+}
+
+.opp-item-card .name {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.opp-item-card .pts {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* Pattern tiles in opponent panel */
+.opp-pattern-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.opp-pattern-tile {
+    text-align: center;
+    width: 70px;
+}
+
+.opp-pattern-tile img {
+    width: 66px;
+    height: auto;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.opp-pattern-tile .status {
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+.opp-pattern-tile .status.learned {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.opp-pattern-tile .status.unlearned {
+    color: var(--text-muted);
+}
+
+/* Score summary in opponent panel */
+.opp-score-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(201, 168, 76, 0.12);
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    border-radius: 8px;
+}
+
+.opp-score-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+}
+
+.opp-score-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.opp-score-breakdown {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+.opp-empty-msg {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* Session 15b: Take Over button in opponent panel */
+.opp-takeover-section {
+    padding: 16px 0 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    text-align: center;
+}
+.opp-takeover-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: 2px solid var(--gold);
+    background: var(--gold);
+    color: var(--text);
+    font-family: var(--font-system);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    width: 100%;
+}
+.opp-takeover-btn:hover {
+    background: #d4a843;
+    border-color: #d4a843;
+}
+.opp-takeover-btn.active {
+    background: transparent;
+    color: var(--gold);
+    border-color: var(--gold);
+    font-style: italic;
+}
+
+
+/* =============================================================
+   SESSION 13: TURN HISTORY PANEL
+   Slide-out panel from right side, similar to opponent panel.
+   ============================================================= */
+
+.history-panel-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 700;
+}
+
+.history-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 380px;
+    max-width: 90vw;
+    height: 100vh;
+    z-index: 710;
+    background: var(--panel);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.history-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
+    color: #f0e6d2;
+    border-top: 4px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+}
+
+.history-panel-title {
+    font-family: var(--font-system);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.history-panel-close {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #f0e6d2;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    transition: background 0.15s;
+}
+
+.history-panel-close:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.history-panel-body {
+    padding: 12px 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.history-empty {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.history-round-group {
+    margin-bottom: 16px;
+}
+
+.history-round-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--walnut);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 0 4px 2px;
+    border-bottom: 2px solid var(--sage);
+    margin-bottom: 8px;
+}
+
+.history-entry {
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.history-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.history-turn-num {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.history-player-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--walnut);
+}
+
+.history-player-type {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.history-ai-badge {
+    font-size: 10px;
+    background: rgba(0,0,0,0.12);
+    color: var(--text-muted);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.history-entry-space {
+    font-size: 12px;
+    color: var(--sage);
+    font-weight: 600;
+    margin-bottom: 4px;
+    padding-left: 11px;
+}
+
+.history-action-list {
+    margin: 0;
+    padding-left: 24px;
+    font-size: 12px;
+    color: var(--walnut);
+    line-height: 1.5;
+}
+
+.history-action-list li {
+    margin-bottom: 1px;
+}
+
+
+/* =============================================================
+   SESSION 13: EXPERT 3-SPACE ACTION GRID
+   Override the 2×2 grid when only 3 spaces are present.
+   ============================================================= */
+
+/* Session 20: Expert 3-space layout — rectangular zones, absolute positioned */
+.action-grid-overlay.action-grid-3 {
+    display: block; /* override CSS grid for absolute positioning */
+}
+
+.action-grid-overlay.action-grid-3 .action-grid-btn {
+    position: absolute;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Zone 0: Shop 2 — top-left */
+.action-grid-overlay.action-grid-3 .action-grid-btn:nth-child(1) {
+    top: 17%;
+    left: 5%;
+    width: 40%;
+    height: 30%;
+}
+
+/* Zone 1: Take 5 + Craft 1 Any — right side */
+.action-grid-overlay.action-grid-3 .action-grid-btn:nth-child(2) {
+    top: 28%;
+    right: 5%;
+    width: 40%;
+    height: 55%;
+}
+
+/* Zone 2: Craft 3 — bottom-left */
+.action-grid-overlay.action-grid-3 .action-grid-btn:nth-child(3) {
+    bottom: 5%;
+    left: 5%;
+    width: 40%;
+    height: 40%;
+}
+
+
+/* =============================================================
+   SESSION 13: TAKE 5 ANY COLORS MODAL
+   Color picker for Expert's unique ability.
+   ============================================================= */
+
+.take5-content {
+    min-width: 320px;
+    text-align: center;
+}
+
+.take5-picks {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.take5-token {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.take5-token-empty {
+    background: #ccc;
+    color: #888;
+    text-shadow: none;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.take5-color-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.take5-color-btn {
+    padding: 8px 16px;
+    border: 2px solid rgba(0,0,0,0.15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.take5-color-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+}
+
+
+/* =====================================================================
+   SESSION 22: ACTION FEED TICKER
+   Replaces the old AI overlay panel. Shows rolling game actions for ALL players.
+   ===================================================================== */
+
+/* Action feed container — horizontal ticker strip below game area */
+.action-feed {
+    background: linear-gradient(135deg, #2a2218 0%, #3a3025 50%, #2a2218 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 1100px;
+    margin: 4px auto 0;
+    overflow: hidden;
+    position: relative;
+}
+
+/* "Feed" label on the left */
+.feed-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Scrollable entries area */
+.feed-entries {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    flex: 1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 2px 0;
+}
+.feed-entries::-webkit-scrollbar { display: none; }
+
+/* Individual action entry chip */
+.feed-entry {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 4px 10px 4px 6px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+    border-left: 3px solid #999;
+    font-size: 13px;
+    color: #d4cfc5;
+    white-space: nowrap;
+}
+
+/* Newest entry highlight */
+.feed-entry.feed-latest {
+    background: rgba(255,255,255,0.1);
+    color: #f0ece4;
+}
+
+/* Player name inside entry */
+.feed-player {
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* Action text */
+.feed-action {
+    font-size: 12px;
+    color: #b8b0a2;
+}
+.feed-entry.feed-latest .feed-action {
+    color: #d4cfc5;
+}
+
+/* Separator dot between entries */
+.feed-sep {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    flex-shrink: 0;
+}
+
+/* Right-edge fade for overflow hint */
+.action-feed::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to right, transparent, #2a2218);
+    pointer-events: none;
+    border-radius: 0 10px 10px 0;
+}
+
+/* "History" expand button */
+.feed-expand {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 5px;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    z-index: 2;
+    white-space: nowrap;
+    font-family: var(--font-system);
+}
+.feed-expand:hover {
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.8);
+}
+
+/* Character type accent colors for border-left + player name */
+.feed-type-thriftyShopper    { border-left-color: #7ab850; }
+.feed-type-masterCrafter     { border-left-color: #5ba0d0; }
+.feed-type-colorSpecialist   { border-left-color: #e8a030; }
+.feed-type-yarnSpinner       { border-left-color: #b07050; }
+.feed-type-maker             { border-left-color: #c9a832; }
+.feed-type-expert            { border-left-color: #8868c0; }
+
+.feed-type-thriftyShopper .feed-player  { color: #7ab850; }
+.feed-type-masterCrafter .feed-player   { color: #5ba0d0; }
+.feed-type-colorSpecialist .feed-player { color: #e8a030; }
+.feed-type-yarnSpinner .feed-player     { color: #b07050; }
+.feed-type-maker .feed-player           { color: #c9a832; }
+.feed-type-expert .feed-player          { color: #8868c0; }
+
+/* Event entries — red accent */
+.feed-entry.feed-event-type {
+    border-left-color: #e06060;
+    background: rgba(224, 96, 96, 0.08);
+}
+.feed-entry.feed-event-type .feed-player { color: #e06060; }
+
+/* SR entries — gold accent */
+.feed-entry.feed-sr-type {
+    border-left-color: #c9a84c;
+    background: rgba(201, 168, 76, 0.08);
+}
+.feed-entry.feed-sr-type .feed-player { color: #c9a84c; }
+
+/* Project entries — green-gold accent */
+.feed-entry.feed-project-type {
+    border-left-color: #8bc34a;
+    background: rgba(139, 195, 74, 0.08);
+}
+.feed-entry.feed-project-type .feed-player { color: #8bc34a; }
+
+/* Wide-screen: action feed gets the "feed" grid area */
+@media (min-width: 1200px) {
+    .action-feed {
+        grid-area: feed;
+        justify-self: center;
+        max-width: 1100px;
+        width: 100%;
+    }
+}
+
+
+/* =====================================================================
+   SESSION 21: ACCESSIBILITY FEATURES
+   ===================================================================== */
+
+/* =================================================================
+   A1. COLORBLIND MODE — shape + pattern indicators for yarn colors
+   Toggled by adding .colorblind-mode to <body>.
+
+   Token shapes match the physical wood yarn tokens, which come in
+   3 silhouette families (by lobe count). Each pair shares a base
+   shape; one is solid, the other gets a stripe pattern overlay:
+
+     5-lobe (circle):   red = solid,   purple = horiz stripes
+     4-lobe (square):   blue = solid,  orange = diagonal stripes
+     3-lobe (egg):      yellow = solid, green = vertical stripes
+
+   Yarn bowl tokens are NOT overlaid — their physical shapes are
+   already distinct for colorblind differentiation.
+   ================================================================= */
+
+/* --- Colorblind dot base: ensure positioning --- */
+.colorblind-mode .craft-cost-dot,
+.colorblind-mode .gm-yarn-dot,
+.colorblind-mode .craft-color-dot,
+.colorblind-mode .opp-yarn-chip,
+.colorblind-mode .player-strip-dot,
+.colorblind-mode .go-yarn-dot {
+    position: relative;
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+}
+
+/* Slightly enlarge all dots for shape legibility */
+.colorblind-mode .craft-cost-dot {
+    width: 16px;
+    height: 16px;
+}
+.colorblind-mode .craft-board-overlay .craft-cost-dot {
+    width: 14px;
+    height: 14px;
+}
+.colorblind-mode .gm-yarn-dot {
+    width: 20px;
+    height: 20px;
+}
+.colorblind-mode .craft-color-dot {
+    width: 18px;
+    height: 18px;
+}
+
+/* ── 5-LOBE PAIR (circle silhouette) ── */
+
+/* --- RED: circle, solid fill (5-lobe token) --- */
+.colorblind-mode .craft-cost-dot[data-cb-color="red"],
+.colorblind-mode .gm-yarn-dot[data-cb-color="red"],
+.colorblind-mode .craft-color-dot[data-cb-color="red"],
+.colorblind-mode .opp-yarn-chip[data-cb-color="red"],
+.colorblind-mode .player-strip-dot[data-cb-color="red"],
+.colorblind-mode .go-yarn-dot[data-cb-color="red"] {
+    border-radius: 50%;
+}
+
+/* --- PURPLE: circle, horizontal stripes (5-lobe token) --- */
+.colorblind-mode .craft-cost-dot[data-cb-color="purple"],
+.colorblind-mode .gm-yarn-dot[data-cb-color="purple"],
+.colorblind-mode .craft-color-dot[data-cb-color="purple"],
+.colorblind-mode .opp-yarn-chip[data-cb-color="purple"],
+.colorblind-mode .player-strip-dot[data-cb-color="purple"],
+.colorblind-mode .go-yarn-dot[data-cb-color="purple"] {
+    border-radius: 50%;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.45) 3px,
+        rgba(255,255,255,0.45) 5px
+    );
+}
+
+/* ── 4-LOBE PAIR (square silhouette) ── */
+
+/* --- BLUE: square, solid fill (4-lobe token) --- */
+.colorblind-mode .craft-cost-dot[data-cb-color="blue"],
+.colorblind-mode .gm-yarn-dot[data-cb-color="blue"],
+.colorblind-mode .craft-color-dot[data-cb-color="blue"],
+.colorblind-mode .opp-yarn-chip[data-cb-color="blue"],
+.colorblind-mode .player-strip-dot[data-cb-color="blue"],
+.colorblind-mode .go-yarn-dot[data-cb-color="blue"] {
+    border-radius: 2px;
+}
+
+/* --- ORANGE: square, diagonal stripes (4-lobe token) --- */
+.colorblind-mode .craft-cost-dot[data-cb-color="orange"],
+.colorblind-mode .gm-yarn-dot[data-cb-color="orange"],
+.colorblind-mode .craft-color-dot[data-cb-color="orange"],
+.colorblind-mode .opp-yarn-chip[data-cb-color="orange"],
+.colorblind-mode .player-strip-dot[data-cb-color="orange"],
+.colorblind-mode .go-yarn-dot[data-cb-color="orange"] {
+    border-radius: 2px;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.45) 3px,
+        rgba(255,255,255,0.45) 5px
+    );
+}
+
+/* ── 3-LOBE PAIR (egg silhouette) ── */
+
+/* --- YELLOW: egg, solid fill (3-lobe token) --- */
+.colorblind-mode .craft-cost-dot[data-cb-color="yellow"],
+.colorblind-mode .gm-yarn-dot[data-cb-color="yellow"],
+.colorblind-mode .craft-color-dot[data-cb-color="yellow"],
+.colorblind-mode .opp-yarn-chip[data-cb-color="yellow"],
+.colorblind-mode .player-strip-dot[data-cb-color="yellow"],
+.colorblind-mode .go-yarn-dot[data-cb-color="yellow"] {
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+}
+
+/* --- GREEN: egg, vertical stripes (3-lobe token) --- */
+.colorblind-mode .craft-cost-dot[data-cb-color="green"],
+.colorblind-mode .gm-yarn-dot[data-cb-color="green"],
+.colorblind-mode .craft-color-dot[data-cb-color="green"],
+.colorblind-mode .opp-yarn-chip[data-cb-color="green"],
+.colorblind-mode .player-strip-dot[data-cb-color="green"],
+.colorblind-mode .go-yarn-dot[data-cb-color="green"] {
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    background-image: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.45) 3px,
+        rgba(255,255,255,0.45) 5px
+    );
+}
+
+/* --- Opponent yarn chips: slightly larger to show shape clearly --- */
+.colorblind-mode .opp-yarn-chip {
+    min-width: 30px;
+    min-height: 30px;
+}
+
+/* --- Player strip mini dots: smaller proportional adjustments --- */
+.colorblind-mode .player-strip-yarn-dot {
+    width: 10px;
+    height: 10px;
+}
+
+/* --- Color picker buttons: add shape indicator dot beside text --- */
+.colorblind-mode .color-pick-btn {
+    position: relative;
+}
+.colorblind-mode .color-pick-btn::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    vertical-align: middle;
+    border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+}
+/* Shape per color on picker buttons — matches lobe-pair system */
+/* 5-lobe pair: circle */
+.colorblind-mode .color-pick-btn[data-cb-color="red"]::before { border-radius: 50%; background: currentColor; }
+.colorblind-mode .color-pick-btn[data-cb-color="purple"]::before { border-radius: 50%; background: currentColor; background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.45) 2px, rgba(255,255,255,0.45) 3px); }
+/* 4-lobe pair: square */
+.colorblind-mode .color-pick-btn[data-cb-color="blue"]::before { border-radius: 2px; background: currentColor; }
+.colorblind-mode .color-pick-btn[data-cb-color="orange"]::before { border-radius: 2px; background: currentColor; background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.45) 2px, rgba(255,255,255,0.45) 3px); }
+/* 3-lobe pair: egg */
+.colorblind-mode .color-pick-btn[data-cb-color="yellow"]::before { border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%; background: currentColor; }
+.colorblind-mode .color-pick-btn[data-cb-color="green"]::before { border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%; background: currentColor; background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.45) 2px, rgba(255,255,255,0.45) 3px); }
+
+
+/* =================================================================
+   A2. KEYBOARD NAVIGATION — focus indicators + focus styles
+   ================================================================= */
+
+/* Visible focus ring on all interactive elements */
+*:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px rgba(201, 168, 76, 0.3);
+}
+
+/* Remove default outline when using mouse (keep for keyboard) */
+*:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Cards and slots get a stronger focus ring */
+.bazaar-slot:focus-visible,
+.craft-slot:focus-visible,
+.project-overlay-slot:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    box-shadow: 0 0 12px var(--gold-glow);
+    z-index: 10;
+}
+
+/* Action grid buttons */
+.action-grid-btn:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 0;
+    box-shadow: 0 0 16px var(--gold-glow);
+}
+
+/* Modal buttons */
+.btn:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    box-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* Player strip cards */
+.player-strip-card:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 1px;
+    box-shadow: 0 0 8px var(--gold-glow);
+}
+
+/* Nav menu items */
+.nav-menu-item:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: -2px;
+    background: var(--panel-hover);
+}
+
+/* Skip-to-content link (hidden until focused) */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: var(--gold);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    z-index: 9999;
+    text-decoration: none;
+    transition: top 0.2s;
+}
+.skip-link:focus {
+    top: 8px;
+}
+
+
+/* =================================================================
+   A3. REDUCED MOTION — respect prefers-reduced-motion
+   Disables animations/transitions while keeping functionality.
+   ================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    /* Keep opacity transitions for visibility toggling but make instant */
+    .ai-log-messages .ai-msg {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+
+    /* Disable specific named animations */
+    .tangled-cat-banner-img,
+    .tangled-cat-icon-sm {
+        animation: none !important;
+    }
+
+    .yarn-count.pulse {
+        animation: none !important;
+    }
+
+    .bazaar-slot:hover,
+    .craft-slot:hover,
+    .fo-item-token:hover .finished-item,
+    .project-hover-preview {
+        transform: none !important;
+    }
+
+    .game-moment-content {
+        animation: none !important;
+    }
+}
+
+
+/* =================================================================
+   A4. SCREEN READER — visually-hidden utility class
+   ================================================================= */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+
+/* =================================================================
+   A5. NAV MENU — colorblind toggle button styling
+   ================================================================= */
+
+.nav-menu-item.cb-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.nav-menu-item.cb-toggle .cb-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--text-muted);
+    transition: background 0.15s;
+}
+.colorblind-mode .nav-menu-item.cb-toggle .cb-indicator {
+    background: var(--accent);
+}
+
+
+/* =================================================================
+   A6. FOCUS TRAP OVERLAY — visual indicator for modal trapping
+   ================================================================= */
+
+.modal-overlay[aria-modal="true"]:focus-within {
+    /* Slight glow on modal when it has focus */
+}
+
+/* Ensure modal content can receive focus */
+.modal-content[tabindex] {
+    outline: none;
+}
+.modal-content[tabindex]:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 4px;
+    border-radius: 14px;
+}

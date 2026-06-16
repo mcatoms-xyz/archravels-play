@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArchRavels Online</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+
+        :root {
+            --ar-blue: #3769BE;
+            --ar-warm: #E8DDD3;
+            --ar-cream: #FFF8F0;
+            --ar-dark: #2C2C2C;
+            --ar-green: #4CAF50;
+            --ar-orange: #FF9800;
+            --ar-red: #E74C3C;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: var(--ar-cream);
+            color: var(--ar-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lobby-header {
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+        }
+
+        .lobby-header img {
+            height: 60px;
+            margin-bottom: 0.5rem;
+        }
+
+        .lobby-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ar-blue);
+            letter-spacing: 0.05em;
+        }
+
+        .lobby-header .subtitle {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        /* --- Screens --- */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 480px;
+            padding: 1.5rem;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* --- Entry Screen --- */
+        .entry-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+        }
+
+        .entry-card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--ar-blue);
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #666;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--ar-blue);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-primary {
+            background: var(--ar-blue);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--ar-blue);
+            border: 2px solid var(--ar-blue);
+        }
+
+        .btn-success {
+            background: var(--ar-green);
+            color: white;
+        }
+
+        .btn-small {
+            display: inline-block;
+            width: auto;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn + .btn { margin-top: 0.75rem; }
+
+        .or-divider {
+            text-align: center;
+            color: #aaa;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+        }
+
+        /* --- Room Screen --- */
+        .room-code-display {
+            text-align: center;
+            background: var(--ar-blue);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+        }
+
+        .room-code-display .label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+
+        .room-code-display .code {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+        }
+
+        .room-code-display .share-hint {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
+
+        .player-list {
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+
+        .player-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .player-list .player-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-list .player-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-host { background: var(--ar-blue); color: white; }
+        .badge-ai { background: var(--ar-orange); color: white; }
+        .badge-you { background: var(--ar-green); color: white; }
+
+        .player-list .remove-btn {
+            background: none;
+            border: none;
+            color: var(--ar-red);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.25rem;
+        }
+
+        .room-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .room-actions .btn { flex: 1; }
+
+        .status-msg {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            padding: 0.5rem;
+        }
+
+        .error-msg {
+            text-align: center;
+            color: var(--ar-red);
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            background: #fee;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: none;
+        }
+
+        /* --- Connecting overlay --- */
+        .connecting-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,248,240,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .connecting-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #ddd;
+            border-top-color: var(--ar-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Waiting screen --- */
+        .waiting-msg {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+
+        .waiting-msg .spinner {
+            margin: 0 auto 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lobby-header">
+        <img src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels" onerror="this.style.display='none'">
+        <h1>ArchRavels Online</h1>
+        <div class="subtitle">Play with friends over the web</div>
+    </div>
+
+    <!-- Connecting overlay -->
+    <div class="connecting-overlay" id="connectingOverlay">
+        <div class="spinner"></div>
+        <div id="connectingMsg">Connecting to server...</div>
+        <div id="debugLog" style="margin-top:1rem;font-size:0.7rem;color:#888;max-width:400px;text-align:left;font-family:monospace;white-space:pre-wrap;"></div>
+    </div>
+
+    <!-- Error message -->
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- ===== ENTRY SCREEN ===== -->
+    <div class="screen active" id="screenEntry">
+        <div class="entry-card">
+            <h2>Your Name</h2>
+            <div class="input-group">
+                <input type="text" id="inputPlayerName" placeholder="Enter your name" maxlength="20" autofocus>
+            </div>
+
+            <button class="btn btn-primary" onclick="Lobby.createRoom()">Create a Room</button>
+
+            <div class="or-divider">— or —</div>
+
+            <div class="input-group">
+                <label>Room Code</label>
+                <input type="text" id="inputRoomCode" placeholder="ABCD" maxlength="4"
+                       style="text-transform:uppercase; text-align:center; font-size:1.5rem; letter-spacing:0.2em">
+            </div>
+            <button class="btn btn-secondary" onclick="Lobby.joinRoom()">Join Room</button>
+        </div>
+
+        <div style="text-align:center; margin-top:1rem;">
+            <a href="index.html" style="color:#888; font-size:0.85rem;">Play locally instead</a>
+        </div>
+    </div>
+
+    <!-- ===== ROOM SCREEN ===== -->
+    <div class="screen" id="screenRoom">
+        <div class="room-code-display">
+            <div class="label">Room Code</div>
+            <div class="code" id="displayRoomCode">----</div>
+            <div class="share-hint">Share this code with friends to join</div>
+        </div>
+
+        <ul class="player-list" id="playerList">
+            <!-- Populated dynamically -->
+        </ul>
+
+        <div class="room-actions" id="hostActions" style="display:none">
+            <button class="btn btn-secondary btn-small" onclick="Lobby.addAI()">+ Add Computer Player</button>
+        </div>
+
+        <div id="startGameArea" style="display:none">
+            <button class="btn btn-success" onclick="Lobby.startGame()">Start Game</button>
+        </div>
+
+        <div class="waiting-msg" id="waitingMsg" style="display:none">
+            <div class="spinner"></div>
+            <div>Waiting for host to start the game...</div>
+        </div>
+    </div>
+
+    <!-- ===== STARTING SCREEN ===== -->
+    <div class="screen" id="screenStarting">
+        <div class="waiting-msg">
+            <div class="spinner"></div>
+            <div>Starting game...</div>
+        </div>
+    </div>
+
+    <!-- Socket.io client (served by the server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/network.js"></script>
+
+    <script>
+    var Lobby = {
+
+        aiCount: 0,
+
+        init: function() {
+            // Show connecting overlay
+            document.getElementById('connectingOverlay').classList.add('active');
+            var msgEl = document.getElementById('connectingMsg');
+
+            // Check if Socket.io loaded
+            if (typeof io === 'undefined') {
+                msgEl.textContent = 'Error: Socket.io library failed to load. Try refreshing.';
+                return;
+            }
+
+            msgEl.textContent = 'Connecting to server...';
+
+            // Connect to server
+            Network.connect();
+
+            // Show real-time connection status
+            Network.onConnectionError = function(err) {
+                msgEl.textContent = 'Connection error: ' + err;
+            };
+
+            // Wait for connection
+            var checkInterval = setInterval(function() {
+                if (Network.connected) {
+                    clearInterval(checkInterval);
+                    document.getElementById('connectingOverlay').classList.remove('active');
+                }
+            }, 100);
+
+            // Timeout after 8 seconds
+            setTimeout(function() {
+                clearInterval(checkInterval);
+                if (!Network.connected) {
+                    document.getElementById('connectingMsg').textContent = 'Having trouble connecting...';
+                    // Give it 5 more seconds
+                    setTimeout(function() {
+                        if (!Network.connected) {
+                            document.getElementById('connectingOverlay').classList.remove('active');
+                            Lobby.showError('Could not connect to server. Try refreshing the page.');
+                        }
+                    }, 5000);
+                }
+            }, 8000);
+
+            // Wire network callbacks
+            Network.onLobbyUpdate = function(players) {
+                Lobby.renderPlayerList(players);
+            };
+
+            Network.onGameStarted = function(gameState, players) {
+                Lobby.goToGame(gameState, players);
+            };
+
+            // onConnectionError already wired above with visible status
+
+            // Enter key handling
+            document.getElementById('inputPlayerName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') Lobby.createRoom();
+            });
+            document.getElementById('inputRoomCode').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') Lobby.joinRoom();
+            });
+        },
+
+        showScreen: function(id) {
+            document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+            document.getElementById(id).classList.add('active');
+        },
+
+        showError: function(msg) {
+            var el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(function() { el.style.display = 'none'; }, 4000);
+        },
+
+        getName: function() {
+            var name = document.getElementById('inputPlayerName').value.trim();
+            if (!name) {
+                Lobby.showError('Please enter your name');
+                return null;
+            }
+            return name;
+        },
+
+        createRoom: function() {
+            var name = this.getName();
+            if (!name) return;
+
+            Network.createRoom(name, function(result) {
+                if (result.error) {
+                    Lobby.showError(result.error);
+                    return;
+                }
+                document.getElementById('displayRoomCode').textContent = result.code;
+                Lobby.renderPlayerList(result.players);
+                Lobby.showScreen('screenRoom');
+
+                // Show host controls
+                document.getElementById('hostActions').style.display = 'flex';
+                document.getElementById('startGameArea').style.display = 'block';
+                document.getElementById('waitingMsg').style.display = 'none';
+            });
+        },
+
+        joinRoom: function() {
+            var name = this.getName();
+            if (!name) return;
+
+            var code = document.getElementById('inputRoomCode').value.trim().toUpperCase();
+            if (!code || code.length !== 4) {
+                Lobby.showError('Enter a 4-letter room code');
+                return;
+            }
+
+            Network.joinRoom(code, name, function(result) {
+                if (result.error) {
+                    Lobby.showError(result.error);
+                    return;
+                }
+                document.getElementById('displayRoomCode').textContent = code;
+                Lobby.renderPlayerList(result.players);
+                Lobby.showScreen('screenRoom');
+
+                // Non-host sees waiting message
+                document.getElementById('hostActions').style.display = 'none';
+                document.getElementById('startGameArea').style.display = 'none';
+                document.getElementById('waitingMsg').style.display = 'block';
+            });
+        },
+
+        addAI: function() {
+            this.aiCount++;
+            var aiNames = ['Amara [CPU]', 'Ted [CPU]', 'Neeha [CPU]', 'Jo [CPU]', 'Irene [CPU]', 'Derrick [CPU]'];
+            var name = aiNames[(this.aiCount - 1) % aiNames.length];
+
+            Network.addAI(name, function(result) {
+                if (result.error) Lobby.showError(result.error);
+            });
+        },
+
+        removeSeat: function(seatIndex) {
+            Network.removeSeat(seatIndex, function(result) {
+                if (result.error) Lobby.showError(result.error);
+            });
+        },
+
+        startGame: function() {
+            Lobby.showScreen('screenStarting');
+            Network.startGame(function(result) {
+                if (result.error) {
+                    Lobby.showError(result.error);
+                    Lobby.showScreen('screenRoom');
+                }
+                // On success, the 'game-started' event will fire and trigger goToGame
+            });
+        },
+
+        renderPlayerList: function(players) {
+            var list = document.getElementById('playerList');
+            list.innerHTML = '';
+
+            players.forEach(function(p, i) {
+                var li = document.createElement('li');
+
+                var info = document.createElement('div');
+                info.className = 'player-info';
+
+                var nameSpan = document.createElement('span');
+                nameSpan.textContent = p.name;
+                info.appendChild(nameSpan);
+
+                if (i === 0) {
+                    var badge = document.createElement('span');
+                    badge.className = 'player-badge badge-host';
+                    badge.textContent = 'HOST';
+                    info.appendChild(badge);
+                }
+
+                if (p.isAI) {
+                    var badge2 = document.createElement('span');
+                    badge2.className = 'player-badge badge-ai';
+                    badge2.textContent = 'CPU';
+                    info.appendChild(badge2);
+                }
+
+                if (p.seatIndex === Network.mySeatIndex && !p.isAI) {
+                    var badge3 = document.createElement('span');
+                    badge3.className = 'player-badge badge-you';
+                    badge3.textContent = 'YOU';
+                    info.appendChild(badge3);
+                }
+
+                li.appendChild(info);
+
+                // Host can remove non-host players
+                if (Network.isHost && i > 0) {
+                    var removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.textContent = '×';
+                    removeBtn.onclick = function() { Lobby.removeSeat(i); };
+                    li.appendChild(removeBtn);
+                }
+
+                list.appendChild(li);
+            });
+        },
+
+        goToGame: function(gameState, players) {
+            // Store state for the game page to pick up
+            sessionStorage.setItem('ar_online_state', JSON.stringify({
+                gameState: gameState,
+                players: players,
+                mySeatIndex: Network.mySeatIndex,
+                roomCode: Network.roomCode,
+                isHost: Network.isHost,
+                myName: Network.myName,
+            }));
+
+            // Redirect to the game page with online flag
+            window.location.href = 'index.html?online=true';
+        },
+    };
+
+    // Auto-init on load
+    window.addEventListener('DOMContentLoaded', Lobby.init);
+    </script>
+</body>
+</html>
