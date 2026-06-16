@@ -151,8 +151,9 @@ var UI = {
         // Build the color picker modal buttons
         this.buildColorPicker();
 
-        // Show setup screen — game doesn't start until player clicks Start
-        this.showSetupScreen();
+        // Session 34g: the pre-game landing screen is shown by default; the
+        // player goes to setup by clicking "Play Solo" (UI.onLandingPlaySolo).
+        // (Setup is no longer auto-opened on load.)
 
         // Session 11: Wire up Game.render delegates so game.js stays DOM-free
         Game.render.all              = function() { UI.renderAll(); };
@@ -236,6 +237,15 @@ var UI = {
      * hard-coded "p > 0 = AI" assumption.
      */
     _setupIsAI: [false, true, true, true, true, true],
+
+    /**
+     * Session 34g: leave the landing/front page and open Game Setup.
+     */
+    onLandingPlaySolo: function() {
+        var landing = document.getElementById('landingScreen');
+        if (landing) landing.style.display = 'none';
+        this.showSetupScreen();
+    },
 
     showSetupScreen: function() {
         this._setupPlayerCount = 2;

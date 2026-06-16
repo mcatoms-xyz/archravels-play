@@ -149,7 +149,7 @@ body {
     inset: 0;
     background:
         linear-gradient(rgba(0,0,0,0.40), rgba(0,0,0,0.40)),
-        url('../Other Images Textures Details/ArchRavels-BoxTop-Inside-Landscape.png') center / cover no-repeat;
+        url('../Other Images Textures Details/ArchRavels-BoxTop-Inside-Landscape.jpg') center / cover no-repeat;
     pointer-events: none;
     z-index: 0;
 }
@@ -6267,4 +6267,73 @@ html { overflow-x: hidden; }
 .ab-buttons .btn-cta { order: -1; }
 @media (max-width: 560px) {
     .ab-buttons { width: 100%; justify-content: flex-start; }
+}
+
+/* =====================================================================
+   Session 34g — Pre-game landing / front page
+   ===================================================================== */
+.landing-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 600;                 /* above nav (500) — covers everything */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    gap: 16px;
+    background:
+        linear-gradient(rgba(40,28,16,0.55), rgba(40,28,16,0.78)),
+        url('../Other Images Textures Details/ArchRavels-BoxTop-Inside-Landscape.jpg') center / cover no-repeat;
+}
+.landing-inner {
+    background: rgba(245, 238, 225, 0.95);
+    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
+    background-size: 300px 300px;
+    background-blend-mode: overlay;
+    border: 3px solid var(--panel-border);
+    border-radius: 22px;
+    padding: 34px 38px 32px;
+    max-width: 540px;
+    width: 100%;
+    box-shadow: 0 18px 55px rgba(0,0,0,0.5);
+}
+.landing-logo { width: min(280px, 72%); height: auto; display: block; margin: 0 auto; }
+.landing-edition {
+    letter-spacing: 5px; text-transform: uppercase;
+    font-size: 11px; color: var(--text-muted); margin: 6px 0 18px;
+}
+.landing-tagline {
+    color: var(--text); font-size: 16px; line-height: 1.55;
+    margin: 0 auto 24px; max-width: 430px;
+}
+.landing-actions { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.landing-play {
+    font-size: 18px; padding: 14px 44px; border-radius: 12px;
+}
+.landing-soon {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(58,46,31,0.10); color: var(--text-muted);
+    border: 1px solid rgba(58,46,31,0.18); border-radius: 10px;
+    font-family: var(--font-system); font-size: 14px; font-weight: 600;
+    padding: 9px 18px; cursor: not-allowed;
+}
+.soon-badge {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+    background: var(--gold); color: #fff; padding: 2px 7px; border-radius: 6px;
+}
+.landing-link {
+    color: var(--text-muted); font-size: 13px; text-decoration: underline;
+    margin-top: 2px;
+}
+.landing-link:hover { color: var(--text); }
+.landing-credit {
+    color: rgba(255,255,255,0.88); font-size: 12px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+@media (max-width: 560px) {
+    .landing-inner { padding: 26px 20px; border-radius: 18px; }
+    .landing-tagline { font-size: 15px; }
+    .landing-play { width: 100%; max-width: 280px; }
 }
