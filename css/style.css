@@ -6337,3 +6337,38 @@ html { overflow-x: hidden; }
     .landing-tagline { font-size: 15px; }
     .landing-play { width: 100%; max-width: 280px; }
 }
+
+/* Session 34h: landing email capture (Mailchimp) */
+.landing-signup {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(58,46,31,0.15);
+}
+.landing-signup-label {
+    display: block; font-size: 13px; color: var(--text-muted);
+    margin-bottom: 9px; line-height: 1.4;
+}
+.landing-signup-row {
+    display: flex; gap: 8px; max-width: 380px; margin: 0 auto;
+}
+.landing-signup-input {
+    flex: 1; min-width: 0; padding: 11px 13px;
+    border: 1.5px solid var(--panel-border); border-radius: 9px;
+    font-family: var(--font-system); font-size: 15px;
+    background: #fff; color: var(--text);
+}
+.landing-signup-input:focus {
+    outline: none; border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-glow, rgba(201,168,76,0.4));
+}
+.landing-signup-btn {
+    flex-shrink: 0; padding: 11px 22px; border: none; border-radius: 9px;
+    background: var(--accent, #3769BE); color: #fff;
+    font-family: var(--font-system); font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: filter 0.15s;
+}
+.landing-signup-btn:hover { filter: brightness(1.08); }
+@media (max-width: 560px) {
+    .landing-signup-row { flex-direction: column; }
+    .landing-signup-btn { width: 100%; padding: 12px; }
+}
