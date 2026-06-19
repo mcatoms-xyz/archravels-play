@@ -209,9 +209,9 @@ var Story = {
       '<h1 class="st-h1">Story Mode</h1>'+
       '<p class="st-sub">Take on twelve rival crafters in a one-on-one ladder.<br>Win to advance, earn achievements, and bank points toward your lifetime score.</p>'+
       '<div class="sm-steps">'+
-        '<span class="sm-step">Pick a style</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step">Out-stitch the Ravelers</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step">Earn the Crafty Crown</span>'+
+        '<span class="sm-step">🧶 Pick a style</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step">🧵 Out-stitch the Ravelers</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step">👑 Earn the Crafty Crown</span>'+
       '</div>'+
       '<p class="sm-note">'+(this.currentUser?'Your progress is saved to your account.':'Sign in to save your progress across devices.')+'</p>'+
       '<div class="sm-divider"></div>'+

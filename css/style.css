@@ -6593,7 +6593,7 @@ html { overflow-x: hidden; }
 #story-root .demohint{text-align:center;color:var(--walnut-soft);font-size:.82rem;margin-top:16px;font-style:italic}
 /* story mode intro (step 1) */
 #story-root .sm-steps{display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:clamp(5px,1.6vw,10px);margin:14px auto 6px;width:100%;white-space:nowrap}
-#story-root .sm-step{display:inline-flex;align-items:center;background:var(--cream);border:1px solid rgba(55,105,190,0.22);border-radius:999px;padding:6px clamp(8px,1.8vw,14px);font-size:clamp(.6rem,2.4vw,.9rem);font-weight:600;color:var(--text);box-shadow:var(--shadow-sm);white-space:nowrap}
+#story-root .sm-step{display:inline-flex;align-items:center;gap:5px;background:var(--cream);border:1px solid rgba(55,105,190,0.22);border-radius:999px;padding:6px clamp(8px,1.8vw,14px);font-size:clamp(.6rem,2.4vw,.9rem);font-weight:600;color:var(--text);box-shadow:var(--shadow-sm);white-space:nowrap}
 #story-root .sm-arrow{color:var(--walnut-soft);font-weight:700;font-size:clamp(.6rem,2.4vw,.9rem)}
 #story-root .sm-note{text-align:center;color:var(--walnut-soft);font-size:.82rem;margin:4px 0 0;font-style:italic}
 #story-root .sm-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.12),transparent);margin:22px auto 18px;max-width:70%}
