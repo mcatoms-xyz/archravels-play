@@ -743,8 +743,37 @@ var UI = {
         var src = Game.getPlayerBoardImage(Game.state.player.characterId);
         if (img.src !== src) img.src = src;
         img.alt = Game.state.player.name + '\'s Player Board';
+
+        // Session 36: Hank's solo board is portrait, so at width:100% it towers over the
+        // landscape player boards and breaks the side-by-side height match with the Yarn
+        // Bazaar. Lock his board to the bazaar's rendered height (width auto, centered).
+        var wrapper = img.closest('.player-board-wrapper');
+        if (Game.state.player.isHank) {
+            if (wrapper) wrapper.classList.add('hank-board');
+            this._lockHankBoardHeight();
+        } else {
+            if (wrapper) wrapper.classList.remove('hank-board');
+            img.style.height = ''; img.style.width = ''; img.style.margin = '';
+        }
+
         // Session 15b: Update FO drawer tab colors on player switch
         this._updateDrawerCount();
+    },
+
+    /**
+     * Session 36: Match Hank's portrait solo board to the Yarn Bazaar panel height
+     * so the two side-by-side panels line up. Measures the live bazaar height.
+     */
+    _lockHankBoardHeight: function() {
+        var img = this.els.playerBoardImage;
+        if (!img || !(Game.state.player && Game.state.player.isHank)) return;
+        var bz = document.querySelector('.board-section') || document.querySelector('.board-image');
+        var h = bz ? Math.round(bz.getBoundingClientRect().height) : 0;
+        if (h > 0) {
+            img.style.height = h + 'px';
+            img.style.width = 'auto';
+            img.style.margin = '0 auto';
+        }
     },
 
 
@@ -3342,6 +3371,11 @@ var UI = {
         var grid = this.els.craftGrid;
         if (!grid) return;
         grid.innerHTML = '';
+
+        // Session 36: Hank boss — no craft-row grid on his board. He's AI-only (no human
+        // ever plays him, and that strip is a human control), and he crafts with no color
+        // requirements anyway, so the pattern grid is meaningless on his solo board.
+        if (Game.state.player && Game.state.player.isHank) return;
 
         var options = Game.getCraftOptions();
         var phase = Game.state.phase;
