@@ -115,9 +115,26 @@ var Story = {
   displayName: function(){ if(!this.currentUser) return 'Guest Crafter'; return (this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||this.currentUser.email||'Crafter'; },
   renderChip: function(){
     var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
-    if(!nm) return;
-    if(this.currentUser){ nm.textContent=this.displayName(); if(note) note.textContent='Signed in · view stats'; }
-    else { nm.textContent='Guest Crafter'; if(note) note.textContent='tap to sign in'; }
+    if(nm){
+      if(this.currentUser){ nm.textContent=this.displayName(); if(note) note.textContent='Signed in · view stats'; }
+      else { nm.textContent='Guest Crafter'; if(note) note.textContent='tap to sign in'; }
+    }
+    this.renderLandingAuth();
+  },
+  // Reflect signed-in state on the landing front door (overlay closed).
+  renderLandingAuth: function(){
+    var el=document.getElementById('landingAuth');
+    if(!el) return;
+    if(this.currentUser){
+      el.innerHTML =
+        '<div class="landing-signedin"><span class="lsi-dot"></span>Signed in as <b>'+this.displayName()+'</b></div>'+
+        '<div class="landing-auth-links">'+
+          '<a class="landing-link" href="#" onclick="Story.account();return false;">View your stats →</a>'+
+          '<a class="landing-link landing-signout" href="#" onclick="Story.signOut();return false;">Sign out</a>'+
+        '</div>';
+    } else {
+      el.innerHTML = '<a class="landing-link" href="#" onclick="Story.account();return false;">Sign in / view your stats →</a>';
+    }
   },
   openIdentity: function(){ if(this.currentUser) this.goStats(); else this.goSignIn(); },
   goSignIn: function(){
@@ -160,7 +177,13 @@ var Story = {
     if(!this.sb) return;
     try{ await this.sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } }); }catch(e){}
   },
-  signOut: async function(){ if(this.sb){ try{ await this.sb.auth.signOut(); }catch(e){} } this.currentUser=null; this.renderChip(); this.goSignIn(); },
+  signOut: async function(){
+    if(this.sb){ try{ await this.sb.auth.signOut(); }catch(e){} }
+    this.currentUser=null; this.profile=null; this.renderChip();
+    // only swap the overlay screen if the overlay is actually open (e.g. signed out from stats);
+    // signing out from the landing front door just updates the landing in place.
+    if(this.root && this.root.style.display!=='none') this.goSignIn();
+  },
 
   /* ============================ screens ============================ */
   backBar: function(onclick, label){ return '<div class="backbar"><button class="btn btn-ghost" onclick="'+onclick+'">'+(label||'← Back')+'</button></div>'; },
@@ -396,7 +419,11 @@ var Story = {
     }).join('');
     this.screen('<div class="crumb">Story Mode · Stats</div>'+
       '<div class="stats-id"><div class="big-av">🧶</div><div class="who2"><div class="nm">'+this.displayName()+'</div>'+
-        '<div class="sub2">'+(this.currentUser?'Synced to your account':'Sign in to save across devices')+'</div></div></div>'+
+        '<div class="sub2">'+(this.currentUser?'Synced to your account':'Sign in to save across devices')+'</div></div>'+
+        (this.currentUser
+          ? '<button class="btn btn-ghost stats-signout" onclick="Story.signOut()">Sign out</button>'
+          : '<button class="btn btn-gold stats-signout" onclick="Story.goSignIn()">Sign in</button>')+
+      '</div>'+
       '<div class="stat-tiles">'+tiles+'</div>'+
       '<div class="section-h">Your Crafters</div><div class="crafter-board">'+board+'</div>'+
       this.backBar('Story.goTypes()','← Back to start'));

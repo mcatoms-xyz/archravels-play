@@ -6341,6 +6341,19 @@ html { overflow-x: hidden; }
     margin-top: 2px;
 }
 .landing-link:hover { color: var(--text); }
+.landing-auth { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 2px; }
+.landing-signedin {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(55,105,190,0.10); border: 1px solid rgba(55,105,190,0.30);
+    color: var(--text); font-size: 13px; font-weight: 600;
+    padding: 5px 12px; border-radius: 999px;
+}
+.landing-signedin b { font-weight: 700; }
+.lsi-dot { width: 8px; height: 8px; border-radius: 50%; background: #2e9e5b; box-shadow: 0 0 0 3px rgba(46,158,91,0.18); }
+.landing-auth-links { display: inline-flex; align-items: center; gap: 14px; }
+.landing-signout { color: #b3543f; }
+.landing-signout:hover { color: #8c3b29; }
+#story-root .stats-signout { margin-left: auto; padding: 7px 14px; font-size: .85rem; flex: 0 0 auto; }
 .landing-credit {
     color: rgba(255,255,255,0.88); font-size: 12px;
     text-shadow: 0 1px 4px rgba(0,0,0,0.6);
