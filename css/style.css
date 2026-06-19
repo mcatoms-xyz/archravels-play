@@ -640,6 +640,15 @@ body {
     background-color: #3a2810;
 }
 
+/* Session 36: Hank boss — his solo board is portrait, not landscape. Shrink the
+   wrapper to the board's actual size (JS sets the image height = Yarn Bazaar height,
+   width auto) so the two panels line up side-by-side and the absolute-positioned
+   overlays stay anchored to the board edges instead of an oversized wrapper. */
+.player-board-wrapper.hank-board {
+    flex: 0 1 auto;
+    align-self: center;
+}
+
 .player-board-image {
     display: block;
     width: 100%;
