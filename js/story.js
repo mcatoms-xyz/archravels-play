@@ -205,7 +205,17 @@ var Story = {
           '<div class="cardfoot"><span class="pick">Choose this style →</span>'+
           '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
     }).join('');
-    this.screen('<div class="crumb">Story Mode · Step 1 of 2</div><h1 class="st-h1">Choose your playstyle</h1>'+
+    this.screen('<div class="crumb">Story Mode · Step 1 of 2</div>'+
+      '<h1 class="st-h1">Story Mode — climb the circle</h1>'+
+      '<p class="st-sub">Take on twelve rival crafters in a one-on-one ladder. Win to advance, earn achievements, and bank points toward your lifetime score.</p>'+
+      '<div class="sm-steps">'+
+        '<span class="sm-step">🧶 Pick your crafter</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step">⚔️ Out-craft each rival</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step">🏆 Reach the top of the circle</span>'+
+      '</div>'+
+      '<p class="sm-note">'+(this.currentUser?'Your progress is saved to your account.':'Sign in to save your progress across devices.')+'</p>'+
+      '<div class="sm-divider"></div>'+
+      '<h2 class="sm-choose">Choose your playstyle</h2>'+
       '<p class="st-sub">Six crafter archetypes, each plays the bazaar differently. Pick the style that fits you.</p>'+
       '<div class="types">'+cards+'</div>');
   },
