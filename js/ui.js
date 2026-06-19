@@ -1046,6 +1046,13 @@ var UI = {
         if (!overlay) return;
         overlay.innerHTML = '';
 
+        // Session 36: Hank boss — his solo-board art already depicts his actions, and
+        // the human never selects on it. Render his board clean, with NO icon overlay.
+        if (Game.state.player && Game.state.player.isHank) {
+            overlay.classList.remove('action-grid-3');
+            return;
+        }
+
         var allSpaces = spaces || Game.getActionSpaces();
 
         // Expert has 3 action spaces — switch to single-column layout

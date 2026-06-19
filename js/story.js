@@ -41,6 +41,7 @@ var Story = {
     noah:{intro:'Two items a craft, two pigs, one crate of yarn. Let’s go.', win:'You did more with less?? That’s basically witchcraft. The pigs respect you now.', lose:'MORE STUFF WINS, baby! The pigs are very proud. Run it back?'},
     irene:{intro:'I’ve been crafting since before you were a stitch.', win:'You beat an old woman at her own game. I’m so proud I could just pinch you.', lose:'Don’t feel bad, dear. Experience just has a way of winning. More tea?'},
     mauro:{intro:'Three moves, all of ’em count. I don’t waste motion.', win:'Tight game. You didn’t waste a move either. I see you. Good one.', lose:'Less is more, you know? Played the right notes, that’s all.'},
+    hank:{intro:'So. You climbed the whole circle to reach my nook. Spin your own yarn yet, little stitch? I do. Every turn. Let’s see what you’ve got.', win:'…Well now. You out-crafted the Stitchmeister himself. The circle is yours. I’ll put the kettle on — you’ve earned a proper sit.', lose:'Ho ho — the gnome keeps his crown a while longer. Don’t fret, the yarn never runs out. Climb back up and try me again.'},
   },
   // Two waves through the types (easy->hard); each type's pair sits 6 apart so you
   // never face the same type back-to-back regardless of which crafter you pick.
@@ -91,6 +92,17 @@ var Story = {
     Game.render.gameOver = function(){ Story.onMatchOver(); };
 
     this.initAuth();
+
+    // Session 36: DEV shortcut — jump straight to the Hank boss fight for testing.
+    // Add ?boss to the URL (optionally ?boss=mauro to pick your crafter), or call
+    // Story.testHank() from the console. Skips the whole climb.
+    try {
+      var m = /[?&#]boss(?:=([a-z]+))?/i.exec(location.href);
+      if (m) {
+        var who = m[1] && CARDS.characters[m[1]] ? m[1] : 'rebecca';
+        setTimeout(function(){ Story.testHank(who); }, 350);
+      }
+    } catch(e){}
   },
 
   open: function(){ this.root.style.display='block'; document.body.classList.add('story-open'); window.scrollTo(0,0); },
@@ -104,6 +116,17 @@ var Story = {
     this.goTypes();
   },
   account: function(){ this.open(); this.goSignIn(); },   // sign-in from the landing/front door
+  // Session 36: DEV — drop straight into the Hank boss face-off (skips the climb).
+  // Usage: Story.testHank() or Story.testHank('mauro'), or the ?boss URL flag.
+  testHank: function(crafterId){
+    crafterId = (crafterId && CARDS.characters[crafterId] && crafterId!=='hank') ? crafterId : 'rebecca';
+    this.picked = crafterId;
+    this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==crafterId; }).concat(['hank']);
+    this.beaten = this.ladder.length - 1;   // currentOpp() → 'hank'
+    var landing=document.getElementById('landingScreen'); if(landing) landing.style.display='none';
+    this.open();
+    this.goPreMatch();
+  },
   // Make sure the saved profile (cloud if signed in, else local) is loaded before
   // showing any profile-dependent screen (stats / ladder resume).
   ensureProfile: async function(){ if(!this.profile) this.profile = await SaveAPISafe(this); return this.profile; },
@@ -282,7 +305,7 @@ var Story = {
     return Math.max(0, Math.min(n, this.ladder.length));
   },
   miniHTML: function(c, done){
-    if(this.isBoss(c)) return '<div class="mini boss '+(done?'done':'')+'"><div class="crown">👑</div><div class="mtxt"><b>HANK</b><span>Final Trial · coming soon</span></div></div>';
+    if(this.isBoss(c)) return '<div class="mini boss '+(done?'done':'')+'"><div class="crown">👑</div><div class="mtxt"><b>HANK</b><span>Final Boss</span></div>'+(done?'<span style="font-size:1.2rem">✓</span>':'')+'</div>';
     var ch=this.char(c);
     return '<div class="mini oppnode '+(done?'done':'')+'" style="--tc:'+this.color(c)+'"><img src="'+this.portrait(c)+'"><div class="mtxt"><b>'+ch.name+'</b><span>'+this.meta(c).name+'</span></div>'+(done?'<span style="font-size:1.2rem">✓</span>':'')+'</div>';
   },
@@ -301,10 +324,12 @@ var Story = {
   },
   oppCardHTML: function(c){
     if(this.isBoss(c)){
+      var bdlg=this.DIALOG.hank||{};
       return '<div class="pcard boss has-cta" style="--tc:#7E5BC0"><div class="pc-port">👑<div class="pc-grad"></div><div class="pc-name">HANK</div></div>'+
-        '<div class="pc-body"><div class="pc-row"><span class="pc-role" style="color:#7E5BC0">The Gnome of the Nook · Final Trial</span></div>'+
-        '<div class="pc-ability">The legendary gnome at the summit. Hank’s trial is coming in a future update — beat the eleven crafters to claim the circle for now.</div>'+
-        '<button class="challenge overlay" disabled style="opacity:.6;cursor:default">Coming soon</button></div></div>';
+        '<div class="pc-body"><div class="pc-row"><span class="pc-role" style="color:#7E5BC0">The Stitchmeister · Final Boss</span></div>'+
+        '<div class="pc-ability">The legendary gnome at the summit of the craft circle. He spins his own yarn, hoards every scrap, and every Special Request is his favorite. Beat him to claim the circle.</div>'+
+        (bdlg.intro?'<div class="pc-quote">“'+bdlg.intro+'”</div>':'')+
+        '<button class="challenge overlay" onclick="Story.goPreMatch()">Face Hank</button></div></div>';
     }
     var ch=this.char(c), dlg=this.DIALOG[c]||{};
     return '<div class="pcard has-cta" style="--tc:'+this.color(c)+'"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="pc-name">'+ch.name+'</div></div>'+
@@ -373,7 +398,6 @@ var Story = {
   },
   beginMatch: function(){
     var oppId=this.currentOpp();
-    if(this.isBoss(oppId)) return;
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
     var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
@@ -411,7 +435,9 @@ var Story = {
       details = '<div class="result-card"><div class="rd-score">Match score <b>'+lm.you+'</b> · they had '+lm.opp+'</div>'+
         '<div class="rd-total">+'+lm.you+' to your Story Mode score</div>'+
         '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:3px">⏱ Match time '+mt+'</div>'+ach+'</div>';
-      actions = '<button class="btn btn-gold" onclick="Story.nextChallenger()">Next Challenger →</button>';
+      actions = this.isBoss(c)
+        ? '<button class="btn btn-gold" onclick="Story.goEnding()">See the ending →</button>'
+        : '<button class="btn btn-gold" onclick="Story.nextChallenger()">Next Challenger →</button>';
     } else {
       details = '<div class="result-card"><div class="rd-score" style="font-style:italic;color:var(--st-walnut-soft)">No shame in a dropped stitch. Pick your needles back up and try again.</div>'+
         '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:6px">Your score '+lm.you+' · '+this.char(c).name+' '+lm.opp+'</div></div>';
@@ -423,8 +449,8 @@ var Story = {
   },
   nextChallenger: function(){
     if(this.beaten<this.ladder.length) this.beaten++;
-    // skip the boss (not playable yet): if next is Hank, end the run
-    if(this.currentOpp()==='hank'){ this.goEnding(); return; }
+    // Session 36: the boss is now playable — climbing to Hank routes into the boss face-off.
+    if(this.isBoss(this.currentOpp())){ this.goPreMatch(); return; }
     this.renderLadder();
   },
 
@@ -435,10 +461,11 @@ var Story = {
     var p=this.profile||{};
     var html='<div class="crumb">Story Mode · Run Complete</div>'+
       '<div class="ending-hero"><div class="crown">🏆</div><h1 class="st-h1">Champion of the Craft Circle!</h1>'+
-      '<div class="sub">'+this.char(this.picked).name+', the '+this.meta(this.picked).name+', bested all eleven rivals. (Hank’s trial at the summit is coming soon.)</div></div>'+
+      '<div class="sub">'+this.char(this.picked).name+', the '+this.meta(this.picked).name+', bested all eleven rivals AND toppled Hank, the Stitchmeister, at the summit. The circle is yours.</div></div>'+
       '<div class="defeated-row">'+avatars+'</div>'+
       '<div class="recap">'+
         '<div class="recap-row"><span class="lbl">Rivals beaten</span><span class="val">'+rivals.length+' of '+rivals.length+'</span></div>'+
+        '<div class="recap-row"><span class="lbl">Final boss</span><span class="val">Hank defeated 👑</span></div>'+
         '<div class="recap-row"><span class="lbl">Story Mode score</span><span class="val">'+(p.lifetimeStoryScore||0)+'</span></div>'+
         '<div class="recap-row"><span class="lbl">Achievement bank</span><span class="val">'+(p.bank||0)+' pts</span></div>'+
       '</div>'+
@@ -457,7 +484,7 @@ var Story = {
       {ico:'⏱',num:this.fmtTime(p.totalPlayTimeMs||0),lbl:'Total Time'},
       {ico:'🏅',num:(Object.keys(p.achievements||{}).length)+' / '+this.ACH.length,lbl:'Achievements'},
     ].map(function(t){ return '<div class="stat-tile"><div class="st-ico">'+t.ico+'</div><div class="st-num">'+t.num+'</div><div class="st-lbl">'+t.lbl+'</div></div>'; }).join('');
-    var order=Object.keys(CARDS.characters).sort(function(a,b){ return (crafters[b]?1:0)-(crafters[a]?1:0); });
+    var order=Object.keys(CARDS.characters).filter(function(c){ return c!=='hank'; }).sort(function(a,b){ return (crafters[b]?1:0)-(crafters[a]?1:0); });
     var board=order.map(function(c){
       var s=crafters[c], col=Story.color(c);
       var sub = s ? (s.furthest||'') : 'Not played yet';

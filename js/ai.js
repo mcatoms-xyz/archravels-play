@@ -127,6 +127,21 @@ var AI = {
             take5AnyCraft:  true,  // AI flag: handle the combined take5+craft1 ability
             preferAnyColors: true, // like colorSpecialist, leverages any-colors crafting
         },
+
+        // Session 36: Hank, The Stitchmeister — Story Mode FINAL BOSS.
+        // Relentless scoring machine: crafts every turn, chases every SR (all are his
+        // favorite → +5 each), hoards yarn (leftovers score for him). He only has two
+        // craft spaces, so he alternates between them. Tuned aggressive on purpose.
+        hank: {
+            shopWeight:     0.0,   // no shop space; never shops
+            craftWeight:    1.8,   // craft relentlessly — converts his auto-yarn into items
+            projectWeight:  1.5,   // build toward projects with the doubled crafts
+            srWeight:       1.9,   // every SR is his favorite (+5 each) — chase them hard
+            exchangeWeight: 0.0,   // no exchange space
+            uniqueWeight:   1.8,   // both his spaces are unique craft actions
+            makeTwoItems:   true,  // knows the make-two ability (Space 1)
+            preferAnyColors: true, // crafts ignoring color-matching
+        },
     },
 
     /**
@@ -288,6 +303,22 @@ var AI = {
             var color = this._pickMostNeededColor();
             Game.applyTake3Yarn(color);
             this.showAction('Chose ' + space.label + ', took 3 ' + this._cap(color) + ' yarn', function() {
+                UI.renderYarnBowl();
+                UI.renderCraftGrid();
+                UI.renderSpecialRequests();
+                UI.renderActionBar();
+                callback();
+            });
+
+        // Session 36: Handle take3Any unique ability (Hank boss Space 2 — craft 2 + take 3 mixed yarn)
+        } else if (space.unique === 'take3Any') {
+            Game.chooseActionSpace(bestIdx);
+            var c3 = self._pick3MostNeededColors();
+            Game.applyTake3Any(c3);
+            var c3Counts = {};
+            c3.forEach(function(c) { c3Counts[c] = (c3Counts[c] || 0) + 1; });
+            var c3desc = Object.keys(c3Counts).map(function(c) { return c3Counts[c] + ' ' + self._cap(c); }).join(', ');
+            this.showAction('Chose ' + space.label + ' — took ' + c3desc, function() {
                 UI.renderYarnBowl();
                 UI.renderCraftGrid();
                 UI.renderSpecialRequests();
@@ -1771,6 +1802,20 @@ var AI = {
      * Session 13: Pick 5 most-needed colors for Expert's Take 5 Any ability.
      * Returns an array of 5 color strings (may contain duplicates).
      */
+    /**
+     * Session 36: Pick 3 (mixed) colors for Hank's take-3-any. He crafts ignoring
+     * color-matching and leftover yarn scores for him, so he just snowballs his
+     * three biggest holdings — distinct colors, genuinely mixed.
+     * @returns {string[]} 3 color names
+     */
+    _pick3MostNeededColors: function() {
+        var bowl = Game.state.player.yarnBowl;
+        var sorted = CARDS.COLORS.slice().sort(function(a, b) {
+            return (bowl[b] || 0) - (bowl[a] || 0);
+        });
+        return [sorted[0], sorted[1], sorted[2]];
+    },
+
     _pick5MostNeededColors: function() {
         var player = Game.state.player;
         var bowl = player.yarnBowl;

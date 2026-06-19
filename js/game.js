@@ -99,6 +99,7 @@ var Game = {
 
         /* Session 8c: Unique ability flags (set per-turn when space is chosen) */
         pendingTake3Yarn: false,   // Ted/Eliza Space 3: gain 3 yarn of one color before actions
+        pendingTake3Any: false,    // Session 36: Hank boss Space 2: gain 3 yarn of ANY (mixed) colors
         craftAnyColors: false,     // Neeha/Alex Space 3: next craft ignores color matching
 
         /* Character id for looking up action spaces */
@@ -149,12 +150,16 @@ var Game = {
         playerConfigs.forEach(function(pc) {
             var character = CARDS.getCharacter(pc.characterId);
             characterIds.push(pc.characterId);
+            // Session 36: Hank boss head start — +3 extra yarn (one color) on top of the standard 1-of-each.
+            var startBowl = { red: 1, blue: 1, green: 1, yellow: 1, orange: 1, purple: 1 };
+            if (character && character.isHank) { startBowl.red += 3; }
             players.push({
                 name:                  pc.name || character.name,
                 characterId:           pc.characterId,
                 characterType:         character.type,
                 isAI:                  !!pc.isAI,  // Session 9b: AI opponent flag
-                yarnBowl:              { red: 1, blue: 1, green: 1, yellow: 1, orange: 1, purple: 1 },
+                isHank:                !!(character && character.isHank),  // Session 36: boss rule-hook flag
+                yarnBowl:              startBowl,
                 patternTiles:          CARDS.dealPatternTiles(),
                 items:                 [],
                 specialRequests:       [],
@@ -218,6 +223,7 @@ var Game = {
         this.state.craftLimit = 0;
         this.state.hasExchange = false;
         this.state.pendingTake3Yarn = false;
+        this.state.pendingTake3Any = false;
         this.state.craftAnyColors = false;
 
         // Session 13: Maker & Expert unique ability flags
@@ -420,6 +426,15 @@ var Game = {
             this.state.pendingTake5Any = false;
         }
 
+        // Session 36: Hank boss Space 2 — gain 3 yarn of ANY (mixed) colors
+        this.state.pendingTake3Any = !!(space.unique === 'take3Any');
+
+        // Session 36: Hank crafts ignoring color-matching on EVERY craft action
+        // (the master "tops the crafting circle" — any yarn feeds any pattern).
+        if (this.state.player.isHank) {
+            this.state.craftAnyColors = true;
+        }
+
         // Transition to player actions
         this.state.phase = 'playerActions';
         this.state.selectedSlots = new Set();
@@ -536,6 +551,7 @@ var Game = {
         this.state.craftLimit = 0;
         this.state.hasExchange = false;
         this.state.pendingTake3Yarn = false;
+        this.state.pendingTake3Any = false;    // Session 36
         this.state.craftAnyColors = false;
         this.state.makeTwoItems = false;      // Session 13
         this.state.pendingTake5Any = false;    // Session 13
@@ -645,6 +661,12 @@ var Game = {
         // Load this player's previous space for the "can't repeat" rule
         this.state.turn.previousSpace = this.state.player._previousSpace;
         this.state.turn.number++;
+
+        // Session 36: Hank boss — auto-gain +3 yarn of one color at the start of every turn,
+        // before he evaluates his action (so the new yarn informs his craft choice).
+        if (this.state.player.isHank) {
+            this.applyHankAutoYarn(this.state.player);
+        }
 
         // Back to choosing a space
         this.state.phase = 'chooseSpace';
@@ -1064,6 +1086,54 @@ var Game = {
         // Session 13: Log for turn history
         this._logAction('Took 3 ' + color + ' yarn');
         return [color];
+    },
+
+    /**
+     * Session 36: Take 3 Any (Hank boss Space 2):
+     * Gain 3 yarn tokens of any chosen colors from supply (mixed; can repeat).
+     * Mirrors applyTake5Any. AI-only path (the human never plays Hank).
+     * @param {string[]} colors — array of exactly 3 color names
+     * @returns {string[]} changed colors for animation, or empty if invalid
+     */
+    applyTake3Any: function(colors) {
+        if (!Array.isArray(colors) || colors.length !== 3) {
+            console.error('applyTake3Any: expected exactly 3 colors, got ' + (colors ? colors.length : 'null'));
+            return [];
+        }
+        var bowl = this.state.player.yarnBowl;
+        var changed = [];
+        for (var i = 0; i < colors.length; i++) {
+            var c = colors[i];
+            if (bowl[c] === undefined) {
+                console.error('applyTake3Any: invalid color "' + c + '"');
+                return [];
+            }
+            bowl[c] += 1;
+            if (changed.indexOf(c) === -1) changed.push(c);
+        }
+        this.state.pendingTake3Any = false;
+        this._logAction('Took 3 yarn: ' + changed.join(', '));
+        return changed;
+    },
+
+    /**
+     * Session 36: Hank boss auto-yarn — at the start of every Hank turn he
+     * gains +3 yarn of a SINGLE color of his choosing. Snowballs the color he
+     * already holds the most of (he hoards; leftovers score for him). Automatic,
+     * in ADDITION to his action that turn.
+     * @param {Object} player — the Hank player object
+     * @returns {string} the color chosen
+     */
+    applyHankAutoYarn: function(player) {
+        var bowl = player.yarnBowl;
+        var best = CARDS.COLORS[0], bestN = -1;
+        CARDS.COLORS.forEach(function(c) {
+            var n = bowl[c] || 0;
+            if (n > bestN) { bestN = n; best = c; }
+        });
+        bowl[best] += 3;
+        this._logAction(player.name + ' auto-spun +3 ' + best + ' yarn');
+        return best;
     },
 
     /**
@@ -1804,6 +1874,9 @@ var Game = {
             noah:    'noah_blank.png',
             irene:   'irene_blank.png',
             mauro:   'mauro_blank.png',
+            // Session 36: Hank boss uses his full solo-board art (not a blank board —
+            // the human never selects on it, so no action-icon overlay is drawn).
+            hank:    'AR_Hank_SoloBoard.png',
         };
         return 'Player Boards PNG/' + (map[characterId] || map.rebecca);
     },
@@ -1877,11 +1950,14 @@ var Game = {
         var srTotalCount = player.craftedSpecialRequests.length + player.specialRequests.length;
         player.craftedSpecialRequests.forEach(function(sr) {
             srPoints += sr.points;
-            if (sr.isFavorite) favoriteBonus = 5;
+            // Session 36: Hank boss — EVERY SR is his favorite → +5 for each one he completes.
+            // Normal players get the +5 once if their single favorite SR is among the crafted.
+            if (player.isHank) favoriteBonus += 5;
+            else if (sr.isFavorite) favoriteBonus = 5;
             srCraftedCount++;
             srCardDetails.push({
                 name: sr.name, img: sr.img, points: sr.points,
-                completed: true, isFavorite: sr.isFavorite,
+                completed: true, isFavorite: player.isHank ? true : sr.isFavorite,
             });
         });
         player.specialRequests.forEach(function(sr) {
@@ -1923,11 +1999,19 @@ var Game = {
             srPenalty -= (sr.points || 0);
         });
 
-        // Leftover yarn penalty (-1 per yarn)
+        // Leftover yarn penalty (-1 per yarn).
+        // Session 36: Hank boss inverts this — leftover yarn SCORES +1 per 2 (odd one rounds
+        // down), so hoarding helps him. "yarnPenalty" then holds a positive bonus for Hank.
         var yarnPenalty = 0;
-        CARDS.COLORS.forEach(function(c) {
-            yarnPenalty -= (player.yarnBowl[c] || 0);
-        });
+        if (player.isHank) {
+            var leftover = 0;
+            CARDS.COLORS.forEach(function(c) { leftover += (player.yarnBowl[c] || 0); });
+            yarnPenalty = Math.floor(leftover / 2);
+        } else {
+            CARDS.COLORS.forEach(function(c) {
+                yarnPenalty -= (player.yarnBowl[c] || 0);
+            });
+        }
 
         var total = itemsPoints + srPoints + favoriteBonus + projectPoints +
                     learnedPoints + srPenalty + yarnPenalty;

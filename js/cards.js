@@ -331,6 +331,24 @@ const CARDS = {
                 { label: 'Craft 3',                                   craft: 3 },
             ],
         },
+
+        /* --- Session 36: Hank, The Stitchmeister — Story Mode FINAL BOSS ---
+           AI automa only (the human never selects on his board). Two craft-only
+           action spaces; he bounces between them every turn. His special boss
+           rules live in game.js, keyed on the isHank flag:
+             1. Auto +3 yarn of one color at the start of every turn.
+             2. +5 on EVERY Special Request he completes (every SR is his favorite).
+             3. Leftover yarn SCORES +1 per 2 instead of the normal -1 penalty.
+             + starts with +3 yarn, and crafts ignoring color-matching (craftAnyColors). */
+        hank: {
+            id: 'hank', name: 'Hank', type: 'hank', isHank: true,
+            subtitle: 'The Stitchmeister',
+            boardImg: 'Player Boards PNG/AR_Hank_SoloBoard.png',
+            actionSpaces: [
+                { label: 'Craft 1 (Make Two)',              craft: 1, unique: 'makeTwoItems' },
+                { label: 'Craft 2 + Take 3 Any',           craft: 2, unique: 'take3Any' },
+            ],
+        },
     },
 
     /**
