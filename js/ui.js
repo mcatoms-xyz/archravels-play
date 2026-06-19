@@ -3673,6 +3673,35 @@ var UI = {
             };
             this.showCraftColorPicker(this._pendingCraft.itemDef, 'Choose ' + sr.yarnCount + ' Yarn to Give Away');
 
+        } else if (rule === 'specificPlusAny' || rule === 'specificPlusSame' || rule === 'sameColorPlus') {
+            // Session 36: compound expansion rules (Koi/Mallard/Dog Bandana/Skelly/Ghost).
+            // These pair a FIXED required yarn with a FLEXIBLE pick. The old picker had no
+            // target count for the first two → couldn't select anything. Fix: reserve the
+            // fixed yarn, open the picker for ONLY the flexible portion (capped by bowl minus
+            // the reserve), then merge both on confirm. craftSpecialRequest validates
+            // affordability only, so this picker is the rule-enforcer.
+            var reserved, flexRule, flexCount, exclude = null;
+            if (rule === 'specificPlusAny') {            // e.g. Koi: 3 orange + 2 any
+                reserved = Object.assign({}, sr.yarn || {});
+                flexRule = 'any'; flexCount = sr.anyCount || 0;
+            } else if (rule === 'specificPlusSame') {    // e.g. Dog Bandana: 3 purple + 2 of one color
+                reserved = Object.assign({}, sr.yarn || {});
+                flexRule = 'oneColor'; flexCount = sr.sameCount || 0;
+            } else {                                     // sameColorPlus, e.g. Skelly: 5 of one color (not orange) + 1 orange
+                reserved = Object.assign({}, sr.plusYarn || {});
+                flexRule = 'oneColor'; flexCount = sr.yarnCount || 0;
+                exclude = Object.keys(reserved);         // the "same" color cannot be a plus color
+            }
+            this._pendingCraft = {
+                type: 'sr', srUid: sr.uid,
+                itemDef: Object.assign({}, baseItemDef, { colorRule: flexRule, yarnCount: flexCount }),
+                yarnToSpend: null, reservedYarn: reserved, excludeColors: exclude,
+            };
+            var fixedLabel = this._fixedYarnLabel(reserved);
+            var verb = (flexRule === 'oneColor') ? (flexCount + ' of one color') : (flexCount + ' of any colors');
+            var notLabel = exclude ? (' (not ' + exclude.join('/') + ')') : '';
+            this.showCraftColorPicker(this._pendingCraft.itemDef, 'Plus ' + verb + notLabel + ' — also gives ' + fixedLabel);
+
         } else {
             // any / sameColor / different — open color picker
             var pickerRule = rule === 'sameColor' ? 'oneColor' : rule; // map sameColor → oneColor
@@ -3873,6 +3902,13 @@ var UI = {
      * @param {Object} itemDef — item (or SR pseudo-item) with colorRule and yarnCount
      * @param {string} [overrideTitle] — optional title to use instead of auto-generated one
      */
+    // Session 36: pretty-print a fixed yarn map, e.g. {orange:3} → "3 Orange".
+    _fixedYarnLabel: function(map) {
+        return Object.keys(map || {}).map(function(c) {
+            return map[c] + ' ' + c.charAt(0).toUpperCase() + c.slice(1);
+        }).join(' + ');
+    },
+
     showCraftColorPicker: function(itemDef, overrideTitle) {
         var bowl = Game.state.player.yarnBowl;
         var needed = itemDef.yarnCount;
@@ -3926,6 +3962,11 @@ var UI = {
         // Session 36: Frog It is a RECEIVE flow — the player picks which yarn to get back,
         // so selection is bound only by the count needed, not by what's in the bowl.
         var isReceive = !!(this._pendingCraft && this._pendingCraft.context === 'frogIt');
+        // Session 36: compound SR rules reserve a FIXED yarn portion (auto-included) and may
+        // exclude colors from the flexible pick. Availability for the flexible part is the
+        // bowl minus what's reserved for the fixed part, so we never double-spend.
+        var reserved = (this._pendingCraft && this._pendingCraft.reservedYarn) || {};
+        var exclude  = (this._pendingCraft && this._pendingCraft.excludeColors) || [];
         var totalAlloc = 0;
         CARDS.COLORS.forEach(function(c) { totalAlloc += alloc[c]; });
 
@@ -3933,7 +3974,9 @@ var UI = {
         var html = '';
 
         CARDS.COLORS.forEach(function(color) {
-            var available = bowl[color];
+            if (exclude.indexOf(color) !== -1) return;   // not allowed for the flexible portion
+            var available = (bowl[color] || 0) - (reserved[color] || 0);
+            if (available < 0) available = 0;
             var current = alloc[color];
             var hex = CARDS.COLOR_HEX[color];
             var capName = color.charAt(0).toUpperCase() + color.slice(1);
@@ -4008,6 +4051,13 @@ var UI = {
         CARDS.COLORS.forEach(function(c) {
             if (UI._craftColorAlloc[c] > 0) spend[c] = UI._craftColorAlloc[c];
         });
+        // Session 36: fold in the reserved fixed yarn (compound SR rules) so the final
+        // spend = fixed portion + the player's flexible pick.
+        if (pending.reservedYarn) {
+            Object.keys(pending.reservedYarn).forEach(function(c) {
+                spend[c] = (spend[c] || 0) + pending.reservedYarn[c];
+            });
+        }
         pending.yarnToSpend = spend;
 
         // frogIt context: color picker chose "yarn to receive", go straight to frog confirm
