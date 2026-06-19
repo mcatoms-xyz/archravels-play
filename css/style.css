@@ -6625,6 +6625,11 @@ html { overflow-x: hidden; }
 #story-root .cb-card img{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:top center;border:2px solid var(--tc);flex-shrink:0}
 #story-root .cb-card .cb-meta{flex:1;min-width:0}#story-root .cb-card .cb-meta b{display:block;font-size:1rem}#story-root .cb-card .cb-meta span{font-size:.75rem;color:var(--walnut-soft)}
 #story-root .cb-card .cb-score{font-weight:bold;color:var(--gold-d)}
+#story-root .cb-card.playable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+#story-root .cb-card.playable:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+#story-root .cb-card.unplayed{opacity:.72;filter:grayscale(.4)}
+#story-root .cb-card.unplayed.playable:hover{opacity:1;filter:none}
+#story-root .cb-card .cb-cta{display:block;font-size:.72rem;font-weight:700;color:var(--st-gold-d,var(--gold-d));margin-top:1px}
 @media(max-width:720px){ #story-root .types{grid-template-columns:1fr} #story-root .compare{grid-template-columns:1fr} #story-root .vs-stage{grid-template-columns:1fr auto 1fr} }
 @media(max-width:620px){
   #story-root .ladder2{grid-template-columns:1fr;align-items:stretch;gap:10px;max-width:420px}

@@ -438,8 +438,12 @@ var Story = {
     var order=Object.keys(CARDS.characters).sort(function(a,b){ return (crafters[b]?1:0)-(crafters[a]?1:0); });
     var board=order.map(function(c){
       var s=crafters[c], col=Story.color(c);
-      if(!s) return '<div class="cb-card unplayed" style="--tc:'+col+'"><img src="'+Story.portrait(c)+'"><div class="cb-meta"><b>'+Story.char(c).name+'</b><span>Not played yet</span></div><div class="cb-score">—</div></div>';
-      return '<div class="cb-card" style="--tc:'+col+'"><img src="'+Story.portrait(c)+'"><div class="cb-meta"><b>'+Story.char(c).name+'</b><span>'+(s.furthest||'')+'</span></div><div class="cb-score">'+(s.best||0)+'</div></div>';
+      var sub = s ? (s.furthest||'') : 'Not played yet';
+      var score = s ? (s.best||0) : '—';
+      var cta = !s ? 'Start climb →' : (/champion/i.test(s.furthest||'') ? 'Replay →' : 'Resume →');
+      return '<div class="cb-card playable'+(s?'':' unplayed')+'" style="--tc:'+col+'" onclick="Story.goLadder(\''+c+'\')" title="Play '+Story.char(c).name+'’s Story Mode">'+
+        '<img src="'+Story.portrait(c)+'"><div class="cb-meta"><b>'+Story.char(c).name+'</b><span>'+sub+'</span><span class="cb-cta">'+cta+'</span></div>'+
+        '<div class="cb-score">'+score+'</div></div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Stats</div>'+
       '<div class="stats-id"><div class="big-av">🧶</div><div class="who2"><div class="nm">'+this.displayName()+'</div>'+
