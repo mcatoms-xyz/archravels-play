@@ -345,6 +345,9 @@ var Story = {
     this.matchStart=Date.now(); this.active=true;
     var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
+    // hide the landing/front door too — otherwise closing the story overlay reveals
+    // the homepage sitting on top of the freshly-started match (looked like "kicked back home").
+    var landing=document.getElementById('landingScreen'); if(landing) landing.style.display='none';
     Game.init({ players: [
       { characterId:this.picked, isAI:false, name:youName },
       { characterId:oppId,       isAI:true,  name:this.char(oppId).name }
