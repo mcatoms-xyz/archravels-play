@@ -245,9 +245,20 @@ var Story = {
   currentOpp: function(){ return this.ladder[Math.min(this.beaten, this.ladder.length-1)]; },
   isBoss: function(c){ return c==='hank'; },
   goLadder: function(charId){
-    this.picked=charId; this.beaten=0;
+    this.picked=charId;
     this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==charId; }).concat(['hank']);
+    this.beaten = this._storedBeaten(charId);   // resume where this crafter left off
     this.renderLadder();
+  },
+  // How many rivals this crafter has already beaten, from the saved profile.
+  // Prefers the numeric cr.beaten; falls back to parsing the older cr.furthest string.
+  _storedBeaten: function(charId){
+    var cr=this.profile&&this.profile.crafters&&this.profile.crafters[charId];
+    if(!cr) return 0;
+    var n=0;
+    if(typeof cr.beaten==='number') n=cr.beaten;
+    else if(cr.furthest){ if(/champion/i.test(cr.furthest)) n=11; else { var m=cr.furthest.match(/(\d+)/); if(m) n=parseInt(m[1],10); } }
+    return Math.max(0, Math.min(n, this.ladder.length));
   },
   miniHTML: function(c, done){
     if(this.isBoss(c)) return '<div class="mini boss '+(done?'done':'')+'"><div class="crown">👑</div><div class="mtxt"><b>HANK</b><span>Final Trial · coming soon</span></div></div>';
@@ -466,6 +477,7 @@ var Story = {
     var beatenAfter=this.beaten+1;
     var cr=p.crafters[this.picked]||{used:true,best:0,furthest:''};
     cr.used=true; if(lm.you>(cr.best||0)) cr.best=lm.you;
+    cr.beaten=Math.max(cr.beaten||0, beatenAfter);   // resumable progress
     cr.furthest=(beatenAfter>=11)?'Champion 🏆':(beatenAfter+' rivals beaten');
     p.crafters[this.picked]=cr;
     var earned=[];
