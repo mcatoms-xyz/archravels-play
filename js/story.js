@@ -99,18 +99,38 @@ var Story = {
 
   /* ============================ entry ============================ */
   start: async function(){
-    if (!this.profile) this.profile = await SaveAPISafe(this);
+    await this.ensureProfile();
     this.open();
     this.goTypes();
   },
   account: function(){ this.open(); this.goSignIn(); },   // sign-in from the landing/front door
+  // Make sure the saved profile (cloud if signed in, else local) is loaded before
+  // showing any profile-dependent screen (stats / ladder resume).
+  ensureProfile: async function(){ if(!this.profile) this.profile = await SaveAPISafe(this); return this.profile; },
+  // Force a fresh load (used on sign-in/out so we pull the right identity's data),
+  // then refresh whatever profile-dependent screen is currently open.
+  loadProfile: async function(){
+    this.profile = await SaveAPISafe(this);
+    this.renderChip();
+    if(this.root && this.root.style.display!=='none'){
+      var scr=document.getElementById('story-screen');
+      if(scr && /Story Mode · Stats/.test(scr.innerHTML)) this.goStats();
+      else if(document.getElementById('opptrack')) this.renderLadder();
+    }
+  },
 
   /* ============================ auth ============================ */
   initAuth: async function(){
-    if (!this.sb){ this.renderChip(); return; }
+    if (!this.sb){ await this.ensureProfile(); this.renderChip(); return; }
     try { var r = await this.sb.auth.getSession(); this.currentUser = r.data.session ? r.data.session.user : null; } catch(e){ this.currentUser=null; }
-    this.sb.auth.onAuthStateChange(function(_e,s){ Story.currentUser = s ? s.user : null; Story.renderChip(); });
-    this.renderChip();
+    this.sb.auth.onAuthStateChange(function(_e,s){
+      var was=(Story.currentUser&&Story.currentUser.id)||null;
+      Story.currentUser = s ? s.user : null;
+      var now=(Story.currentUser&&Story.currentUser.id)||null;
+      if(was!==now){ Story.profile=null; Story.loadProfile(); }   // identity changed → reload the right profile
+      else Story.renderChip();
+    });
+    await this.loadProfile();
   },
   displayName: function(){ if(!this.currentUser) return 'Guest Crafter'; return (this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||this.currentUser.email||'Crafter'; },
   renderChip: function(){
@@ -244,7 +264,8 @@ var Story = {
   /* ---- ladder ---- */
   currentOpp: function(){ return this.ladder[Math.min(this.beaten, this.ladder.length-1)]; },
   isBoss: function(c){ return c==='hank'; },
-  goLadder: function(charId){
+  goLadder: async function(charId){
+    await this.ensureProfile();   // make sure saved progress is loaded before resuming
     this.picked=charId;
     this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==charId; }).concat(['hank']);
     this.beaten = this._storedBeaten(charId);   // resume where this crafter left off
@@ -427,7 +448,8 @@ var Story = {
   },
 
   /* ---- stats ---- */
-  goStats: function(){
+  goStats: async function(){
+    await this.ensureProfile();
     var p=this.profile||{}, crafters=p.crafters||{};
     var tiles=[
       {ico:'🏆',num:(p.lifetimeStoryScore||0),lbl:'Lifetime Story Score'},
