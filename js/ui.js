@@ -1827,6 +1827,26 @@ var UI = {
             pending.wildChoices.push(color);
             UI._collectWildChoices(index + 1);
         }, title, Game.state.player, true);
+
+        // Session 35: when more than one wild pick is needed, show a live
+        // "your picks" row so the player sees colors already chosen this take.
+        if (total > 1) {
+            var progEl = document.getElementById('colorPickerProgress');
+            if (progEl) {
+                var chosen = pending.wildChoices;   // colors chosen so far (length === index)
+                var ph = '<span class="cpp-label">Your picks:</span>';
+                chosen.forEach(function(col) {
+                    var hex = CARDS.COLOR_HEX[col] || '#888';
+                    ph += '<span class="confirm-yarn-tag" style="background:' + hex + '">+1 ' +
+                        col.charAt(0).toUpperCase() + col.slice(1) + '</span>';
+                });
+                for (var r = chosen.length; r < total; r++) {
+                    ph += '<span class="cpp-empty">?</span>';
+                }
+                progEl.innerHTML = ph;
+                progEl.style.display = 'flex';
+            }
+        }
     },
 
     /**
@@ -5032,6 +5052,9 @@ var UI = {
             if (contextContainer) contextContainer.innerHTML = '';
             if (titleEl) titleEl.style.display = '';
         }
+        // Session 35: reset multi-pick progress; _collectWildChoices repopulates it.
+        var progReset = document.getElementById('colorPickerProgress');
+        if (progReset) { progReset.innerHTML = ''; progReset.style.display = 'none'; }
         this.els.colorModal.style.display = 'flex';
     },
 

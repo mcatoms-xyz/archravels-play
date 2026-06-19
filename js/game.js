@@ -58,6 +58,7 @@ var Game = {
         turnHistory:      function() {},   // Session 13: turn history panel update
         navTimer:         function() {},   // Session 15: nav bar game clock update
         actionFeed:       function() {},   // Session 22: action feed ticker update
+        gameOver:         function() {},   // Session 35: fired once when a match ends (Story Mode hook)
     },
 
     /* ----- Game state ----- */
@@ -619,6 +620,7 @@ var Game = {
             this.render.craftGrid();
             this.render.specialRequests();
             this.render.projectStrip();
+            this.render.gameOver();   // Session 35: notify Story Mode the match ended
             return;
         }
 

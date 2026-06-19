@@ -1,0 +1,456 @@
+/* =====================================================================
+   story.js — ArchRavels Story Mode (Session 35)
+   A full-screen overlay layer above the normal game. Owns: sign-in,
+   archetype/character select, the climb ladder, pre/post-match dialog,
+   ending, and stats. Launches REAL matches via Game.init and reads the
+   result back through the Game.render.gameOver delegate.
+
+   Globals used: CARDS, Game, UI, AI (vanilla, no modules — matches the
+   project's architecture). Story data (type flavor, dialog, ladder order,
+   achievements) lives here; character names/types/favorite SRs come from
+   CARDS so they never drift from the game.
+   ===================================================================== */
+var Story = {
+
+  /* ---------- Supabase auth + cloud save ---------- */
+  SB_URL: 'https://ingppffghqsajdrgahcm.supabase.co',
+  SB_KEY: 'sb_publishable__41r1k47DJnKmtbmVNqYKQ_yOL98eTd',
+  sb: null,
+  currentUser: null,
+
+  /* ---------- story-only data ---------- */
+  TYPE_META: {
+    thriftyShopper: { name:'Thrifty Shopper', color:'#6E8B68', dark:'#3d5238', tag:'Stock up fast',          desc:'You get extra shopping actions, so you build a deep supply of yarn faster than anyone.' },
+    masterCrafter:  { name:'Master Crafter',  color:'#3769BE', dark:'#1f3d70', tag:'Make the most',          desc:'You can craft up to four items in a single turn. No one produces more.' },
+    colorSpecialist:{ name:'Color Specialist',color:'#C96B43', dark:'#7d3c22', tag:'Any color works',        desc:'You ignore color requirements. Any yarn color can complete any pattern.' },
+    yarnSpinner:    { name:'Yarn Spinner',    color:'#C0504A', dark:'#732b27', tag:'Make your own yarn',     desc:'You spin your own yarn instead of shopping for it. Slower, but you never depend on the bazaar.' },
+    maker:          { name:'The Maker',       color:'#D9A521', dark:'#7d5e10', tag:'Two items per craft',    desc:'Each craft action makes two items instead of one. Volume is your edge.' },
+    expert:         { name:'The Expert',      color:'#7E5BC0', dark:'#46326f', tag:'Fewer, stronger moves',  desc:'You get fewer actions, but they hit harder: take five yarn of any color and craft ignoring color rules.' },
+  },
+  // intro = pre-match taunt; win = their line when YOU win; lose = their line when you lose
+  DIALOG: {
+    rebecca:{intro:'I may have bought a little extra. Don’t judge my basket.', win:'You beat me with way less stash. Teach me your restraint, oh wise one.', lose:'Eee, I won?! That’s the yarn talking, I had SO much to work with. Go again?'},
+    theo:{intro:'I already know which stall has the best value today.', win:'Huh. You out-valued me. I’m annoyed and a little impressed. Mostly annoyed.', lose:'Good game. I just bought smarter. It’s not personal, it’s arithmetic.'},
+    derrick:{intro:'I make four before most folks make one.', win:'Now THAT was a finish. Clean, fast, smart. I’m stealing whatever you just did.', lose:'Output, my friend. That’s the whole secret. Come back, I’ll show you the rhythm.'},
+    amara:{intro:'I was just gonna make stuff and see what happens.', win:'Okay, you actually pushed me. Respect. That basically never happens.', lose:'See? Didn’t even try that hard. That’s kind of my thing.'},
+    neeha:{intro:'Color has no rules, child. Only conversations.', win:'You didn’t fight the colors, you let them lead. That is the whole art.', lose:'The colors simply listened to me today. Next time, perhaps, they’ll whisper to you.'},
+    alex:{intro:'Color requirements? Never met ’em.', win:'Ohhh you broke the rules better than me. I’m equal parts proud and furious.', lose:'Rules are fake and I’m gonna prove it again. GG though, genuinely.'},
+    ted:{intro:'I’ll spin what I need while you’re still picking through the bins.', win:'You found your rhythm faster than I found mine. That’s the trick.', lose:'Slow and steady, friend. Made every bit of that myself. Felt good.'},
+    eliza:{intro:'I plan three turns ahead, and I don’t improvise.', win:'You disrupted my plan. I did not account for you. Recalculating. Rematch.', lose:'Executed exactly as planned. I do love when that happens.'},
+    jo:{intro:'I make ’em two at a time, so my cat always gets one.', win:'You beat me AND the cat? That’s a big deal in this house. Well done, truly.', lose:'Double the output, double the fun! Here, the cat made you a mouse.'},
+    noah:{intro:'Two items a craft, two pigs, one crate of yarn. Let’s go.', win:'You did more with less?? That’s basically witchcraft. The pigs respect you now.', lose:'MORE STUFF WINS, baby! The pigs are very proud. Run it back?'},
+    irene:{intro:'I’ve been crafting since before you were a stitch.', win:'You beat an old woman at her own game. I’m so proud I could just pinch you.', lose:'Don’t feel bad, dear. Experience just has a way of winning. More tea?'},
+    mauro:{intro:'Three moves, all of ’em count. I don’t waste motion.', win:'Tight game. You didn’t waste a move either. I see you. Good one.', lose:'Less is more, you know? Played the right notes, that’s all.'},
+  },
+  // Two waves through the types (easy->hard); each type's pair sits 6 apart so you
+  // never face the same type back-to-back regardless of which crafter you pick.
+  LADDER_ORDER: ['rebecca','ted','alex','jo','derrick','mauro','theo','eliza','neeha','noah','amara','irene'],
+
+  /* ---------- runtime state ---------- */
+  picked: null,
+  beaten: 0,
+  ladder: [],          // [oppId,... , 'hank']
+  profile: null,       // loaded via SaveAPI
+  active: false,       // true while a Story match is being played
+  matchStart: 0,
+  lastMatch: null,
+  root: null,
+
+  /* ============================ data helpers ============================ */
+  char: function(id){ return CARDS.characters[id]; },
+  typeOf: function(id){ return this.char(id).type; },
+  meta: function(id){ return this.TYPE_META[this.typeOf(id)]; },
+  color: function(id){ return this.meta(id).color; },
+  faveSR: function(id){
+    var list = CARDS.specialRequests || [];
+    for (var i=0;i<list.length;i++){ if (list[i].favoriteOf===id) return list[i]; }
+    return null;
+  },
+  portrait: function(id){ return 'story-assets/portraits/'+id+'.jpg'; },
+  icon: function(id){ return 'story-assets/icons/'+this.typeOf(id)+'.png'; },
+
+  /* ============================ init ============================ */
+  init: function(){
+    // overlay root
+    this.root = document.createElement('div');
+    this.root.id = 'story-root';
+    this.root.style.display = 'none';
+    this.root.innerHTML =
+      '<div class="player-chip" title="Account" onclick="Story.openIdentity()">' +
+        '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
+        '<div class="pc-meta"><span class="pc-name" id="pcName">Guest Crafter</span><span class="pc-note" id="pcNote">tap to sign in</span></div>' +
+      '</div>' +
+      '<div id="story-screen"></div>';
+    document.body.appendChild(this.root);
+
+    // supabase
+    try { if (window.supabase) this.sb = window.supabase.createClient(this.SB_URL, this.SB_KEY); } catch(e){ this.sb = null; }
+
+    // hook match-over
+    Game.render.gameOver = function(){ Story.onMatchOver(); };
+
+    this.initAuth();
+  },
+
+  open: function(){ this.root.style.display='block'; document.body.classList.add('story-open'); window.scrollTo(0,0); },
+  hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); },
+  screen: function(html){ document.getElementById('story-screen').innerHTML = html; window.scrollTo(0,0); },
+
+  /* ============================ entry ============================ */
+  start: async function(){
+    if (!this.profile) this.profile = await SaveAPISafe(this);
+    this.open();
+    this.goTypes();
+  },
+
+  /* ============================ auth ============================ */
+  initAuth: async function(){
+    if (!this.sb){ this.renderChip(); return; }
+    try { var r = await this.sb.auth.getSession(); this.currentUser = r.data.session ? r.data.session.user : null; } catch(e){ this.currentUser=null; }
+    this.sb.auth.onAuthStateChange(function(_e,s){ Story.currentUser = s ? s.user : null; Story.renderChip(); });
+    this.renderChip();
+  },
+  displayName: function(){ if(!this.currentUser) return 'Guest Crafter'; return (this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||this.currentUser.email||'Crafter'; },
+  renderChip: function(){
+    var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
+    if(!nm) return;
+    if(this.currentUser){ nm.textContent=this.displayName(); if(note) note.textContent='Signed in · view stats'; }
+    else { nm.textContent='Guest Crafter'; if(note) note.textContent='tap to sign in'; }
+  },
+  openIdentity: function(){ if(this.currentUser) this.goStats(); else this.goSignIn(); },
+  goSignIn: function(){
+    var html;
+    if(this.currentUser){
+      html = '<div class="crumb">Account</div><h1 class="st-h1">Account</h1>'+
+        '<div class="signin-box"><div class="si-user"><div class="em">Signed in as<br>'+this.displayName()+'</div>'+
+        '<button class="btn btn-gold" onclick="Story.goStats()">View your stats</button>'+
+        '<button class="btn btn-ghost" onclick="Story.signOut()">Sign out</button></div></div>'+
+        this.backBar('Story.goTypes()');
+    } else if(!this.sb){
+      html = '<div class="crumb">Account</div><h1 class="st-h1">Sign in</h1>'+
+        '<div class="signin-box"><p class="si-msg" style="color:var(--st-walnut)">Sign-in connects on the live site. For now, play as a guest.</p>'+
+        '<button class="btn btn-gold" onclick="Story.goTypes()">Play as guest</button></div>'+this.backBar('Story.goTypes()');
+    } else {
+      html = '<div class="crumb">Account</div><h1 class="st-h1">Sign in</h1>'+
+        '<p class="st-sub">Save your progress, scores, and achievements across devices.</p>'+
+        '<div class="signin-box">'+
+          '<button class="btn btn-gold" onclick="Story.signInGoogle()">Continue with Google</button>'+
+          '<div class="si-or">or</div>'+
+          '<input type="email" id="siEmail" placeholder="you@example.com" autocomplete="email">'+
+          '<button class="btn btn-gold" onclick="Story.sendMagicLink()">Email me a sign-in link</button>'+
+          '<div class="si-msg" id="siMsg"></div>'+
+          '<div class="si-or">or</div>'+
+          '<button class="btn btn-ghost" onclick="Story.goTypes()">Play as guest</button>'+
+        '</div>';
+    }
+    this.screen(html);
+  },
+  sendMagicLink: async function(){
+    var email=(document.getElementById('siEmail').value||'').trim(), msg=document.getElementById('siMsg');
+    if(!email){ if(msg) msg.textContent='Enter your email first.'; return; }
+    if(!this.sb){ if(msg) msg.textContent='Not connected yet.'; return; }
+    if(msg) msg.textContent='Sending…';
+    try{ var r=await this.sb.auth.signInWithOtp({email:email, options:{emailRedirectTo:window.location.href}});
+      if(msg) msg.textContent=r.error?('Error: '+r.error.message):'Check your email for a sign-in link!';
+    }catch(e){ if(msg) msg.textContent='Something went wrong.'; }
+  },
+  signInGoogle: async function(){
+    if(!this.sb) return;
+    try{ await this.sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } }); }catch(e){}
+  },
+  signOut: async function(){ if(this.sb){ try{ await this.sb.auth.signOut(); }catch(e){} } this.currentUser=null; this.renderChip(); this.goSignIn(); },
+
+  /* ============================ screens ============================ */
+  backBar: function(onclick, label){ return '<div class="backbar"><button class="btn btn-ghost" onclick="'+onclick+'">'+(label||'← Back')+'</button></div>'; },
+
+  goTypes: function(){
+    var self=this;
+    var cards = Object.keys(this.TYPE_META).map(function(tid){
+      var m=self.TYPE_META[tid];
+      var pair = Object.keys(CARDS.characters).filter(function(c){ return CARDS.characters[c].type===tid; });
+      var a=pair[0], b=pair[1];
+      return '<div class="type" style="--tc:'+m.color+';--tcDark:'+m.dark+'" onclick="Story.goChars(\''+tid+'\')">'+
+        '<div class="art">'+
+          '<span class="cornerpill left">'+CARDS.characters[a].name+'</span>'+
+          '<span class="cornerpill right">'+CARDS.characters[b].name+'</span>'+
+          '<img class="port" src="'+self.portrait(a)+'"><img class="port" src="'+self.portrait(b)+'">'+
+        '</div>'+
+        '<div class="body"><h3 class="atitle">'+m.name+'</h3><div class="tagline">'+m.tag+'</div>'+
+          '<p>'+m.desc+'</p>'+
+          '<div class="cardfoot"><span class="pick">Choose this style →</span>'+
+          '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
+    }).join('');
+    this.screen('<div class="crumb">Story Mode · Step 1 of 2</div><h1 class="st-h1">Choose your playstyle</h1>'+
+      '<p class="st-sub">Six crafter archetypes, each plays the bazaar differently. Pick the style that fits you.</p>'+
+      '<div class="types">'+cards+'</div>');
+  },
+
+  goChars: function(tid){
+    var self=this, m=this.TYPE_META[tid];
+    var pair = Object.keys(CARDS.characters).filter(function(c){ return CARDS.characters[c].type===tid; });
+    var cards = pair.map(function(c){
+      var ch=CARDS.characters[c], sr=self.faveSR(c), dlg=self.DIALOG[c]||{};
+      var srBlock = sr ? '<div class="favbox"><img class="srcard" src="'+sr.img+'" alt="'+sr.name+'" '+
+          'onmouseenter="Story.hoverSR(\''+c+'\',event)" onmousemove="Story.moveHover(event)" onmouseleave="Story.unhoverSR()" onclick="event.stopPropagation();Story.openSR(\''+c+'\')">'+
+          '<div class="favtext"><div class="favlabel">Favorite Special Request</div><div class="favname">'+sr.name+'</div><div class="favhint">Hover or tap to preview</div></div></div>' : '';
+      return '<div class="char" style="--tc:'+m.color+'" onclick="Story.goLadder(\''+c+'\')">'+
+        '<div class="port"><span class="cornerpill left">'+ch.name+'</span><img src="'+self.portrait(c)+'"></div>'+
+        '<div class="info"><div class="ctype">'+m.name+'</div>'+
+          (dlg.intro?'<div class="quote">“'+dlg.intro+'”</div>':'')+
+          srBlock+
+          '<div class="choose" style="margin-top:14px;text-align:center">Play as '+ch.name+'</div></div></div>';
+    }).join('');
+    this.screen('<div class="crumb">Story Mode · Step 2 of 2</div><h1 class="st-h1">'+m.name+'</h1>'+
+      '<p class="st-sub">'+m.desc+'</p>'+
+      '<p class="same-note">Same playstyle, different personality. Pick the one that feels like you.</p>'+
+      '<div class="compare">'+cards+'</div>'+this.backBar('Story.goTypes()','← Back to playstyles'));
+  },
+
+  /* ---- ladder ---- */
+  currentOpp: function(){ return this.ladder[Math.min(this.beaten, this.ladder.length-1)]; },
+  isBoss: function(c){ return c==='hank'; },
+  goLadder: function(charId){
+    this.picked=charId; this.beaten=0;
+    this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==charId; }).concat(['hank']);
+    this.renderLadder();
+  },
+  miniHTML: function(c, done){
+    if(this.isBoss(c)) return '<div class="mini boss '+(done?'done':'')+'"><div class="crown">👑</div><div class="mtxt"><b>HANK</b><span>Final Trial · coming soon</span></div></div>';
+    var ch=this.char(c);
+    return '<div class="mini oppnode '+(done?'done':'')+'" style="--tc:'+this.color(c)+'"><img src="'+this.portrait(c)+'"><div class="mtxt"><b>'+ch.name+'</b><span>'+this.meta(c).name+'</span></div>'+(done?'<span style="font-size:1.2rem">✓</span>':'')+'</div>';
+  },
+  srMini: function(c){
+    var sr=this.faveSR(c); if(!sr) return '';
+    return '<div class="pc-srmini"><img class="srthumb" src="'+sr.img+'" alt="'+sr.name+'" onmouseenter="Story.hoverSR(\''+c+'\',event)" onmousemove="Story.moveHover(event)" onmouseleave="Story.unhoverSR()" onclick="event.stopPropagation();Story.openSR(\''+c+'\')">'+
+      '<div><div class="l">Favorite Special Request</div><div class="n">'+sr.name+'</div></div></div>';
+  },
+  youCardHTML: function(){
+    var c=this.picked, ch=this.char(c), total=this.ladder.length, list=this.ladder.slice(0,this.beaten);
+    var avatars = list.length ? list.map(function(o){ return o==='hank'?'<span style="font-size:26px">👑</span>':'<img src="'+Story.portrait(o)+'" alt="">'; }).join('') : '<span class="j-empty">No wins yet. Go climb!</span>';
+    return '<div class="pcard" style="--tc:'+this.color(c)+'"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="pc-name">'+ch.name+'</div></div>'+
+      '<div class="pc-body"><div class="pc-row"><span class="pc-role">'+this.meta(c).name+'</span><img class="pc-marker" src="'+this.icon(c)+'" alt=""></div>'+
+      '<div class="pc-ability">'+this.meta(c).desc+'</div>'+this.srMini(c)+
+      '<div class="journey"><div class="j-head">Your Climb</div><div class="j-stat"><b>'+this.beaten+'</b> of '+total+' rivals beaten</div><div class="j-avatars">'+avatars+'</div></div></div></div>';
+  },
+  oppCardHTML: function(c){
+    if(this.isBoss(c)){
+      return '<div class="pcard boss has-cta" style="--tc:#7E5BC0"><div class="pc-port">👑<div class="pc-grad"></div><div class="pc-name">HANK</div></div>'+
+        '<div class="pc-body"><div class="pc-row"><span class="pc-role" style="color:#7E5BC0">The Gnome of the Nook · Final Trial</span></div>'+
+        '<div class="pc-ability">The legendary gnome at the summit. Hank’s trial is coming in a future update — beat the eleven crafters to claim the circle for now.</div>'+
+        '<button class="challenge overlay" disabled style="opacity:.6;cursor:default">Coming soon</button></div></div>';
+    }
+    var ch=this.char(c), dlg=this.DIALOG[c]||{};
+    return '<div class="pcard has-cta" style="--tc:'+this.color(c)+'"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="pc-name">'+ch.name+'</div></div>'+
+      '<div class="pc-body"><div class="pc-row"><span class="pc-role">'+this.meta(c).name+'</span><img class="pc-marker" src="'+this.icon(c)+'" alt=""></div>'+
+      '<div class="pc-ability">'+this.meta(c).desc+'</div>'+this.srMini(c)+
+      (dlg.intro?'<div class="pc-quote">“'+dlg.intro+'”</div>':'')+
+      '<button class="challenge overlay" onclick="Story.goPreMatch()">Challenge '+ch.name+'</button></div></div>';
+  },
+  renderLadder: function(){
+    var isMobile = window.innerWidth <= 620, total=this.ladder.length, champ = this.beaten>=total;
+    var nodes=[];
+    for(var i=total-1;i>=0;i--){
+      var c=this.ladder[i], isFocus=(i===this.beaten), done=(i<this.beaten);
+      nodes.push('<div class="slot '+(isFocus?'is-focus':'')+'">'+(isFocus?this.oppCardHTML(c):this.miniHTML(c,done))+'</div>');
+      if(isMobile && isFocus) nodes.push('<div class="slot you-slot">'+this.youNodeHTML()+'</div>');
+    }
+    if(isMobile && champ) nodes.push('<div class="slot you-slot">'+this.youNodeHTML()+'</div>');
+    var track = nodes.map(function(n,idx){ return idx?'<div class="connector2"></div>'+n:n; }).join('');
+    var progTxt = champ ? '🏆 Champion of the Craft Circle!' : (this.beaten+' of '+total+' beaten');
+    this.screen('<div class="crumb">The Climb</div><h1 class="st-h1">Climb the Craft Circle</h1>'+
+      '<p class="st-sub">Playing as '+this.char(this.picked).name+'. Beat all eleven rivals to claim the circle.</p>'+
+      '<div class="progress">'+progTxt+'</div><div class="progbar"><div id="progFill" style="width:'+(this.beaten/total*100)+'%"></div></div>'+
+      '<div class="ladder2"><div class="you-side"><div class="side-label">You</div><div id="youCard">'+this.youCardHTML()+'</div></div>'+
+      '<div class="opp-side"><div class="side-label">The Climb ↑</div><div class="oppviewport"><div class="opptrack" id="opptrack">'+track+'</div></div></div></div>'+
+      '<p class="demohint">Scroll the climb to scout the rivals ahead. Hit Challenge to play a real match.</p>'+
+      this.backBar('Story.goTypes()','↺ Change crafter'));
+    var self=this;
+    requestAnimationFrame(function(){
+      var vp=document.querySelector('.oppviewport'), trackEl=document.getElementById('opptrack');
+      if(!vp||!trackEl) return;
+      var focusEl=trackEl.querySelector('.is-focus');
+      var focusCard=focusEl&&focusEl.querySelector('.pcard');
+      if(focusCard) focusCard.classList.add('has-cta');
+      var youEl=document.querySelector('#youCard .pcard');
+      if(focusCard&&youEl){ focusCard.style.minHeight=''; youEl.style.minHeight='';
+        if(window.innerWidth>620){ var h=Math.max(focusCard.offsetHeight, youEl.offsetHeight); focusCard.style.minHeight=h+'px'; youEl.style.minHeight=h+'px'; } }
+      var target = isMobile ? (trackEl.querySelector('.you-slot')||focusEl) : (focusEl||trackEl.lastElementChild);
+      if(target) vp.scrollTop = Math.max(0, target.offsetTop-(vp.clientHeight-target.offsetHeight-16));
+    });
+  },
+  youNodeHTML: function(){
+    var c=this.picked, ch=this.char(c), total=this.ladder.length;
+    return '<div class="pcard you-node" style="--tc:#d9a521"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="you-badge">YOU</div><div class="pc-name">'+ch.name+'</div></div>'+
+      '<div class="pc-body"><div class="pc-row"><span class="pc-role">'+this.meta(c).name+'</span><img class="pc-marker" src="'+this.icon(c)+'" alt=""></div>'+
+      '<div class="pc-ability" style="font-weight:bold;color:var(--st-gold-d)">'+this.beaten+' of '+total+' beaten</div></div></div>';
+  },
+
+  /* ---- pre / post match ---- */
+  fighterHTML: function(c,label){
+    if(this.isBoss(c)) return '<div class="fcard boss" style="--tc:#7E5BC0"><div class="fport">👑</div><div class="fbody"><div class="flabel">'+label+'</div><div class="fname">Hank</div><div class="frole">Final Trial</div></div></div>';
+    var ch=this.char(c);
+    return '<div class="fcard" style="--tc:'+this.color(c)+'"><div class="fport"><img src="'+this.portrait(c)+'"></div><div class="fbody"><div class="flabel">'+label+'</div><div class="fname">'+ch.name+'</div><div class="frole">'+this.meta(c).name+'</div></div></div>';
+  },
+  dialogHTML: function(c,line){
+    var who = this.isBoss(c)?'Hank':this.char(c).name, col=this.isBoss(c)?'#7E5BC0':this.color(c);
+    var port = this.isBoss(c)?'<div class="dlg-port boss">👑</div>':'<img class="dlg-port" src="'+this.portrait(c)+'">';
+    return '<div class="dlg" style="--tc:'+col+'">'+port+'<div class="bubble"><b>'+who+'</b><p>“'+line+'”</p></div></div>';
+  },
+  goPreMatch: function(){
+    var c=this.currentOpp(), dlg=this.DIALOG[c]||{};
+    this.screen('<div class="crumb">Match · Face-Off</div><h1 class="st-h1">Before the match</h1>'+
+      '<div class="vs-stage"><div>'+this.fighterHTML(this.picked,'You')+'</div><div class="vs-badge">VS</div><div>'+this.fighterHTML(c,'Challenger')+'</div></div>'+
+      '<div class="dialogbox">'+this.dialogHTML(c, dlg.intro||'Let’s craft.')+'</div>'+
+      '<div class="match-actions"><button class="btn btn-gold" onclick="Story.beginMatch()">Begin Match</button>'+
+      '<button class="btn btn-ghost" onclick="Story.renderLadder()">Back</button></div>');
+  },
+  beginMatch: function(){
+    var oppId=this.currentOpp();
+    if(this.isBoss(oppId)) return;
+    this.matchStart=Date.now(); this.active=true;
+    var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
+    this.hide();
+    Game.init({ players: [
+      { characterId:this.picked, isAI:false, name:youName },
+      { characterId:oppId,       isAI:true,  name:this.char(oppId).name }
+    ]});
+    UI.renderAll();
+    var tb=document.getElementById('takeoverBar'); if(tb) tb.style.display='none';
+  },
+  onMatchOver: function(){
+    if(!this.active) return;
+    this.active=false;
+    var players=(Game.state&&Game.state.players)||[], you=null, opp=null;
+    players.forEach(function(p){ if(p.isAI) opp=p; else you=p; });
+    var ys = you ? (Game.calculateFinalScore(you).total||0) : 0;
+    var os = opp ? (Game.calculateFinalScore(opp).total||0) : 0;
+    var c = this.currentOpp();
+    this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[] };
+    if(this.lastMatch.win) this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
+    this.open();
+    this.showResult(this.lastMatch.win);
+  },
+  showResult: function(win){
+    var c=this.currentOpp(), dlg=this.DIALOG[c]||{}, lm=this.lastMatch||{you:0,opp:0,timeMs:0};
+    var secs=Math.round((lm.timeMs||0)/1000), mt=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');
+    var banner = win ? 'Victory!' : 'Not this time';
+    var details, actions;
+    if(win){
+      var earned = lm.earned||[];
+      var ach = earned.length ? ('<div class="rd-head">Achievement'+(earned.length>1?'s':'')+' unlocked</div>'+earned.map(function(a){ return '<div class="ach-chip">🏅 '+a.name+' <span class="pts">+'+a.pts+'</span></div>'; }).join('')) : '<div class="rd-head">No new achievements this match</div>';
+      details = '<div class="result-card"><div class="rd-score">Match score <b>'+lm.you+'</b> · they had '+lm.opp+'</div>'+
+        '<div class="rd-total">+'+lm.you+' to your Story Mode score</div>'+
+        '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:3px">⏱ Match time '+mt+'</div>'+ach+'</div>';
+      actions = '<button class="btn btn-gold" onclick="Story.nextChallenger()">Next Challenger →</button>';
+    } else {
+      details = '<div class="result-card"><div class="rd-score" style="font-style:italic;color:var(--st-walnut-soft)">No shame in a dropped stitch. Pick your needles back up and try again.</div>'+
+        '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:6px">Your score '+lm.you+' · '+this.char(c).name+' '+lm.opp+'</div></div>';
+      actions = '<button class="btn btn-gold" onclick="Story.goPreMatch()">Rematch</button><button class="btn btn-ghost" onclick="Story.renderLadder()">Back to the climb</button>';
+    }
+    this.screen('<div class="crumb">Match · Result</div><div class="result-banner '+(win?'win':'loss')+'">'+banner+'</div>'+
+      '<div class="dialogbox">'+this.dialogHTML(c, win?(dlg.win||'Well played.'):(dlg.lose||'Got you this time.'))+'</div>'+
+      details+'<div class="match-actions">'+actions+'</div>');
+  },
+  nextChallenger: function(){
+    if(this.beaten<this.ladder.length) this.beaten++;
+    // skip the boss (not playable yet): if next is Hank, end the run
+    if(this.currentOpp()==='hank'){ this.goEnding(); return; }
+    this.renderLadder();
+  },
+
+  /* ---- ending ---- */
+  goEnding: function(){
+    var rivals=this.ladder.filter(function(c){ return c!=='hank'; });
+    var avatars=rivals.map(function(c){ return '<img src="'+Story.portrait(c)+'" title="'+Story.char(c).name+'" alt="">'; }).join('')+'<span style="font-size:30px">👑</span>';
+    var p=this.profile||{};
+    var html='<div class="crumb">Story Mode · Run Complete</div>'+
+      '<div class="ending-hero"><div class="crown">🏆</div><h1 class="st-h1">Champion of the Craft Circle!</h1>'+
+      '<div class="sub">'+this.char(this.picked).name+', the '+this.meta(this.picked).name+', bested all eleven rivals. (Hank’s trial at the summit is coming soon.)</div></div>'+
+      '<div class="defeated-row">'+avatars+'</div>'+
+      '<div class="recap">'+
+        '<div class="recap-row"><span class="lbl">Rivals beaten</span><span class="val">'+rivals.length+' of '+rivals.length+'</span></div>'+
+        '<div class="recap-row"><span class="lbl">Story Mode score</span><span class="val">'+(p.lifetimeStoryScore||0)+'</span></div>'+
+        '<div class="recap-row"><span class="lbl">Achievement bank</span><span class="val">'+(p.bank||0)+' pts</span></div>'+
+      '</div>'+
+      '<div class="match-actions" style="margin-top:22px"><button class="btn btn-gold" onclick="Story.goTypes()">Play Again →</button>'+
+      '<button class="btn btn-ghost" onclick="Story.goStats()">View Stats</button></div>';
+    this.screen(html);
+  },
+
+  /* ---- stats ---- */
+  goStats: function(){
+    var p=this.profile||{}, crafters=p.crafters||{};
+    var tiles=[
+      {ico:'🏆',num:(p.lifetimeStoryScore||0),lbl:'Lifetime Story Score'},
+      {ico:'⭐',num:((p.perGameHigh&&p.perGameHigh.score)||0),lbl:'Best Game'},
+      {ico:'⏱',num:this.fmtTime(p.totalPlayTimeMs||0),lbl:'Total Time'},
+      {ico:'🏅',num:(Object.keys(p.achievements||{}).length)+' / '+this.ACH.length,lbl:'Achievements'},
+    ].map(function(t){ return '<div class="stat-tile"><div class="st-ico">'+t.ico+'</div><div class="st-num">'+t.num+'</div><div class="st-lbl">'+t.lbl+'</div></div>'; }).join('');
+    var order=Object.keys(CARDS.characters).sort(function(a,b){ return (crafters[b]?1:0)-(crafters[a]?1:0); });
+    var board=order.map(function(c){
+      var s=crafters[c], col=Story.color(c);
+      if(!s) return '<div class="cb-card unplayed" style="--tc:'+col+'"><img src="'+Story.portrait(c)+'"><div class="cb-meta"><b>'+Story.char(c).name+'</b><span>Not played yet</span></div><div class="cb-score">—</div></div>';
+      return '<div class="cb-card" style="--tc:'+col+'"><img src="'+Story.portrait(c)+'"><div class="cb-meta"><b>'+Story.char(c).name+'</b><span>'+(s.furthest||'')+'</span></div><div class="cb-score">'+(s.best||0)+'</div></div>';
+    }).join('');
+    this.screen('<div class="crumb">Story Mode · Stats</div>'+
+      '<div class="stats-id"><div class="big-av">🧶</div><div class="who2"><div class="nm">'+this.displayName()+'</div>'+
+        '<div class="sub2">'+(this.currentUser?'Synced to your account':'Sign in to save across devices')+'</div></div></div>'+
+      '<div class="stat-tiles">'+tiles+'</div>'+
+      '<div class="section-h">Your Crafters</div><div class="crafter-board">'+board+'</div>'+
+      this.backBar('Story.goTypes()','← Back to start'));
+  },
+  fmtTime: function(ms){ var m=Math.round(ms/60000); if(m<60) return m+'m'; return Math.floor(m/60)+'h '+(m%60)+'m'; },
+
+  /* ---- achievements + persistence ---- */
+  ACH: [
+    {id:'firstStitch', name:'First Stitch', pts:10, test:function(p){ return (p._totalWins||0)>=1; }},
+    {id:'hooked',      name:'Hooked',       pts:10, test:function(p,s){ return s.beaten>=3; }},
+    {id:'halfway',     name:'Halfway Skein',pts:25, test:function(p,s){ return s.beaten>=6; }},
+    {id:'topCircle',   name:'Top of the Circle', pts:50, test:function(p,s){ return s.beaten>=11; }},
+    {id:'champion',    name:'Circle Champion',   pts:50, test:function(p,s){ return s.beaten>=11; }},
+  ],
+  // Bank the win once: score, per-game high, per-crafter, time, achievements.
+  // Does NOT advance `beaten` (nextChallenger does that). Uses beaten+1 for tests
+  // since this win means one more rival down.
+  creditWin: function(c){
+    var p=this.profile=this.profile||{};
+    p.achievements=p.achievements||{}; p.crafters=p.crafters||{}; p.bank=p.bank||0;
+    p.lifetimeStoryScore=p.lifetimeStoryScore||0; p.totalPlayTimeMs=p.totalPlayTimeMs||0;
+    p._totalWins=(p._totalWins||0)+1;
+    var lm=this.lastMatch||{you:0,timeMs:0};
+    p.lifetimeStoryScore += lm.you;
+    p.totalPlayTimeMs += (lm.timeMs||0);
+    if(!p.perGameHigh || lm.you>p.perGameHigh.score) p.perGameHigh={score:lm.you, crafter:this.picked, opponent:c};
+    var beatenAfter=this.beaten+1;
+    var cr=p.crafters[this.picked]||{used:true,best:0,furthest:''};
+    cr.used=true; if(lm.you>(cr.best||0)) cr.best=lm.you;
+    cr.furthest=(beatenAfter>=11)?'Champion 🏆':(beatenAfter+' rivals beaten');
+    p.crafters[this.picked]=cr;
+    var earned=[];
+    this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test(p,{beaten:beatenAfter})){ p.achievements[a.id]=Date.now(); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
+    lm.earned=earned;
+    this.save();
+  },
+  save: async function(){
+    if(!this.profile) return;
+    try{ localStorage.setItem('ar_story_profile', JSON.stringify(this.profile)); }catch(e){}
+    if(this.sb && this.currentUser){ try{ await this.sb.from('profiles').upsert({ id:this.currentUser.id, data:this.profile, updated_at:new Date().toISOString() }); }catch(e){} }
+  },
+
+  /* ---- SR preview ---- */
+  openSR: function(c){ var sr=this.faveSR(c); if(!sr) return; var lb=document.getElementById('srlightbox'); if(!lb){ lb=document.createElement('div'); lb.id='srlightbox'; lb.onclick=function(){ lb.classList.remove('open'); }; lb.innerHTML='<div class="lb-inner"><img id="srlbImg"><div class="lb-name" id="srlbName"></div><div class="lb-close">Tap anywhere to close</div></div>'; document.body.appendChild(lb); } document.getElementById('srlbImg').src=sr.img; document.getElementById('srlbName').textContent=sr.name; lb.classList.add('open'); this.unhoverSR(); },
+  hoverSR: function(c,e){ var sr=this.faveSR(c); if(!sr) return; var h=document.getElementById('srhover'); if(!h){ h=document.createElement('div'); h.id='srhover'; h.innerHTML='<img id="srhoverImg"><div class="nm" id="srhoverName"></div>'; document.body.appendChild(h); } document.getElementById('srhoverImg').src=sr.img; document.getElementById('srhoverName').textContent=sr.name; h.style.display='block'; this.moveHover(e); },
+  moveHover: function(e){ var h=document.getElementById('srhover'); if(!h) return; var x=e.clientX+18,y=e.clientY-130; if(x+250>window.innerWidth) x=e.clientX-248; if(y<10) y=10; h.style.left=x+'px'; h.style.top=y+'px'; },
+  unhoverSR: function(){ var h=document.getElementById('srhover'); if(h) h.style.display='none'; },
+};
+
+// Load saved profile (cloud if signed in, else local). Helper so start() reads fresh.
+async function SaveAPISafe(S){
+  if(S.sb && S.currentUser){
+    try{ var r=await S.sb.from('profiles').select('data').eq('id',S.currentUser.id).maybeSingle(); if(r.data&&r.data.data) return r.data.data; }catch(e){}
+  }
+  try{ return JSON.parse(localStorage.getItem('ar_story_profile')||'{}'); }catch(e){ return {}; }
+}
+
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var lb=document.getElementById('srlightbox'); if(lb) lb.classList.remove('open'); } });
+window.addEventListener('resize', function(){ if(Story.root && Story.root.style.display!=='none' && Story.picked && document.getElementById('opptrack')) Story.renderLadder(); });

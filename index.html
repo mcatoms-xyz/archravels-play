@@ -62,6 +62,7 @@
                 <button class="nav-menu-item cb-toggle" onclick="UI.onToggleColorblind()" id="navColorblindBtn" aria-pressed="false">
                     <span class="cb-indicator"></span> Colorblind Mode
                 </button>
+                <button class="nav-menu-item" onclick="Story.start()">🧶 Story Mode</button>
                 <button class="nav-menu-item" onclick="UI.onNewGame()">New Game</button>
             </div>
         </div>
@@ -95,6 +96,17 @@
     </div>
 
     <div class="game-layout" role="main" aria-label="Game play area">
+
+        <!-- =============================================================
+             ACTION FEED (Session 22 · moved to top Session 35)
+             Rolling ticker of recent game actions for ALL players.
+             Sits above the bazaar and player board in all modes.
+             ============================================================= -->
+        <div class="action-feed" id="actionFeed" style="display:none" role="log" aria-live="polite" aria-label="Game action feed">
+            <span class="feed-label">Feed</span>
+            <div class="feed-entries" id="feedEntries"></div>
+            <button class="feed-expand" id="feedExpandBtn" title="Open Turn History">History ↗</button>
+        </div>
 
         <!-- =============================================================
              ACTION BAR  (Session 17 — single-row redesign)
@@ -212,17 +224,6 @@
             <div class="sr-grid" id="srGrid"></div>
         </div>
 
-        <!-- =============================================================
-             ACTION FEED (Session 22)
-             Rolling ticker of recent game actions for ALL players.
-             Replaces the old AI-only overlay panel.
-             ============================================================= -->
-        <div class="action-feed" id="actionFeed" style="display:none" role="log" aria-live="polite" aria-label="Game action feed">
-            <span class="feed-label">Feed</span>
-            <div class="feed-entries" id="feedEntries"></div>
-            <button class="feed-expand" id="feedExpandBtn" title="Open Turn History">History ↗</button>
-        </div>
-
     </div><!-- /game-layout -->
 
 
@@ -285,6 +286,8 @@
         <div class="modal-content">
             <div class="modal-title">Choose a Yarn Color</div>
             <div class="otc-container" id="colorPickerContext"></div>
+            <!-- Session 35: live "selected so far" feedback for multi-pick Any Yarn -->
+            <div class="color-pick-progress" id="colorPickerProgress" style="display:none"></div>
             <div class="color-picker-grid" id="colorPickerGrid"></div>
         </div>
     </div>
@@ -607,6 +610,11 @@
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
     <script src="js/network.js"></script>
     <script src="js/online-bridge.js"></script>
+
+    <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/story.js"></script>
+    <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- Session 34c: keep the fixed bottom control bar above mobile browser
          chrome (URL/nav bars, keyboard) using the visualViewport API.
