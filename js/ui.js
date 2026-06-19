@@ -242,6 +242,7 @@ var UI = {
      * Session 34g: leave the landing/front page and open Game Setup.
      */
     onLandingPlaySolo: function() {
+        if (window.Story) Story.storyGame = false;   // this is a quick game, not a Story match
         var landing = document.getElementById('landingScreen');
         if (landing) landing.style.display = 'none';
         this.showSetupScreen();
@@ -1285,7 +1286,9 @@ var UI = {
             '</div>' +
             '<div class="ab-buttons">' +
                 '<button class="btn btn-primary" onclick="UI.showGameOverModal()">View Final Scores</button>' +
-                '<button class="btn btn-secondary" onclick="UI.onNewGame()">Play Again</button>' +
+                '<button class="btn btn-secondary" onclick="UI.onNewGame()">' +
+                    ((window.Story && Story.storyGame) ? 'On to the climb →' : 'Play Again') +
+                '</button>' +
             '</div>';
     },
 
@@ -1672,6 +1675,14 @@ var UI = {
      * Session 8c: Reset the game and start over.
      */
     onNewGame: function() {
+        // In a Story Mode match, "new game" means back to the climb / next challenger —
+        // NOT the quick-game character-select setup.
+        if (window.Story && Story.storyGame) {
+            Story.open();
+            if (Story.lastMatch) Story.showResult(Story.lastMatch.win);
+            else Story.renderLadder();
+            return;
+        }
         this.showSetupScreen();
     },
 

@@ -374,7 +374,7 @@ var Story = {
   beginMatch: function(){
     var oppId=this.currentOpp();
     if(this.isBoss(oppId)) return;
-    this.matchStart=Date.now(); this.active=true;
+    this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
     var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
     // hide the landing/front door too — otherwise closing the story overlay reveals
