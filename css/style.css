@@ -6244,6 +6244,9 @@ body {
 @media (max-width: 560px) {
     /* Play area fills the screen edge-to-edge by default */
     .game-layout { padding-left: 0; padding-right: 0; }
+    /* Session 36 (Amy/iPhone): give the board extra bottom clearance so its lowest
+       craft row never sits under the fixed Turn/action bar + its scrim. */
+    .game-layout { padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
     .board-image { max-width: 100vw; }
     .board-section { border-radius: 0; max-width: 100vw; }
     .player-area { padding: 0 6px; gap: 10px; }
