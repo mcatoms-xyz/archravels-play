@@ -23,8 +23,10 @@
             <div class="landing-edition">Digital Edition <span class="landing-beta">Beta</span></div>
             <p class="landing-tagline">A cozy fiber-arts strategy game. Shop the Yarn Bazaar, craft finished objects, and out-knit your rivals.</p>
             <div class="landing-actions">
-                <button class="btn btn-cta landing-play" onclick="UI.onLandingPlaySolo()">▶ Play Solo</button>
+                <button class="btn btn-cta landing-play" onclick="Story.start()">🧶 Story Mode</button>
+                <button class="btn btn-cta landing-play" onclick="UI.onLandingPlaySolo()" style="filter:saturate(.65)">▶ Quick Solo Match</button>
                 <button class="landing-soon" disabled aria-disabled="true">Play with Friends <span class="soon-badge">Soon</span></button>
+                <a class="landing-link" href="#" onclick="Story.account();return false;">Sign in / view your stats →</a>
                 <a class="landing-link" href="https://shop.xyzgamelabs.com" target="_blank" rel="noopener">Get the physical game ↗</a>
             </div>
 

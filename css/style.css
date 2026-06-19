@@ -6443,6 +6443,8 @@ html { overflow-x: hidden; }
   background-color:#c2aa83;
 }
 #story-root #story-screen{max-width:1000px;margin:0 auto}
+#story-root .story-close{position:absolute;top:16px;left:16px;z-index:6;background:rgba(255,253,248,.9);border:1px solid var(--tan-d);border-radius:50%;width:40px;height:40px;font-size:1.05rem;font-weight:bold;color:var(--walnut);cursor:pointer;box-shadow:var(--shadow-sm)}
+#story-root .story-close:hover{background:#fff}
 #story-root .crumb{text-align:center;color:var(--walnut-soft);font-size:.84rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-weight:bold}
 #story-root .st-h1{text-align:center;font-size:clamp(1.7rem,3.6vw,2.5rem);margin:0 0 6px;color:var(--walnut)}
 #story-root .st-sub{text-align:center;color:var(--walnut-soft);margin-bottom:24px;font-size:1.04rem}

@@ -76,6 +76,7 @@ var Story = {
     this.root.id = 'story-root';
     this.root.style.display = 'none';
     this.root.innerHTML =
+      '<button class="story-close" onclick="Story.hide()" aria-label="Back to home" title="Back to home">✕</button>' +
       '<div class="player-chip" title="Account" onclick="Story.openIdentity()">' +
         '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
         '<div class="pc-meta"><span class="pc-name" id="pcName">Guest Crafter</span><span class="pc-note" id="pcNote">tap to sign in</span></div>' +
@@ -102,6 +103,7 @@ var Story = {
     this.open();
     this.goTypes();
   },
+  account: function(){ this.open(); this.goSignIn(); },   // sign-in from the landing/front door
 
   /* ============================ auth ============================ */
   initAuth: async function(){
