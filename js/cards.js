@@ -231,7 +231,7 @@ const CARDS = {
         },
         amara: {
             id: 'amara', name: 'Amara', type: 'masterCrafter',
-            subtitle: 'Infinity Scarf',
+            subtitle: 'Hacky Sack',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0003_fa2-amara.png',
             actionSpaces: [
                 { label: 'Shop 3',               shop: 3 },
@@ -253,7 +253,7 @@ const CARDS = {
         },
         alex: {
             id: 'alex', name: 'Alex', type: 'colorSpecialist',
-            subtitle: 'Hacky Sack',
+            subtitle: 'Infinity Scarf',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0005_c2-alex.png',
             actionSpaces: [
                 { label: 'Shop 3',                         shop: 3 },
@@ -374,9 +374,9 @@ const CARDS = {
         { id: 'snugglesaurus',  name: 'Snugglesaurus',        favoriteOf: 'rebecca', colorRule: 'any',      yarnCount: 9,                                                          points: 13,   img: 'Square Cards PNG/AR_Special_Requests_Snugglesaurus.png' },
         { id: 'wristWarmers',   name: 'Wrist Warmers',        favoriteOf: 'theo',    colorRule: 'specific', yarn: { green: 2, orange: 2 },                                         points: 8,    img: 'Square Cards PNG/AR_Special_Requests_WristWarmers.png' },
         { id: 'prodCowl',       name: 'Prodigy Cowl',         favoriteOf: 'derrick', colorRule: 'specific', yarn: { blue: 4 },                                                     points: 8,    img: 'Square Cards PNG/AR_Special_Requests_ProdCowl.png' },
-        { id: 'infinityScarf',  name: 'Infinity Scarf',       favoriteOf: 'amara',   colorRule: 'specific', yarn: { yellow: 2, red: 1, blue: 1, green: 1, orange: 1, purple: 1 }, points: 10,   img: 'Square Cards PNG/AR_Special_Requests_InfinityScarf.png' },
+        { id: 'infinityScarf',  name: 'Infinity Scarf',       favoriteOf: 'alex',    colorRule: 'specific', yarn: { yellow: 2, red: 1, blue: 1, green: 1, orange: 1, purple: 1 }, points: 10,   img: 'Square Cards PNG/AR_Special_Requests_InfinityScarf.png' },
         { id: 'unicorn',        name: 'Unicorn',              favoriteOf: 'neeha',   colorRule: 'specific', yarn: { red: 1, blue: 1, green: 1, yellow: 1, orange: 1, purple: 1 }, points: 10,   img: 'Square Cards PNG/AR_Special_Requests_Unicorn.png' },
-        { id: 'hackySack',      name: 'Hacky Sack',           favoriteOf: 'alex',    colorRule: 'different', yarnCount: 3,                                                         points: 6,    img: 'Square Cards PNG/AR_Special_Requests_Hacky-Sack.png' },
+        { id: 'hackySack',      name: 'Hacky Sack',           favoriteOf: 'amara',   colorRule: 'different', yarnCount: 3,                                                         points: 6,    img: 'Square Cards PNG/AR_Special_Requests_Hacky-Sack.png' },
         { id: 'octopus',        name: 'Octopus',              favoriteOf: 'ted',     colorRule: 'specific', yarn: { purple: 4 },                                                   points: 8,    img: 'Square Cards PNG/AR_Special_Requests_Octopus.png' },
         { id: 'robot',          name: 'Robot',                favoriteOf: 'eliza',   colorRule: 'sameColor', yarnCount: 5,                                                         points: 9,    img: 'Square Cards PNG/AR_Special_Requests_Robot.png' },
 
