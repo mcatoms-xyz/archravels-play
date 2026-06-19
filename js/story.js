@@ -305,7 +305,7 @@ var Story = {
     return Math.max(0, Math.min(n, this.ladder.length));
   },
   miniHTML: function(c, done){
-    if(this.isBoss(c)) return '<div class="mini boss '+(done?'done':'')+'"><div class="crown">👑</div><div class="mtxt"><b>HANK</b><span>Final Boss</span></div>'+(done?'<span style="font-size:1.2rem">✓</span>':'')+'</div>';
+    if(this.isBoss(c)) return '<div class="mini boss oppnode '+(done?'done':'')+'"><img src="'+this.portrait('hank')+'"><div class="mtxt"><b>HANK</b><span>Final Boss</span></div>'+(done?'<span style="font-size:1.2rem">✓</span>':'')+'</div>';
     var ch=this.char(c);
     return '<div class="mini oppnode '+(done?'done':'')+'" style="--tc:'+this.color(c)+'"><img src="'+this.portrait(c)+'"><div class="mtxt"><b>'+ch.name+'</b><span>'+this.meta(c).name+'</span></div>'+(done?'<span style="font-size:1.2rem">✓</span>':'')+'</div>';
   },
@@ -316,7 +316,7 @@ var Story = {
   },
   youCardHTML: function(){
     var c=this.picked, ch=this.char(c), total=this.ladder.length, list=this.ladder.slice(0,this.beaten);
-    var avatars = list.length ? list.map(function(o){ return o==='hank'?'<span style="font-size:26px">👑</span>':'<img src="'+Story.portrait(o)+'" alt="">'; }).join('') : '<span class="j-empty">No wins yet. Go climb!</span>';
+    var avatars = list.length ? list.map(function(o){ return '<img src="'+Story.portrait(o)+'" alt="">'; }).join('') : '<span class="j-empty">No wins yet. Go climb!</span>';
     return '<div class="pcard" style="--tc:'+this.color(c)+'"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="pc-name">'+ch.name+'</div></div>'+
       '<div class="pc-body"><div class="pc-row"><span class="pc-role">'+this.meta(c).name+'</span><img class="pc-marker" src="'+this.icon(c)+'" alt=""></div>'+
       '<div class="pc-ability">'+this.meta(c).desc+'</div>'+this.srMini(c)+
@@ -325,7 +325,7 @@ var Story = {
   oppCardHTML: function(c){
     if(this.isBoss(c)){
       var bdlg=this.DIALOG.hank||{};
-      return '<div class="pcard boss has-cta" style="--tc:#7E5BC0"><div class="pc-port">👑<div class="pc-grad"></div><div class="pc-name">HANK</div></div>'+
+      return '<div class="pcard boss has-cta" style="--tc:#7E5BC0"><div class="pc-port"><img src="'+this.portrait('hank')+'"><div class="pc-grad"></div><div class="pc-name">HANK</div></div>'+
         '<div class="pc-body"><div class="pc-row"><span class="pc-role" style="color:#7E5BC0">The Stitchmeister · Final Boss</span></div>'+
         '<div class="pc-ability">The legendary gnome at the summit of the craft circle. He spins his own yarn, hoards every scrap, and every Special Request is his favorite. Beat him to claim the circle.</div>'+
         (bdlg.intro?'<div class="pc-quote">“'+bdlg.intro+'”</div>':'')+
@@ -379,13 +379,13 @@ var Story = {
 
   /* ---- pre / post match ---- */
   fighterHTML: function(c,label){
-    if(this.isBoss(c)) return '<div class="fcard boss" style="--tc:#7E5BC0"><div class="fport">👑</div><div class="fbody"><div class="flabel">'+label+'</div><div class="fname">Hank</div><div class="frole">Final Trial</div></div></div>';
+    if(this.isBoss(c)) return '<div class="fcard boss" style="--tc:#7E5BC0"><div class="fport"><img src="'+this.portrait('hank')+'"></div><div class="fbody"><div class="flabel">'+label+'</div><div class="fname">Hank</div><div class="frole">Final Boss</div></div></div>';
     var ch=this.char(c);
     return '<div class="fcard" style="--tc:'+this.color(c)+'"><div class="fport"><img src="'+this.portrait(c)+'"></div><div class="fbody"><div class="flabel">'+label+'</div><div class="fname">'+ch.name+'</div><div class="frole">'+this.meta(c).name+'</div></div></div>';
   },
   dialogHTML: function(c,line){
     var who = this.isBoss(c)?'Hank':this.char(c).name, col=this.isBoss(c)?'#7E5BC0':this.color(c);
-    var port = this.isBoss(c)?'<div class="dlg-port boss">👑</div>':'<img class="dlg-port" src="'+this.portrait(c)+'">';
+    var port = '<img class="dlg-port'+(this.isBoss(c)?' boss':'')+'" src="'+this.portrait(c)+'">';
     return '<div class="dlg" style="--tc:'+col+'">'+port+'<div class="bubble"><b>'+who+'</b><p>“'+line+'”</p></div></div>';
   },
   goPreMatch: function(){
@@ -457,7 +457,7 @@ var Story = {
   /* ---- ending ---- */
   goEnding: function(){
     var rivals=this.ladder.filter(function(c){ return c!=='hank'; });
-    var avatars=rivals.map(function(c){ return '<img src="'+Story.portrait(c)+'" title="'+Story.char(c).name+'" alt="">'; }).join('')+'<span style="font-size:30px">👑</span>';
+    var avatars=rivals.map(function(c){ return '<img src="'+Story.portrait(c)+'" title="'+Story.char(c).name+'" alt="">'; }).join('')+'<img src="'+Story.portrait('hank')+'" title="Hank" alt="">';
     var p=this.profile||{};
     var html='<div class="crumb">Story Mode · Run Complete</div>'+
       '<div class="ending-hero"><div class="crown">🏆</div><h1 class="st-h1">Champion of the Craft Circle!</h1>'+
