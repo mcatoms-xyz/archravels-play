@@ -86,7 +86,16 @@ var Story = {
     document.body.appendChild(this.root);
 
     // supabase
-    try { if (window.supabase) this.sb = window.supabase.createClient(this.SB_URL, this.SB_KEY); } catch(e){ this.sb = null; }
+    // Session 36: use the implicit OAuth flow (token returned in the URL hash) instead of
+    // the default PKCE flow. PKCE stashes a code_verifier in localStorage and needs it back
+    // after the Google round-trip — iOS Safari's storage partitioning/ITP often loses it
+    // between redirect-out and redirect-back, which silently fails the exchange and leaves
+    // the user stuck on a sign-in loop (Amy's report). Implicit flow needs no stored verifier.
+    try {
+      if (window.supabase) this.sb = window.supabase.createClient(this.SB_URL, this.SB_KEY, {
+        auth: { flowType: 'implicit', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+      });
+    } catch(e){ this.sb = null; }
 
     // hook match-over
     Game.render.gameOver = function(){ Story.onMatchOver(); };

@@ -3923,6 +3923,9 @@ var UI = {
         var alloc = this._craftColorAlloc;
         var needed = itemDef.yarnCount;
         var rule = itemDef.colorRule;
+        // Session 36: Frog It is a RECEIVE flow — the player picks which yarn to get back,
+        // so selection is bound only by the count needed, not by what's in the bowl.
+        var isReceive = !!(this._pendingCraft && this._pendingCraft.context === 'frogIt');
         var totalAlloc = 0;
         CARDS.COLORS.forEach(function(c) { totalAlloc += alloc[c]; });
 
@@ -3935,9 +3938,10 @@ var UI = {
             var hex = CARDS.COLOR_HEX[color];
             var capName = color.charAt(0).toUpperCase() + color.slice(1);
 
-            if (rule === 'oneColor' && available < needed && current === 0) return;
+            if (rule === 'oneColor' && !isReceive && available < needed && current === 0) return;
 
-            var maxForColor = Math.min(available, needed - totalAlloc + current);
+            var room = needed - totalAlloc + current;
+            var maxForColor = isReceive ? room : Math.min(available, room);
             if (rule === 'different') maxForColor = Math.min(maxForColor, 1);
             if (rule === 'oneColor') {
                 var otherUsed = false;
@@ -3952,7 +3956,7 @@ var UI = {
             html += '<div class="craft-color-info">';
             html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
             html += '<span class="craft-color-label">' + capName + '</span>';
-            html += '<span class="craft-color-available">(have ' + available + ')</span>';
+            if (!isReceive) html += '<span class="craft-color-available">(have ' + available + ')</span>';
             html += '</div>';
             html += '<div class="craft-color-controls">';
             html += '<button aria-label="Use less ' + capName + '" onclick="UI._craftColorAdjust(\'' + color + '\', -1)" ' + (canDecrement ? '' : 'disabled') + '>-</button>';
@@ -4824,13 +4828,14 @@ var UI = {
             };
             this.showCraftConfirm();
         } else {
-            // General/learned — player chooses yarn to get back
-            // Reuse craft color picker in frogIt context
-            var colorRule = item.colorRule || 'oneColor';
-            if (colorRule === 'exact') colorRule = 'oneColor';  // safety fallback
+            // General/learned — player chooses yarn to get back.
+            // Session 36 fix: a refund is "receive N yarn of ANY colors you choose" — it is
+            // NOT bound by the item's craft color-rule (e.g. one-color), and must NOT be
+            // capped by what's currently in the bowl. Using the item's rule + a spend-style
+            // cap could leave the picker with no selectable colors (Done stuck greyed out).
             var pickerItemDef = {
                 id: item.id, name: item.name, img: item.img, points: item.points,
-                colorRule: colorRule,
+                colorRule: 'any',
                 yarnCount: item.yarnCount || 3,
             };
             this._pendingCraft = {
