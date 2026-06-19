@@ -6439,7 +6439,7 @@ html { overflow-x: hidden; }
     radial-gradient(1100px 620px at 50% -10%, rgba(255,241,216,0.55) 0%, transparent 60%),
     radial-gradient(900px 700px at 100% 110%, rgba(120,91,192,0.14) 0%, transparent 55%),
     linear-gradient(165deg, rgba(206,184,150,0.80) 0%, rgba(176,148,110,0.86) 100%),
-    url('story-assets/yarnballs-bg.jpg') center / cover fixed no-repeat;
+    url('../story-assets/yarnballs-bg.jpg') center / cover fixed no-repeat;
   background-color:#c2aa83;
 }
 #story-root #story-screen{max-width:1000px;margin:0 auto}
