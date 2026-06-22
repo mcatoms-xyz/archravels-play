@@ -55,6 +55,10 @@
             <span class="nav-phase" id="navPhase"></span>
             <span class="nav-timer" id="navTimer" style="display:none">0:00</span>
         </div>
+        <!-- Player cards — merged into the nav bar (Session 38) -->
+        <div class="player-strip" id="playerStrip" style="display:none" role="navigation" aria-label="Player summaries">
+            <!-- Dynamically populated by UI.renderPlayerStrip() -->
+        </div>
         <div class="nav-right">
             <button class="nav-menu-btn" id="navMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>
             <div class="nav-menu-dropdown" id="navMenuDropdown" style="display:none">
@@ -68,11 +72,6 @@
             </div>
         </div>
     </nav>
-
-    <!-- ===== SESSION 12: PLAYER AVATAR STRIP ===== -->
-    <div class="player-strip" id="playerStrip" style="display:none" role="navigation" aria-label="Player summaries">
-        <!-- Dynamically populated by UI.renderPlayerStrip() -->
-    </div>
 
     <!-- ===== SESSION 12: OPPONENT BOARD VIEWER (slide-out panel) ===== -->
     <div class="opponent-panel-backdrop" id="opponentPanelBackdrop" style="display:none"></div>
@@ -107,16 +106,6 @@
             <span class="feed-label">Feed</span>
             <div class="feed-entries" id="feedEntries"></div>
             <button class="feed-expand" id="feedExpandBtn" title="Open Turn History">History ↗</button>
-        </div>
-
-        <!-- =============================================================
-             ACTION BAR  (Session 17 — single-row redesign)
-             One flex row: [phase] [divider] [chips/status] [buttons]
-             Content managed entirely by js/ui.js.
-             ============================================================= -->
-        <div class="action-bar-wrapper" id="actionBarWrapper">
-            <div class="tangled-cat-banner" id="tangledCatBanner" style="display:none" aria-live="assertive"></div>
-            <div class="action-bar" id="actionBar" aria-live="polite"></div>
         </div>
 
         <!-- =============================================================
@@ -226,6 +215,12 @@
         </div>
 
     </div><!-- /game-layout -->
+
+    <!-- ===== ACTION BAR — its own distinct section above the footer (Session 38) ===== -->
+    <div class="action-bar-wrapper" id="actionBarWrapper">
+        <div class="tangled-cat-banner" id="tangledCatBanner" style="display:none" aria-live="assertive"></div>
+        <div class="action-bar" id="actionBar" aria-live="polite"></div>
+    </div>
 
 
     <!-- =============================================================
