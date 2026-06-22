@@ -82,6 +82,11 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+    /* Session 37 (Adam/TV): reserve symmetric scrollbar gutters so the centered
+       layout never drifts right when a vertical scrollbar appears. */
+    scrollbar-gutter: stable both-edges;
+}
 body {
     /* Session 8b: fabric texture background; gradient fallback if image fails */
     background-color: #a89478;
@@ -4197,11 +4202,15 @@ body {
    RESPONSIVE
    ================================================================= */
 
-/* Session 15b: Wide-screen side-by-side layout — game board left, player board right */
-@media (min-width: 1400px) {
+/* Session 37 (Adam/TV): orientation-driven layout.
+   Portrait / any "vert" screen  → default flex column (Yarn Bazaar ABOVE Player Board).
+   Any landscape ≥768px (TV, tablet, desktop) → Yarn Bazaar BESIDE Player Board.
+   Sizing is height- AND width-aware so the pair fits at 100% with no zoom, and the
+   board can't grow tall enough to clip the top on wide/short screens (e.g. a TV). */
+@media (orientation: landscape) and (min-width: 768px) {
     .game-layout {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: auto auto;   /* content-sized cols, centered as a pair */
         grid-template-rows: auto auto auto auto;
         grid-template-areas:
             "feed   feed"
@@ -4210,20 +4219,23 @@ body {
             "sr     sr";
         gap: 14px;
         align-items: start;
+        justify-content: center;            /* centers board+player pair → no right drift */
+        padding-top: 8px;
     }
     .board-section {
         grid-area: board;
-        max-height: 70vh;
         justify-self: end;
         align-self: start;
     }
     .board-section .board-image {
-        max-height: 65vh;
-        max-width: 100%;
+        /* fit to the smaller of available height/width so both panels sit side-by-side
+           at 100% zoom; the height cap keeps the top from clipping on short TVs */
+        max-height: min(64vh, 46vw);
+        max-width: 46vw;
     }
     .player-area {
         grid-area: player;
-        max-width: none;
+        max-width: 46vw;
         justify-self: start;
     }
     .action-bar-wrapper {
@@ -4236,13 +4248,22 @@ body {
         max-width: 800px;
         justify-self: center;
     }
-    /* Session 15b: Move AI log to bottom-left so it doesn't cover the board */
+    /* Move AI log to bottom-left so it doesn't cover the board */
     .ai-log-overlay {
         top: auto;
         bottom: 24px;
         left: 24px;
         max-height: 40vh;
     }
+}
+
+/* Session 37 (Adam/TV): short landscape (a typical TV at ~1920×1080 minus browser
+   chrome leaves a wide/short viewport) — trim vertical chrome so nothing clips the top. */
+@media (orientation: landscape) and (min-width: 768px) and (max-height: 860px) {
+    .game-header { padding: 2px 0 0; }
+    .game-logo { height: 46px; }
+    .game-layout { padding-top: 4px; gap: 10px; }
+    .board-section .board-image { max-height: min(60vh, 46vw); }
 }
 
 @media (max-width: 880px) {
