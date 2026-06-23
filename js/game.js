@@ -636,6 +636,7 @@ var Game = {
             this.render.craftGrid();
             this.render.specialRequests();
             this.render.projectStrip();
+            try{ if(window.Sound){ var _ps=this.state.players,_top=_ps[0],_i; for(_i=1;_i<_ps.length;_i++){ if(Game.calculateFinalScore(_ps[_i])>Game.calculateFinalScore(_top)) _top=_ps[_i]; } Sound.play(_top && !_top.isAI ? 'game-win' : 'game-lose'); } }catch(e){}
             this.render.gameOver();   // Session 35: notify Story Mode the match ended
             return;
         }
@@ -1618,6 +1619,7 @@ var Game = {
         // Increment craft used count
         this.state.turn.craftUsed++;
 
+        try{ if(window.Sound) Sound.play('craft'); }catch(e){}
         return changedColors;
     },
 
@@ -1772,6 +1774,7 @@ var Game = {
             this.state._currentTurnLog.push(text);
         }
         this.logFeedAction(this.state.activePlayerIndex, text, type || 'action');
+        try{ if(window.Sound) Sound.fromLog(text, type); }catch(e){}
     },
 
     /**

@@ -408,6 +408,7 @@ var Story = {
   beginMatch: function(){
     var oppId=this.currentOpp();
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
+    try{ if(window.Sound){ Sound.music.start(); Sound.play('game-start'); } }catch(e){}
     var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
     // hide the landing/front door too — otherwise closing the story overlay reveals

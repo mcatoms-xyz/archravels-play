@@ -540,6 +540,7 @@ var UI = {
         // Hide setup, init game, render
         this.els.setupModal.style.display = 'none';
         Game.init({ players: playerConfigs });
+        try{ if(window.Sound){ Sound.music.start(); Sound.play('game-start'); } }catch(e){}
         this.renderAll();
 
         // Show takeover bar in multiplayer games
@@ -3150,6 +3151,7 @@ var UI = {
     showSRTakeModal: function(card, callback) {
         this._srTakeCallback = callback;
         this._srTakeCard = card;
+        try{ if(window.Sound) Sound.play('sr-find'); }catch(e){}
 
         // Session 21: Title = SR name, subtitle = "[Player] found a Special Request"
         var titleEl = document.getElementById('srTakeTitle');
