@@ -5,6 +5,8 @@
   var BASE='audio/';
   var SFX_VOL=0.85, MUSIC_VOL=0.35;
   var muted=false;
+  try{ var _sv=JSON.parse(localStorage.getItem('ar-audio-vol')||'{}'); if(typeof _sv.sfx==='number')SFX_VOL=_sv.sfx; if(typeof _sv.music==='number')MUSIC_VOL=_sv.music; if(_sv.muted)muted=true; }catch(e){}
+  function _saveVol(){ try{ localStorage.setItem('ar-audio-vol',JSON.stringify({sfx:SFX_VOL,music:MUSIC_VOL,muted:muted})); }catch(e){} }
   var MAP={
     "select-shop":["daviddumaisaudio-store-entrance-bell-188054.mp3"],
     "select-craft":["freesound_community-button-9-88354.mp3"],
@@ -58,15 +60,16 @@
     if(muted||!file) return;
     try{
       var base=cache[file]; if(!base){ base=new Audio(url(file)); base.preload='auto'; cache[file]=base; }
-      var a=base.cloneNode(); a.volume=(vol==null?SFX_VOL:vol); a.play().catch(function(){});
+      var a=base.cloneNode(); a.volume=Math.min(1, SFX_VOL*(vol==null?1:vol)); a.play().catch(function(){});
     }catch(e){}
   }
   var music=(function(){
     var el=null, idx=-1, started=false;
-    function loadRandom(){ var n; do{ n=Math.floor(Math.random()*MAP['music-game'].length); }while(MAP['music-game'].length>1&&n===idx); idx=n; el.src=url(MAP['music-game'][idx]); el.play().catch(function(){}); }
+    function loadRandom(){ var n; do{ n=Math.floor(Math.random()*MAP['music-game'].length); }while(MAP['music-game'].length>1&&n===idx); idx=n; el.src=url(MAP['music-game'][idx]); el.loop=true; el.play().catch(function(){}); }
     return {
-      start:function(){ if(started)return; started=true; el=new Audio(); el.volume=muted?0:MUSIC_VOL; el.addEventListener('ended',loadRandom); loadRandom(); },
+      start:function(){ if(started)return; started=true; el=new Audio(); el.loop=true; el.volume=muted?0:MUSIC_VOL; loadRandom(); },
       next:function(){ if(started) loadRandom(); },
+      setVol:function(){ if(el) el.volume=muted?0:MUSIC_VOL; },
       setMuted:function(m){ if(el) el.volume=m?0:MUSIC_VOL; }
     };
   })();
@@ -96,7 +99,11 @@
       if(/^Frogged/i.test(text)) return Sound.play('frog-it');
     },
     music:music,
-    toggleMute:function(){ muted=!muted; music.setMuted(muted); updateMuteUI(); return muted; },
+    setMusicVol:function(v){ MUSIC_VOL=v; music.setVol(); _saveVol(); },
+    setSfxVol:function(v){ SFX_VOL=v; _saveVol(); },
+    getMusicVol:function(){ return MUSIC_VOL; },
+    getSfxVol:function(){ return SFX_VOL; },
+    toggleMute:function(){ muted=!muted; music.setMuted(muted); _saveVol(); updateMuteUI(); return muted; },
     isMuted:function(){ return muted; }
   };
   function updateMuteUI(){ var b=document.getElementById('navMuteBtn'); if(b) b.innerHTML=(muted?'🔇 Sound: Off':'🔊 Sound: On'); }
@@ -134,6 +141,8 @@
   document.addEventListener('DOMContentLoaded',function(){
     var m=document.getElementById('navMuteBtn'); if(m) m.onclick=function(){ Sound.toggleMute(); };
     var nx=document.getElementById('navNextTrack'); if(nx) nx.onclick=function(){ Sound.music.next(); };
+    var vm=document.getElementById('volMusic'); if(vm){ vm.value=Math.round(MUSIC_VOL*100); vm.oninput=function(){ Sound.setMusicVol(this.value/100); }; }
+    var vs=document.getElementById('volSfx'); if(vs){ vs.value=Math.round(SFX_VOL*100); vs.oninput=function(){ Sound.setSfxVol(this.value/100); Sound.play('select',1); }; }
     updateMuteUI();
     watchModals(); setInterval(watchModals, 2500);
   });

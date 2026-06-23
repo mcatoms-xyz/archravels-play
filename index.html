@@ -68,8 +68,12 @@
                     <span class="cb-indicator"></span> Colorblind Mode
                 </button>
                 <button class="nav-menu-item" onclick="Story.start()">🧶 Story Mode</button>
-                <button class="nav-menu-item" id="navMuteBtn">🔊 Sound: On</button>
+                <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,.08)">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e8dcc4;margin:5px 0">🎵<input type="range" id="volMusic" min="0" max="100" style="flex:1"></label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e8dcc4;margin:5px 0">🔊<input type="range" id="volSfx" min="0" max="100" style="flex:1"></label>
+                </div>
                 <button class="nav-menu-item" id="navNextTrack">⏭ Next track</button>
+                <button class="nav-menu-item" id="navMuteBtn">🔊 Sound: On</button>
                 <button class="nav-menu-item" onclick="UI.onNewGame()">New Game</button>
             </div>
         </div>
