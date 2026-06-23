@@ -100,15 +100,42 @@
     isMuted:function(){ return muted; }
   };
   function updateMuteUI(){ var b=document.getElementById('navMuteBtn'); if(b) b.innerHTML=(muted?'🔇 Sound: Off':'🔊 Sound: On'); }
-  // light UI click for nav/menu/landing buttons only (action sounds come from _logAction)
-  document.addEventListener('click',function(e){
-    var t=e.target.closest&&e.target.closest('.nav-menu-btn,.nav-menu-item,.landing-play');
-    if(t&&!muted) Sound.play('btn',0.45);
-  });
+  // Session 38b: BROAD UI press-feedback — a subtle tick on every interactive element.
+  var INTERACTIVE='button,a,input,select,label,[onclick],[role="button"],.btn,.bazaar-slot,.nav-menu-item,.nav-menu-btn,.player-strip-card,[class*="slot"],[class*="token"],[class*="card"],[class*="tile"],[class*="space"],[class*="chip"],[class*="btn"]';
+  var _lastTick=0;
+  document.addEventListener('pointerdown',function(e){
+    if(muted) return;
+    var t=e.target.closest && e.target.closest(INTERACTIVE);
+    if(!t) return;
+    var now=Date.now(); if(now-_lastTick<55) return; _lastTick=now;
+    var cls=((t.className&&t.className.toString)?t.className.toString():'')+' '+((t.getAttribute&&t.getAttribute('onclick'))||'');
+    var txt=(t.textContent||'').trim().slice(0,24).toLowerCase();
+    var ev='select';
+    if(/cb-toggle|aria-pressed|equip|unequip|toggle/i.test(cls)) ev='toggle';
+    else if(/close|cancel|back|exit|skip|\u2715|\u00d7/i.test(cls+' '+txt)) ev='cancel';
+    else if(/btn-primary|btn-cta|primary/i.test(cls)) ev='confirm';
+    else if(/(^| )btn( |$)|nav-menu/i.test(cls) || t.tagName==='BUTTON') ev='btn';
+    Sound.play(ev, 0.5);
+  }, true);
+  function watchModals(){
+    var nodes; try{ nodes=document.querySelectorAll('[id$="Modal"],[class*="-modal"],[class*="modal-"],.opponent-panel,.history-panel,.event-modal,.modal'); }catch(e){ return; }
+    nodes.forEach(function(el){
+      if(el.__sndObs) return; el.__sndObs=true;
+      var was=getComputedStyle(el).display!=='none';
+      new MutationObserver(function(){
+        if(muted) return;
+        var now=getComputedStyle(el).display!=='none';
+        if(now&&!was) Sound.play('open-modal',0.5);
+        else if(!now&&was) Sound.play('close-modal',0.5);
+        was=now;
+      }).observe(el,{attributes:true,attributeFilter:['style','class']});
+    });
+  }
   document.addEventListener('DOMContentLoaded',function(){
     var m=document.getElementById('navMuteBtn'); if(m) m.onclick=function(){ Sound.toggleMute(); };
     var nx=document.getElementById('navNextTrack'); if(nx) nx.onclick=function(){ Sound.music.next(); };
     updateMuteUI();
+    watchModals(); setInterval(watchModals, 2500);
   });
   window.Sound=Sound;
 })();
