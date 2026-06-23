@@ -82,14 +82,7 @@
     },
     fromLog:function(text,type){
       if(muted||!text) return;
-      if(type==='event'){
-        if(/Tangled Cat/i.test(text)) return Sound.play('ev-tangled-cat');
-        if(/Friendly Clerk/i.test(text)) return Sound.play('ev-friendly-clerk');
-        if(/Yarn Sale/i.test(text)) return Sound.play('ev-yarn-sale');
-        if(/Donate/i.test(text)) return Sound.play('ev-donate');
-        if(/Craft Circle/i.test(text)) return Sound.play('ev-craft-circle');
-        return Sound.play('ev-generic');
-      }
+      /* event sounds now play on REVEAL (UI.showEventModal), not on resolve */
       if(type==='sr'){ if(/crafted|completed|finished/i.test(text)) return Sound.play('sr-craft'); return Sound.play('take-sr'); }
       if(type==='project') return Sound.play('finish-project');
       if(/^Chose /i.test(text)){ var l=text.toLowerCase(); return Sound.space({shop:/shop/.test(l),craft:/craft/.test(l),special:/any color|take 3|take 5|make two|make 2|exchange/.test(l)}); }

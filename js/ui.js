@@ -2565,6 +2565,7 @@ var UI = {
         this.els.eventMsg.textContent = result.msg;
 
         var inputType = result.inputType;
+        try{ if(window.Sound){ var _em={tangledCat:'ev-tangled-cat',yarnSale:'ev-yarn-sale',donate:'ev-donate',friendlyClerk:'ev-friendly-clerk',craftCircle:'ev-craft-circle'}; Sound.play(_em[inputType]||'ev-generic'); } }catch(e){}
         var labels = {
             tangledCat:   'Choose Player →',
             yarnSale:     'Choose Yarn →',
