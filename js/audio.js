@@ -3,7 +3,7 @@
    Device volume controls absolute loudness; we only balance the mix + offer mute. */
 (function(){
   var BASE='audio/';
-  var SFX_VOL=0.85, MUSIC_VOL=0.35;
+  var SFX_VOL=0.85, MUSIC_VOL=0.15;
   var muted=false;
   try{ var _sv=JSON.parse(localStorage.getItem('ar-audio-vol')||'{}'); if(typeof _sv.sfx==='number')SFX_VOL=_sv.sfx; if(typeof _sv.music==='number')MUSIC_VOL=_sv.music; if(_sv.muted)muted=true; }catch(e){}
   function _saveVol(){ try{ localStorage.setItem('ar-audio-vol',JSON.stringify({sfx:SFX_VOL,music:MUSIC_VOL,muted:muted})); }catch(e){} }
