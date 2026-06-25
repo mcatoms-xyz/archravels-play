@@ -582,7 +582,7 @@
         </div>
         <div class="footer-center">
             <img class="footer-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="ArchRavels Cat">
-            <span class="footer-build" id="footerBuild">v0.3 [build 33 · Session 24]</span>
+            <span class="footer-build" id="footerBuild">v0.9 Beta · Build 40</span>
         </div>
         <div class="footer-right">
             <img class="footer-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels">
@@ -617,6 +617,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/story.js"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
+
+    <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
+         BUMP THIS each ship (build = session #). Deploy runbook step. -->
+    <script>
+    (function () {
+        var AR_VERSION = { v: '0.9', channel: 'Beta', build: 40 };
+        window.AR_VERSION = AR_VERSION;
+        var label = 'v' + AR_VERSION.v
+            + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '')
+            + ' · Build ' + AR_VERSION.build;
+        function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stamp); else stamp();
+    })();
+    </script>
 
     <!-- Session 34c: keep the fixed bottom control bar above mobile browser
          chrome (URL/nav bars, keyboard) using the visualViewport API.
