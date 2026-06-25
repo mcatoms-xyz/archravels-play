@@ -1,12 +1,6 @@
-/* ui-extra.js — UI module (split from the Session-40 monolith).
+/* ui-extra.js — UI module (split from the Session-40 LIVE monolith).
    ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
-    /* =========================================================
-       SESSION 12: OPPONENT BOARD VIEWER — Slide-out Panel
-       Read-only view of another player's full board state.
-       ========================================================= */
-
-    /** Currently open opponent panel player index (-1 = closed) */
     _opponentPanelIdx: -1,
 
     /**
