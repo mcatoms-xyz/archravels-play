@@ -7,52 +7,8 @@
   var muted=false;
   try{ var _sv=JSON.parse(localStorage.getItem('ar-audio-vol')||'{}'); if(typeof _sv.sfx==='number')SFX_VOL=_sv.sfx; if(typeof _sv.music==='number')MUSIC_VOL=_sv.music; if(_sv.muted)muted=true; }catch(e){}
   function _saveVol(){ try{ localStorage.setItem('ar-audio-vol',JSON.stringify({sfx:SFX_VOL,music:MUSIC_VOL,muted:muted})); }catch(e){} }
-  var MAP={
-    "select-shop":["daviddumaisaudio-store-entrance-bell-188054.mp3"],
-    "select-craft":["freesound_community-button-9-88354.mp3"],
-    "select-special":["humordome-magic-button-click-453255.mp3"],
-    "shop":["koiroylers-vintage-cash-register-351712.mp3"],
-    "craft":["humordome-magic-button-click-453258.mp3"],
-    "exchange":["u_3bsnvt0dsu-spin-fail-295088.mp3"],
-    "restock":["freesound_community-riffle-shuffle-46706.mp3"],
-    "draw-card":["dihumichi-pulling-a-paper-from-a-stack-sound-effect-411948.mp3"],
-    "finish-project":["freesound_gamestudio-level-complete-394515.mp3"],
-    "learn-pattern":["freesound_community-pencil_check_mark_1-88805.mp3"],
-    "frog-it":["freesound_community-frog-croak-80816.mp3"],
-    "sr-find":["chrysalyn-cheerful-traditional-harp-positive-ui-alert-540977.mp3"],
-    "take-sr":["freesound_community-pencil_check_mark_2-105940.mp3"],
-    "sr-craft":["dragon-studio-wow-423653.mp3"],
-    "sr-award":["universfield-game-level-complete-143022.mp3"],
-    "ev-tangled-cat":["alex_jauk-annoyed-cat-meows-angrily-438006.mp3"],
-    "ev-yarn-sale":["daviddumaisaudio-store-entrance-bell-188054 copy.mp3"],
-    "ev-donate":["creatorshome-select-001-337218.mp3"],
-    "ev-friendly-clerk":["latent-rick-retro-cash-register-ka-ching-with-coin-drawer-1-546555.mp3"],
-    "ev-craft-circle":["freesound_community-success-fanfare-trumpets-6185.mp3"],
-    "ev-generic":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Shop.mp3"],
-    "game-start":["freesound_community-game-start-6104.mp3"],
-    "turn-start":["miraclei-11l-ui_confirm_ping_sof-1750675151145-364178.mp3"],
-    "game-win":["peekaboolabcreative-11l-victory_sound_with_t-1749487402950-357606.mp3"],
-    "game-lose":["freesound_community-wah-wah-sad-trombone-6347.mp3"],
-    "achievement":["latent-rick-achievement-badge-pop-sound-2-547865.mp3"],
-    "milestone":["koiroylers-awesome-level-up-351714.mp3"],
-    "btn":["freesound_community-button-pressed-38129.mp3"],
-    "confirm":["freesound_community-ui_correct_button2-103167.mp3"],
-    "cancel":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Exit.mp3"],
-    "open-modal":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Pause.mp3"],
-    "close-modal":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Resume.mp3"],
-    "select":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_MenuSelections.mp3"],
-    "error":["soundreality-notification-error-427345.mp3"],
-    "toggle":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Equip.mp3","SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Unequip.mp3"],
-    "save":["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Saved.mp3"],
-    "transition":["alexzavesa-swoosh-5-463611.mp3"],
-    "fl-cat":["alex_jauk-annoyed-cat-meows-angrily-438006.mp3","dragon-studio-cute-cat-meow-472372.mp3"],
-    "fl-dog":["dragon-studio-dog-bark-382732.mp3","dragon-studio-old-dog-howling-390287.mp3"],
-    "fl-duck":["freesound_community-075176_duck-quack-40345.mp3","freesound_community-duck-quacking-37392.mp3"],
-    "fl-pig":["freesound_community-pig-sound-43195.mp3","freesound_community-pig-sound-47168.mp3"],
-    "amb-bazaar":["freesound_community-turkish_bazaar-30449.mp3"],
-    "amb-craft":["freesound_community-crochet-needles-hooks-and-fabric-54399.mp3"],
-    "music-game":["Lo-Fi Soundtrack Pack/Cozy.mp3","Lo-Fi Soundtrack Pack/Coffee.mp3","Lo-Fi Soundtrack Pack/Serenity.mp3","Lo-Fi Soundtrack Pack/Cabin.mp3","Lo-Fi Soundtrack Pack/Chill.mp3","Lo-Fi Soundtrack Pack/Garden.mp3","Lo-Fi Soundtrack Pack/Ambience.mp3","Lo-Fi Soundtrack Pack/Chiptune.mp3","Lo-Fi Soundtrack Pack/Drive.mp3","Lo-Fi Soundtrack Pack/Midnight.mp3","Lo-Fi Soundtrack Pack/Night.mp3","Lo-Fi Soundtrack Pack/Pixel.mp3","Lo-Fi Soundtrack Pack/Rainy.mp3","Lo-Fi Soundtrack Pack/Stroll.mp3","Lo-Fi Soundtrack Pack/Sunset.mp3","Lo-Fi Soundtrack Pack/Underwater.mp3","Lo-Fi Soundtrack Pack/Vibe.mp3","Lo-Fi Soundtrack Pack/Zen.mp3"]
-  };
+  var MAP={"game-start": ["chrysalyn-cheerful-traditional-harp-positive-ui-alert-540977.mp3"], "turn-start": ["miraclei-11l-ui_confirm_ping_sof-1750675151145-364178.mp3"], "select-shop": ["daviddumaisaudio-store-entrance-bell-188054.mp3"], "select-craft": ["freesound_community-clothes-drop-2-40202.mp3"], "select-special": ["humordome-magic-button-click-453255.mp3"], "shop": ["koiroylers-vintage-cash-register-351712.mp3"], "restock": ["freesound_community-riffle-shuffle-46706.mp3"], "draw-card": ["freesound_community-flipcard-91468.mp3"], "craft": ["humordome-magic-button-click-453258.mp3"], "exchange": ["u_3bsnvt0dsu-spin-fail-295088.mp3"], "learn-pattern": ["freesound_community-pencil_check_mark_1-88805.mp3"], "frog-it": ["freesound_community-frog-croak-80816.mp3"], "finish-project": ["freesound_gamestudio-level-complete-394515.mp3"], "ab-take-yarn": ["freesound_community-clothes-drop-2-40202.mp3"], "ab-exchange": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Shop.mp3"], "ab-end-actions": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Confirm.mp3"], "ab-end-turn": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Confirm.mp3"], "ab-skip-restock": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Confirm.mp3"], "ab-restock": ["homemade_sfx-equip-sound-272428.mp3"], "ab-done": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Confirm.mp3"], "ab-finish": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Equip.mp3"], "ab-learn": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Equip.mp3"], "ab-frog": ["candidates/ui__jdsherbert__JDSherbert - Ultimate UI SFX Pack - Select - 2.wav"], "drawer-open": ["candidates/transition__shapeforms__WHOOSH_AIRY_FLUTTER_01.wav"], "drawer-close": ["candidates/transition__shapeforms__WHOOSH_ARM_SWING_01_WIDE.wav"], "sr-find": ["chrysalyn-cheerful-traditional-harp-positive-ui-alert-540977.mp3"], "sr-reveal": ["dragon-studio-flipping-book-page-499646.mp3"], "take-sr": ["freesound_community-pencil_check_mark_2-105940.mp3"], "sr-craft": ["dragon-studio-wow-423653.mp3"], "sr-award": ["universfield-game-level-complete-143022.mp3"], "ev-reveal": ["chrysalyn-cheerful-traditional-harp-positive-ui-alert-540977.mp3"], "ev-tangled-cat": ["alex_jauk-annoyed-cat-meows-angrily-438006.mp3"], "ev-yarn-sale": ["daviddumaisaudio-store-entrance-bell-188054 copy.mp3"], "ev-donate": ["creatorshome-select-001-337218.mp3"], "ev-friendly-clerk": ["latent-rick-retro-cash-register-ka-ching-with-coin-drawer-1-546555.mp3"], "ev-craft-circle": ["freesound_community-success-fanfare-trumpets-6185.mp3"], "ev-generic": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Shop.mp3"], "game-win": ["peekaboolabcreative-11l-victory_sound_with_t-1749487402950-357606.mp3"], "game-lose": ["freesound_community-wah-wah-sad-trombone-6347.mp3"], "achievement": ["freesound_gamestudio-level-complete-394515.mp3"], "milestone": ["koiroylers-awesome-level-up-351714.mp3"], "story-win": ["freesound_community-success-fanfare-trumpets-6185.mp3"], "story-lose": ["freesound_community-wah-wah-sad-trombone-6347.mp3"], "theme-rebecca": ["Lo-Fi Soundtrack Pack/Chill.mp3"], "theme-theo": ["Lo-Fi Soundtrack Pack/Coffee.mp3"], "theme-derrick": ["Lo-Fi Soundtrack Pack/Cabin.mp3"], "theme-amara": ["Lo-Fi Soundtrack Pack/Ambience.mp3"], "theme-neeha": ["Lo-Fi Soundtrack Pack/Garden.mp3"], "theme-alex": ["Lo-Fi Soundtrack Pack/Drive.mp3"], "theme-ted": ["Lo-Fi Soundtrack Pack/Chiptune.mp3"], "theme-eliza": ["Lo-Fi Soundtrack Pack/Vibe.mp3"], "theme-jo": ["Lo-Fi Soundtrack Pack/Night.mp3"], "theme-noah": ["Lo-Fi Soundtrack Pack/Midnight.mp3"], "theme-irene": ["Lo-Fi Soundtrack Pack/Sunset.mp3"], "theme-mauro": ["Lo-Fi Soundtrack Pack/Underwater.mp3"], "transition-moment": ["latent-rick-achievement-badge-pop-sound-2-547865.mp3"], "transition": ["alexzavesa-swoosh-5-463611.mp3"], "fl-cat": ["alex_jauk-annoyed-cat-meows-angrily-438006.mp3", "dragon-studio-cute-cat-meow-472372.mp3"], "fl-dog": ["dragon-studio-dog-bark-382732.mp3", "dragon-studio-old-dog-howling-390287.mp3"], "fl-duck": ["freesound_community-075176_duck-quack-40345.mp3", "freesound_community-duck-quacking-37392.mp3"], "fl-pig": ["freesound_community-pig-sound-43195.mp3", "freesound_community-pig-sound-47168.mp3"], "btn": ["freesound_community-button-pressed-38129.mp3"], "confirm": ["freesound_community-ui_correct_button2-103167.mp3"], "cancel": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Exit.mp3"], "open-modal": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_OpenMenu.mp3"], "close-modal": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_CloseMenu.mp3"], "select": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_MenuSelections.mp3"], "toggle": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Equip.mp3"], "save": ["SoupTonic UI1 SFX Pack 1 - mp3/SFX_UI_Saved.mp3"], "error": ["soundreality-notification-error-427345.mp3"], "music-game": ["Lo-Fi Soundtrack Pack/Cozy.mp3", "Lo-Fi Soundtrack Pack/Coffee.mp3", "Lo-Fi Soundtrack Pack/Serenity.mp3", "Lo-Fi Soundtrack Pack/Cabin.mp3", "Lo-Fi Soundtrack Pack/Chill.mp3", "Lo-Fi Soundtrack Pack/Garden.mp3", "Lo-Fi Soundtrack Pack/Ambience.mp3", "Lo-Fi Soundtrack Pack/Chiptune.mp3", "Lo-Fi Soundtrack Pack/Drive.mp3", "Lo-Fi Soundtrack Pack/Midnight.mp3", "Lo-Fi Soundtrack Pack/Night.mp3", "Lo-Fi Soundtrack Pack/Pixel.mp3", "Lo-Fi Soundtrack Pack/Rainy.mp3", "Lo-Fi Soundtrack Pack/Stroll.mp3", "Lo-Fi Soundtrack Pack/Sunset.mp3", "Lo-Fi Soundtrack Pack/Underwater.mp3", "Lo-Fi Soundtrack Pack/Vibe.mp3", "Lo-Fi Soundtrack Pack/Zen.mp3"], "music-menu": ["Lo-Fi Soundtrack Pack/Coffee.mp3"], "music-story": ["Lo-Fi Soundtrack Pack/Serenity.mp3"], "music-win": ["yo-tu-stars-and-rainbows-looping-tune-234068.mp3"], "amb-bazaar": ["freesound_community-happy-crowd-at-interval-23485.mp3"], "amb-craft": ["freesound_community-crochet-needles-hooks-and-fabric-54399.mp3"]};
+  var CHAR_THEME={"rebecca": "Lo-Fi Soundtrack Pack/Chill.mp3", "theo": "Lo-Fi Soundtrack Pack/Coffee.mp3", "derrick": "Lo-Fi Soundtrack Pack/Cabin.mp3", "amara": "Lo-Fi Soundtrack Pack/Ambience.mp3", "neeha": "Lo-Fi Soundtrack Pack/Garden.mp3", "alex": "Lo-Fi Soundtrack Pack/Drive.mp3", "ted": "Lo-Fi Soundtrack Pack/Chiptune.mp3", "eliza": "Lo-Fi Soundtrack Pack/Vibe.mp3", "jo": "Lo-Fi Soundtrack Pack/Night.mp3", "noah": "Lo-Fi Soundtrack Pack/Midnight.mp3", "irene": "Lo-Fi Soundtrack Pack/Sunset.mp3", "mauro": "Lo-Fi Soundtrack Pack/Underwater.mp3"};
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
   function url(f){ return BASE+encodeURI(f); }
   var cache={};
@@ -69,6 +25,7 @@
     return {
       start:function(){ if(started)return; started=true; el=new Audio(); el.loop=true; el.volume=muted?0:MUSIC_VOL; loadRandom(); },
       next:function(){ if(started) loadRandom(); },
+      startTheme:function(id){ var t=(typeof CHAR_THEME!=="undefined")&&CHAR_THEME[id]; if(!t){ this.start(); return; } started=true; if(!el) el=new Audio(); el.loop=true; el.volume=muted?0:MUSIC_VOL; el.src=url(t); el.play().catch(function(){}); },
       setVol:function(){ if(el) el.volume=muted?0:MUSIC_VOL; },
       setMuted:function(m){ if(el) el.volume=m?0:MUSIC_VOL; }
     };
@@ -103,12 +60,14 @@
   // Session 38b: BROAD UI press-feedback — a subtle tick on every interactive element.
   var INTERACTIVE='button,a,input,select,label,[onclick],[role="button"],.btn,.bazaar-slot,.nav-menu-item,.nav-menu-btn,.player-strip-card,[class*="slot"],[class*="token"],[class*="card"],[class*="tile"],[class*="space"],[class*="chip"],[class*="btn"]';
   var _lastTick=0;
+  var AB_MAP=[['onTakeYarn','ab-take-yarn'],['showExchangeModal','ab-exchange'],['showLearnPatternModal','ab-learn'],['showFrogItModal','ab-frog'],['showFinishProjectModal','ab-finish'],['onEndActions','ab-end-actions'],['onEndRestockTurn','ab-end-turn'],['onSkipRestock','ab-skip-restock'],['onRestock','ab-restock'],['onEndFinalCraft','ab-done']];
   document.addEventListener('pointerdown',function(e){
     if(muted) return;
     var t=e.target.closest && e.target.closest(INTERACTIVE);
     if(!t) return;
     var now=Date.now(); if(now-_lastTick<55) return; _lastTick=now;
     var cls=((t.className&&t.className.toString)?t.className.toString():'')+' '+((t.getAttribute&&t.getAttribute('onclick'))||'');
+    for(var _ai=0;_ai<AB_MAP.length;_ai++){ if(cls.indexOf(AB_MAP[_ai][0])>=0){ Sound.play(AB_MAP[_ai][1]); return; } }
     var txt=(t.textContent||'').trim().slice(0,24).toLowerCase();
     var ev='select';
     if(/cb-toggle|aria-pressed|equip|unequip|toggle/i.test(cls)) ev='toggle';

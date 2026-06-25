@@ -636,7 +636,7 @@ var Game = {
             this.render.craftGrid();
             this.render.specialRequests();
             this.render.projectStrip();
-            try{ if(window.Sound){ var _ps=this.state.players,_top=_ps[0],_i; for(_i=1;_i<_ps.length;_i++){ if(Game.calculateFinalScore(_ps[_i])>Game.calculateFinalScore(_top)) _top=_ps[_i]; } Sound.play(_top && !_top.isAI ? 'game-win' : 'game-lose'); } }catch(e){}
+            try{ if(window.Sound){ var _ps=this.state.players,_top=_ps[0],_i; for(_i=1;_i<_ps.length;_i++){ if(Game.calculateFinalScore(_ps[_i])>Game.calculateFinalScore(_top)) _top=_ps[_i]; } if(!(window.Story&&Story.storyGame)) Sound.play(_top && !_top.isAI ? 'game-win' : 'game-lose'); } }catch(e){}
             this.render.gameOver();   // Session 35: notify Story Mode the match ended
             return;
         }
@@ -675,6 +675,7 @@ var Game = {
 
         // Session 15: Record turn start time for the new player
         this.state.turnStartTime = Date.now();
+        try{ if(window.Sound && this.state.player && !this.state.player.isAI) Sound.play('turn-start'); }catch(e){}
 
         // Session 9b: If next player is AI, run AI turn automatically
         if (this.state.player.isAI) {
@@ -797,6 +798,7 @@ var Game = {
             }
         }
 
+        try{ if(window.Sound && revealed && revealed.length) Sound.play('restock'); }catch(e){}
         // Render the updated bazaar (may show Event/SR cards briefly)
         this.render.bazaar();
         this.render.deckCounter();

@@ -4557,6 +4557,7 @@ var UI = {
         if (!drawer) return;
         var isOpen = drawer.classList.contains('open');
         var shouldOpen = (forceState !== undefined) ? forceState : !isOpen;
+        try{ if(window.Sound) Sound.play(shouldOpen?'drawer-open':'drawer-close'); }catch(e){}
         if (shouldOpen) {
             drawer.classList.add('open');
         } else {

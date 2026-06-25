@@ -408,7 +408,7 @@ var Story = {
   beginMatch: function(){
     var oppId=this.currentOpp();
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
-    try{ if(window.Sound){ Sound.music.start(); Sound.play('game-start'); } }catch(e){}
+    try{ if(window.Sound){ Sound.music.startTheme(oppId); Sound.play('game-start'); } }catch(e){}
     var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
     // hide the landing/front door too — otherwise closing the story overlay reveals
@@ -430,6 +430,7 @@ var Story = {
     var os = opp ? (Game.calculateFinalScore(opp).total||0) : 0;
     var c = this.currentOpp();
     this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[] };
+    try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
     if(this.lastMatch.win) this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
     this.open();
     this.showResult(this.lastMatch.win);
