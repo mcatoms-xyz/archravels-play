@@ -6724,3 +6724,38 @@ html { overflow-x: hidden; }
 #story-root .ach-stars{display:block;font-size:.82rem;letter-spacing:1px;color:var(--gold-d)}
 #story-root .ach-card.locked .ach-stars{color:var(--tan-d)}
 #story-root .ach-pts{font-size:.72rem;color:var(--walnut-soft);font-weight:700;margin-top:2px;white-space:nowrap}
+
+/* ===== Session 40: Player strip collapse — active card + "+N" dropdown ===== */
+.player-strip-more-wrap { position: relative; flex-shrink: 0; display: flex; align-items: center; }
+.player-strip-more {
+    display: flex; align-items: center; gap: 5px;
+    height: 38px; padding: 0 11px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.08);
+    color: #f0e6d2; cursor: pointer;
+    font-family: inherit; font-weight: 700; line-height: 1;
+    transition: background 0.15s, border-color 0.15s;
+}
+.player-strip-more:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.28); }
+.player-strip-more .psm-count { font-size: 14px; }
+.player-strip-more .psm-caret { font-size: 11px; opacity: 0.85; }
+.player-strip-menu {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    z-index: 1200;
+    background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    box-shadow: 0 14px 36px rgba(0,0,0,0.5);
+    padding: 9px;
+    display: flex; flex-direction: column; gap: 7px;
+    min-width: 210px; max-height: 72vh; overflow-y: auto;
+}
+.player-strip-menu .psm-head {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: rgba(240,230,210,0.55); padding: 1px 4px 4px;
+}
+.player-strip-menu .player-strip-card.in-menu { min-width: 0; width: 100%; }
+@media (max-width: 760px) {
+    .player-strip-menu { right: -4px; min-width: 190px; }
+}
