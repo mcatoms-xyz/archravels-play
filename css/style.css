@@ -144,7 +144,7 @@ body {
     align-items: center;
     /* Session 34: bottom padding clears the now-fixed action bar so the
        player area + drawer bottom are never hidden behind it. */
-    padding: 12px 16px 16px;   /* Session 38: action bar no longer fixed → no bottom clearance hack */
+    padding: 12px 16px calc(96px + env(safe-area-inset-bottom, 0px));
     gap: 14px;
     position: relative;
 }
@@ -390,20 +390,24 @@ body {
    empty (e.g. setup) nothing renders. Safe-area padding keeps it clear of the
    phone home indicator. */
 .action-bar-wrapper {
-    /* Session 38: the action/turn bar is its OWN distinct section in normal flow —
-       a full-width band sitting above the footer, in every screen mode (no longer a
-       floating tray pinned to the bottom). */
-    position: static;
-    width: 100%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0;
-    padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
-    pointer-events: auto;
-    background: linear-gradient(180deg, #43351f 0%, #2c1f12 100%);
-    border-top: 2px solid rgba(0, 0, 0, 0.30);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+    pointer-events: none;   /* empty areas pass taps through to the board */
+    /* Session 34b: docked tray scrim so on big screens the bar reads as the
+       bottom control area instead of a pill floating in empty space. */
+    background: linear-gradient(to top,
+        rgba(28, 20, 12, 0.92) 0%,
+        rgba(28, 20, 12, 0.60) 55%,
+        rgba(28, 20, 12, 0) 100%);
+    border-top: 1px solid rgba(0, 0, 0, 0.22);
 }
 .action-bar-wrapper > * {
     pointer-events: auto;
@@ -411,12 +415,10 @@ body {
     max-width: 1100px;
 }
 .action-bar:empty { display: none; }
-/* No bar content (e.g. setup screen behind the modal) — collapse the band entirely. */
+/* No bar content (e.g. setup screen behind the modal) — collapse the tray. */
 .action-bar-wrapper:not(:has(.action-bar:not(:empty))) {
     background: none;
     border-top: none;
-    box-shadow: none;
-    padding: 0;
 }
 
 /* Session 18: Persistent tangled cat banner — full-width, very prominent */
@@ -4209,9 +4211,10 @@ body {
     .game-layout {
         display: grid;
         grid-template-columns: auto auto;   /* content-sized cols, centered as a pair */
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto auto auto auto;
         grid-template-areas:
             "feed   feed"
+            "action action"
             "board  player"
             "sr     sr";
         gap: 14px;
@@ -4234,6 +4237,11 @@ body {
         grid-area: player;
         max-width: 46vw;
         justify-self: start;
+    }
+    .action-bar-wrapper {
+        grid-area: action;
+        max-width: 1100px;
+        justify-self: center;
     }
     .sr-strip {
         grid-area: sr;
@@ -4259,9 +4267,10 @@ body {
 }
 
 @media (max-width: 880px) {
-    /* Session 38: action bar is now an in-flow section, no fixed-bar clearance needed */
+    /* Session 34: the bottom action bar wraps to ~2 rows on narrow screens —
+       give the layout extra bottom clearance so nothing hides behind it. */
     .game-layout {
-        padding-bottom: 12px;
+        padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
     }
     .player-area {
         flex-direction: column;
@@ -4883,33 +4892,8 @@ body {
     border-bottom: none; border-left: 1px solid rgba(0,0,0,0.06); vertical-align: middle;
 }
 
-/* "View Craft Options" focus pulse on the craft strip */
-.craft-flash { animation: craftFlash 0.5s ease-in-out 3; }
-/* Session 40: restock-phase project is clickable to open the finish picker */
-.project-restock-clickable { cursor: pointer; }
-.project-restock-clickable::after {
-    content: ""; position: absolute; inset: 0; border-radius: inherit;
-    box-shadow: inset 0 0 0 2px #3769BE; opacity: 0; pointer-events: none;
-    animation: restockPulse 1.6s ease-in-out infinite;
-}
-.project-restock-clickable:hover::after { opacity: 1; animation: none; }
-@keyframes restockPulse { 0%,100% { opacity: .25; } 50% { opacity: .7; } }
-@keyframes craftFlash {
-    0%, 100% { filter: none; }
-    50% { filter: drop-shadow(0 0 12px #3769BE) drop-shadow(0 0 4px #3769BE) brightness(1.12); }
-}
-
 /* Dynamic modal widths per player count — Session 15 */
 .go-modal-wide { max-height: 75vh; overflow-y: auto; margin-top: 100px; }
-
-/* Session 40: Game Over scorecard fits landscape / TV screens without clipping.
-   Default margin-top:100px + 75vh overflowed short, wide viewports. */
-@media (orientation: landscape) and (min-width: 768px) {
-    .go-modal-wide { margin-top: 28px; max-height: 90vh; }
-}
-@media (orientation: landscape) and (max-height: 860px) {
-    .go-modal-wide { margin-top: 12px; max-height: 94vh; }
-}
 .go-modal-wide.go-players-2 { max-width: 520px !important; min-width: 420px; }
 .go-modal-wide.go-players-3 { max-width: 660px !important; min-width: 500px; }
 .go-modal-wide.go-players-4 { max-width: 800px !important; min-width: 600px; }
@@ -4946,9 +4930,8 @@ body {
     z-index: 500;
     display: flex;
     align-items: center;
-    justify-content: flex-start;   /* Session 38: branding left, turn+cards+menu pushed right */
-    gap: 14px;
-    height: 60px;                  /* Session 38: taller so the player cards fit in one bar */
+    justify-content: space-between;
+    height: 48px;
     padding: 0 16px;
     background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
     box-shadow: 0 2px 8px rgba(0,0,0,0.35);
@@ -4993,11 +4976,6 @@ body {
     align-items: center;
     gap: 10px;
     font-size: 14px;
-    margin-left: auto;   /* Session 38: gap after branding, turn+cards+menu group sits right */
-    flex-shrink: 0;
-    background: rgba(0,0,0,0.22);   /* Session 38: turn/timer reads as a distinct pill */
-    padding: 5px 12px;
-    border-radius: 10px;
 }
 
 .nav-player-name {
@@ -5075,7 +5053,7 @@ body {
 
 /* Push page content below sticky nav */
 .game-layout {
-    padding-top: 64px;   /* Session 38: single taller nav bar (60px) */
+    padding-top: 56px;
 }
 
 /* Hide old game header & player indicator (replaced by nav) */
@@ -5092,17 +5070,19 @@ body {
    ===================================================================== */
 
 .player-strip {
-    /* Session 38: merged into the nav bar — inline cluster, no longer its own fixed bar */
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    z-index: 490;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 8px;
-    min-width: 0;
-    flex-shrink: 1;
-    overflow-x: auto;
-    scrollbar-width: none;
+    padding: 6px 16px;
+    background: linear-gradient(180deg, #4a3c2a 0%, #5a4a35 100%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
-.player-strip::-webkit-scrollbar { display: none; }
 
 .player-strip-card {
     display: flex;
@@ -5115,8 +5095,7 @@ body {
     background: rgba(255,255,255,0.08);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, transform 0.12s;
-    min-width: 118px;          /* Session 38: trimmed so two cards fit in the nav bar */
-    flex-shrink: 0;
+    min-width: 140px;
     position: relative;
 }
 
@@ -5193,9 +5172,9 @@ body {
     border: 1px solid rgba(0,0,0,0.2);
 }
 
-/* Session 38: strip is now inside the nav bar, so no extra second-bar offset */
+/* Push game layout down to accommodate strip */
 .game-layout.has-strip {
-    padding-top: 64px;
+    padding-top: 120px;
 }
 
 
@@ -6288,7 +6267,7 @@ body {
     .game-layout { padding-left: 0; padding-right: 0; }
     /* Session 36 (Amy/iPhone): give the board extra bottom clearance so its lowest
        craft row never sits under the fixed Turn/action bar + its scrim. */
-    .game-layout { padding-bottom: 12px; }   /* Session 38: action bar no longer fixed */
+    .game-layout { padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
     .board-image { max-width: 100vw; }
     .board-section { border-radius: 0; max-width: 100vw; }
     .player-area { padding: 0 6px; gap: 10px; }
@@ -6728,3 +6707,24 @@ html { overflow-x: hidden; }
 #srlightbox img{width:min(84vw,420px);height:auto;border-radius:16px;box-shadow:0 22px 64px rgba(0,0,0,.55)}
 #srlightbox .lb-name{color:#fff;font-weight:bold;font-size:1.3rem;margin-top:14px;text-align:center}
 #srlightbox .lb-close{color:rgba(255,255,255,.7);font-size:.85rem;margin-top:6px;text-align:center}
+
+/* ===== Story Mode — Achievement Board (Session 40) ===== */
+#story-root .ach-cta-row{display:flex;justify-content:center;margin:14px 0 4px}
+#story-root .ach-hero{text-align:center;background:linear-gradient(165deg,var(--cream) 0%,var(--cream-2) 100%);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px 18px;margin:6px auto 18px;max-width:520px}
+#story-root .ach-hero-num{font-size:2.4rem;font-weight:800;color:var(--walnut);line-height:1}
+#story-root .ach-hero-num span{font-size:1.2rem;color:var(--walnut-soft);font-weight:600}
+#story-root .ach-hero-lbl{font-size:.92rem;color:var(--walnut-soft);margin-top:4px}
+#story-root .ach-section{margin:0 auto 20px;max-width:760px}
+#story-root .ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:620px){ #story-root .ach-grid{grid-template-columns:1fr} }
+#story-root .ach-card{display:flex;align-items:center;gap:11px;background:var(--cream);border:1px solid var(--line);border-radius:13px;padding:11px 13px;box-shadow:var(--shadow-sm)}
+#story-root .ach-card.earned{background:linear-gradient(165deg,#fff7e3 0%,#fbecc6 100%);border-color:var(--gold)}
+#story-root .ach-card.locked{opacity:.62;filter:saturate(.55)}
+#story-root .ach-ic{font-size:1.5rem;flex:0 0 auto;width:30px;text-align:center}
+#story-root .ach-body{flex:1 1 auto;min-width:0}
+#story-root .ach-name{font-weight:700;color:var(--walnut);font-size:.98rem}
+#story-root .ach-desc{font-size:.8rem;color:var(--walnut-soft);margin-top:2px;line-height:1.25}
+#story-root .ach-side{flex:0 0 auto;text-align:right}
+#story-root .ach-stars{display:block;font-size:.82rem;letter-spacing:1px;color:var(--gold-d)}
+#story-root .ach-card.locked .ach-stars{color:var(--tan-d)}
+#story-root .ach-pts{font-size:.72rem;color:var(--walnut-soft);font-weight:700;margin-top:2px;white-space:nowrap}
