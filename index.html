@@ -47,16 +47,13 @@
     <nav class="nav-bar" id="navBar" role="navigation" aria-label="Game navigation">
         <div class="nav-left">
             <img class="nav-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels">
+            <span class="nav-title">ArchRavels</span>
             <span class="nav-edition" id="navEdition">DIGITAL EDITION</span>
         </div>
         <div class="nav-center" id="navStatus" role="status" aria-live="polite">
             <span class="nav-player-name" id="navPlayerName"></span>
             <span class="nav-phase" id="navPhase"></span>
             <span class="nav-timer" id="navTimer" style="display:none">0:00</span>
-        </div>
-        <!-- Player cards — merged into the nav bar (Session 38) -->
-        <div class="player-strip" id="playerStrip" style="display:none" role="navigation" aria-label="Player summaries">
-            <!-- Dynamically populated by UI.renderPlayerStrip() -->
         </div>
         <div class="nav-right">
             <button class="nav-menu-btn" id="navMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>
@@ -67,16 +64,15 @@
                     <span class="cb-indicator"></span> Colorblind Mode
                 </button>
                 <button class="nav-menu-item" onclick="Story.start()">🧶 Story Mode</button>
-                <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,.08)">
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e8dcc4;margin:5px 0">🎵<input type="range" id="volMusic" min="0" max="100" style="flex:1"></label>
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e8dcc4;margin:5px 0">🔊<input type="range" id="volSfx" min="0" max="100" style="flex:1"></label>
-                </div>
-                <button class="nav-menu-item" id="navNextTrack">⏭ Next track</button>
-                <button class="nav-menu-item" id="navMuteBtn">🔊 Sound: On</button>
                 <button class="nav-menu-item" onclick="UI.onNewGame()">New Game</button>
             </div>
         </div>
     </nav>
+
+    <!-- ===== SESSION 12: PLAYER AVATAR STRIP ===== -->
+    <div class="player-strip" id="playerStrip" style="display:none" role="navigation" aria-label="Player summaries">
+        <!-- Dynamically populated by UI.renderPlayerStrip() -->
+    </div>
 
     <!-- ===== SESSION 12: OPPONENT BOARD VIEWER (slide-out panel) ===== -->
     <div class="opponent-panel-backdrop" id="opponentPanelBackdrop" style="display:none"></div>
@@ -111,6 +107,16 @@
             <span class="feed-label">Feed</span>
             <div class="feed-entries" id="feedEntries"></div>
             <button class="feed-expand" id="feedExpandBtn" title="Open Turn History">History ↗</button>
+        </div>
+
+        <!-- =============================================================
+             ACTION BAR  (Session 17 — single-row redesign)
+             One flex row: [phase] [divider] [chips/status] [buttons]
+             Content managed entirely by js/ui.js.
+             ============================================================= -->
+        <div class="action-bar-wrapper" id="actionBarWrapper">
+            <div class="tangled-cat-banner" id="tangledCatBanner" style="display:none" aria-live="assertive"></div>
+            <div class="action-bar" id="actionBar" aria-live="polite"></div>
         </div>
 
         <!-- =============================================================
@@ -220,12 +226,6 @@
         </div>
 
     </div><!-- /game-layout -->
-
-    <!-- ===== ACTION BAR — its own distinct section above the footer (Session 38) ===== -->
-    <div class="action-bar-wrapper" id="actionBarWrapper">
-        <div class="tangled-cat-banner" id="tangledCatBanner" style="display:none" aria-live="assertive"></div>
-        <div class="action-bar" id="actionBar" aria-live="polite"></div>
-    </div>
 
 
     <!-- =============================================================
@@ -604,14 +604,19 @@
          ============================================================= -->
     <script src="js/cards.js"></script>
     <script src="js/game.js"></script>
-    <script src="js/audio.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/ui.js"></script>
 
-    <!-- Online multiplayer (loaded only when served from game server) -->
+    <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
+         The live game is solo + pass-and-play, which has zero dependency on this
+         layer (it self-attaches by monkey-patching Game). These scripts are kept
+         in the repo for the separate online experiment (see lobby.html /
+         mcatoms-xyz/archravels-online) but are NOT loaded here. Re-add to revive
+         online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
     <script src="js/network.js"></script>
     <script src="js/online-bridge.js"></script>
+    -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
