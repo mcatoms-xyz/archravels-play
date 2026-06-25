@@ -1,11 +1,6 @@
-/* ui-modals2.js — UI module (split from the Session-40 monolith).
+/* ui-modals2.js — UI module (split from the Session-40 LIVE monolith).
    ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
-    /* =========================================================
-       SESSION 6b: YARN SALE MODAL
-       Player picks 3 colors to gain from the supply.
-       ========================================================= */
-
     _yarnSaleChoices: [],
     _yarnSaleCallback: null,
 
@@ -436,6 +431,7 @@ Object.assign(UI, {
     showSRTakeModal: function(card, callback) {
         this._srTakeCallback = callback;
         this._srTakeCard = card;
+        try{ if(window.Sound) Sound.play('sr-find'); }catch(e){}
 
         // Session 21: Title = SR name, subtitle = "[Player] found a Special Request"
         var titleEl = document.getElementById('srTakeTitle');
@@ -795,8 +791,5 @@ Object.assign(UI, {
             this.showCraftColorPicker(option.itemDef);
         }
     },
-
-    _pendingCraft: null,
-
 
 });
