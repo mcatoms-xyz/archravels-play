@@ -1,19 +1,6 @@
-/* ui-modals1.js — UI module (split from the Session-40 monolith).
+/* ui-modals1.js — UI module (split from the Session-40 LIVE monolith).
    ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
-    /* =========================================================
-       ACTION SPACE SELECTION
-       ========================================================= */
-
-    /**
-     * Handle clicking an action space button.
-     * Session 8c: intercepts unique abilities that need modal input
-     * before normal playerActions begin.
-     */
-    /**
-     * Session 9b: Go back to space selection (undo the current space choice).
-     * Only allowed if no actions have been taken yet.
-     */
     onChangeSpace: function() {
         Game.undoSpaceChoice();
     },
@@ -330,7 +317,7 @@ Object.assign(UI, {
         // Buttons
         var buttonsHtml = '';
         if (hasAffordable) {
-            buttonsHtml += '<button class="btn btn-secondary" onclick="UI.renderCraftGrid(); UI.renderSpecialRequests();">View Craft Options</button>';
+            buttonsHtml += '<button class="btn btn-secondary" onclick="UI.focusCraftOptions()">View Craft Options</button>';
         }
         buttonsHtml += '<button class="btn btn-cta" onclick="UI.onEndFinalCraft()">Done →</button>';
 
@@ -364,6 +351,22 @@ Object.assign(UI, {
         // Guard: only during finalCraft phase
         if (Game.state.phase !== 'finalCraft') return;
         Game.endFinalCraft();
+    },
+
+    // "View Craft Options" — the craft strip is always on the player board during
+    // finalCraft, so re-rendering did nothing visible. Instead, scroll it into
+    // view and pulse it so the player can see where to tap.
+    focusCraftOptions: function() {
+        this.renderCraftGrid();
+        this.renderSpecialRequests();
+        var grid = (this.els && this.els.craftGrid) || document.getElementById('craftGrid');
+        if (!grid) return;
+        try { grid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        catch (e) { grid.scrollIntoView(); }
+        grid.classList.remove('craft-flash');
+        void grid.offsetWidth;            // reflow so the animation can restart
+        grid.classList.add('craft-flash');
+        setTimeout(function () { grid.classList.remove('craft-flash'); }, 1500);
     },
 
     /**
@@ -842,6 +845,7 @@ Object.assign(UI, {
         this.els.eventMsg.textContent = result.msg;
 
         var inputType = result.inputType;
+        try{ if(window.Sound){ var _em={tangledCat:'ev-tangled-cat',yarnSale:'ev-yarn-sale',donate:'ev-donate',friendlyClerk:'ev-friendly-clerk',craftCircle:'ev-craft-circle'}; Sound.play(_em[inputType]||'ev-generic'); } }catch(e){}
         var labels = {
             tangledCat:   'Choose Player →',
             yarnSale:     'Choose Yarn →',
@@ -992,5 +996,10 @@ Object.assign(UI, {
         }, title, player, true);
     },
 
+
+    /* =========================================================
+       SESSION 6b: YARN SALE MODAL
+       Player picks 3 colors to gain from the supply.
+       ========================================================= */
 
 });
