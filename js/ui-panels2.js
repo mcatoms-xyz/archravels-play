@@ -591,111 +591,182 @@ Object.assign(UI, {
         var players = Game.state.players;
         if (!players || players.length < 2) {
             strip.style.display = 'none';
-            document.querySelector('.game-layout').classList.remove('has-strip');
+            var gl0 = document.querySelector('.game-layout');
+            if (gl0) gl0.classList.remove('has-strip');
             return;
         }
 
         strip.style.display = 'flex';
-        document.querySelector('.game-layout').classList.add('has-strip');
+        var gl = document.querySelector('.game-layout');
+        if (gl) gl.classList.add('has-strip');
+        this.closePlayerMenu();
         strip.innerHTML = '';
 
         var activeIdx = Game.state.activePlayerIndex;
 
-        for (var i = 0; i < players.length; i++) {
-            (function(idx) {
-                var p = players[idx];
-                var character = CARDS.getCharacter(p.characterId);
-                var typeIcon = UI._typeIcons[p.characterType] || '';
-                var isActive = (idx === activeIdx);
+        // Session 40: collapse to "active card + menu" when there are more than two
+        // players or the screen is narrow (mobile) — otherwise the fixed-width cards
+        // crush the nav bar. 2 players on a wide screen keep both cards inline.
+        var narrow = (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 760);
+        var collapse = players.length > 2 || narrow;
 
-                var card = document.createElement('div');
-                card.className = 'player-strip-card' + (isActive ? ' active' : '');
-
-                // Apply character type accent color
-                var accentColor = UI._typeAccentColors[p.characterType] || 'rgba(255,255,255,0.2)';
-                card.style.borderLeftColor = accentColor;
-                if (!isActive) {
-                    card.style.background = 'rgba(' +
-                        parseInt(accentColor.slice(1,3),16) + ',' +
-                        parseInt(accentColor.slice(3,5),16) + ',' +
-                        parseInt(accentColor.slice(5,7),16) + ',0.12)';
-                }
-
-                // Type icon
-                if (typeIcon) {
-                    var iconImg = document.createElement('img');
-                    iconImg.className = 'player-strip-icon';
-                    iconImg.src = typeIcon;
-                    iconImg.alt = p.characterType;
-                    card.appendChild(iconImg);
-                }
-
-                // Info column
-                var info = document.createElement('div');
-                info.className = 'player-strip-info';
-
-                // Name row
-                var nameRow = document.createElement('div');
-                nameRow.className = 'player-strip-name';
-                nameRow.textContent = p.name;
-                if (p.isAI) {
-                    var badge = document.createElement('span');
-                    badge.className = 'player-strip-ai-badge';
-                    badge.textContent = 'CPU';
-                    nameRow.appendChild(badge);
-                }
-                info.appendChild(nameRow);
-
-                // Detail row: items count + yarn total
-                var detail = document.createElement('div');
-                detail.className = 'player-strip-detail';
-                var itemCount = (p.items ? p.items.length : 0) +
-                                (p.craftedSpecialRequests ? p.craftedSpecialRequests.length : 0) +
-                                (p.projects ? p.projects.length : 0);
-                var yarnTotal = 0;
-                if (p.yarnBowl) {
-                    CARDS.COLORS.forEach(function(c) { yarnTotal += (p.yarnBowl[c] || 0); });
-                }
-                // Session 15b: Add current score estimate
-                var scoreData = Game.calculateFinalScore(p);
-                var currentPts = scoreData ? scoreData.total : 0;
-                detail.textContent = currentPts + ' pts · ' + itemCount + ' items · ' + yarnTotal + ' yarn';
-                info.appendChild(detail);
-
-                // Mini yarn dots
-                var dots = document.createElement('div');
-                dots.className = 'player-strip-yarn-dots';
-                CARDS.COLORS.forEach(function(color) {
-                    var count = (p.yarnBowl && p.yarnBowl[color]) || 0;
-                    if (count > 0) {
-                        var dot = document.createElement('div');
-                        dot.className = 'player-strip-yarn-dot player-strip-dot';
-                        dot.style.backgroundColor = CARDS.COLOR_HEX[color];
-                        dot.setAttribute('data-cb-color', color);
-                        dot.title = color + ': ' + count;
-                        dots.appendChild(dot);
-                    }
-                });
-                info.appendChild(dots);
-
-                card.appendChild(info);
-
-                // Session 21: ARIA & keyboard
-                card.setAttribute('tabindex', '0');
-                card.setAttribute('role', 'button');
-                card.setAttribute('aria-label', p.name + (p.isAI ? ' (CPU)' : '') +
-                    ' — ' + currentPts + ' points, ' + itemCount + ' items, ' + yarnTotal + ' yarn' +
-                    (isActive ? ' (active player)' : ''));
-
-                // Click handler — open peek panel for any player
-                card.style.cursor = 'pointer';
-                card.addEventListener('click', function() {
-                    UI.showOpponentPanel(idx);
-                });
-
-                strip.appendChild(card);
-            })(i);
+        if (!collapse) {
+            for (var i = 0; i < players.length; i++) {
+                strip.appendChild(this._buildPlayerStripCard(i, i === activeIdx));
+            }
+            return;
         }
+
+        // Active player's card stays visible.
+        strip.appendChild(this._buildPlayerStripCard(activeIdx, true));
+
+        // Everyone else folds into a dropdown.
+        var others = [];
+        for (var j = 0; j < players.length; j++) { if (j !== activeIdx) others.push(j); }
+
+        var wrap = document.createElement('div');
+        wrap.className = 'player-strip-more-wrap';
+
+        var btn = document.createElement('button');
+        btn.className = 'player-strip-more';
+        btn.type = 'button';
+        btn.setAttribute('aria-haspopup', 'true');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-label', 'Show ' + others.length + ' other player' + (others.length > 1 ? 's' : ''));
+        btn.innerHTML = '<span class="psm-count">+' + others.length + '</span><span class="psm-caret">▾</span>';
+        btn.onclick = function(e) { e.stopPropagation(); UI.togglePlayerMenu(); };
+        wrap.appendChild(btn);
+
+        var menu = document.createElement('div');
+        menu.className = 'player-strip-menu';
+        menu.id = 'playerStripMenu';
+        menu.style.display = 'none';
+        var hdr = document.createElement('div');
+        hdr.className = 'psm-head';
+        hdr.textContent = 'Players — tap to view a board';
+        menu.appendChild(hdr);
+        others.forEach(function(idx) {
+            var c = UI._buildPlayerStripCard(idx, false);
+            c.classList.add('in-menu');
+            c.addEventListener('click', function() { UI.closePlayerMenu(); });
+            menu.appendChild(c);
+        });
+        wrap.appendChild(menu);
+        strip.appendChild(wrap);
+    },
+
+    // Build one player card (used inline and inside the collapse menu). Clicking it
+    // opens that player's board drawer (showOpponentPanel).
+    _buildPlayerStripCard: function(idx, isActive) {
+        var p = Game.state.players[idx];
+        var typeIcon = UI._typeIcons[p.characterType] || '';
+
+        var card = document.createElement('div');
+        card.className = 'player-strip-card' + (isActive ? ' active' : '');
+
+        var accentColor = UI._typeAccentColors[p.characterType] || 'rgba(255,255,255,0.2)';
+        card.style.borderLeftColor = accentColor;
+        if (!isActive) {
+            card.style.background = 'rgba(' +
+                parseInt(accentColor.slice(1,3),16) + ',' +
+                parseInt(accentColor.slice(3,5),16) + ',' +
+                parseInt(accentColor.slice(5,7),16) + ',0.12)';
+        }
+
+        if (typeIcon) {
+            var iconImg = document.createElement('img');
+            iconImg.className = 'player-strip-icon';
+            iconImg.src = typeIcon;
+            iconImg.alt = p.characterType;
+            card.appendChild(iconImg);
+        }
+
+        var info = document.createElement('div');
+        info.className = 'player-strip-info';
+
+        var nameRow = document.createElement('div');
+        nameRow.className = 'player-strip-name';
+        nameRow.textContent = p.name;
+        if (p.isAI) {
+            var badge = document.createElement('span');
+            badge.className = 'player-strip-ai-badge';
+            badge.textContent = 'CPU';
+            nameRow.appendChild(badge);
+        }
+        info.appendChild(nameRow);
+
+        var detail = document.createElement('div');
+        detail.className = 'player-strip-detail';
+        var itemCount = (p.items ? p.items.length : 0) +
+                        (p.craftedSpecialRequests ? p.craftedSpecialRequests.length : 0) +
+                        (p.projects ? p.projects.length : 0);
+        var yarnTotal = 0;
+        if (p.yarnBowl) {
+            CARDS.COLORS.forEach(function(c) { yarnTotal += (p.yarnBowl[c] || 0); });
+        }
+        var scoreData = Game.calculateFinalScore(p);
+        var currentPts = scoreData ? scoreData.total : 0;
+        detail.textContent = currentPts + ' pts · ' + itemCount + ' items · ' + yarnTotal + ' yarn';
+        info.appendChild(detail);
+
+        var dots = document.createElement('div');
+        dots.className = 'player-strip-yarn-dots';
+        CARDS.COLORS.forEach(function(color) {
+            var count = (p.yarnBowl && p.yarnBowl[color]) || 0;
+            if (count > 0) {
+                var dot = document.createElement('div');
+                dot.className = 'player-strip-yarn-dot player-strip-dot';
+                dot.style.backgroundColor = CARDS.COLOR_HEX[color];
+                dot.setAttribute('data-cb-color', color);
+                dot.title = color + ': ' + count;
+                dots.appendChild(dot);
+            }
+        });
+        info.appendChild(dots);
+
+        card.appendChild(info);
+
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', p.name + (p.isAI ? ' (CPU)' : '') +
+            ' — ' + currentPts + ' points, ' + itemCount + ' items, ' + yarnTotal + ' yarn' +
+            (isActive ? ' (active player)' : ''));
+
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() { UI.showOpponentPanel(idx); });
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); UI.showOpponentPanel(idx); }
+        });
+
+        return card;
+    },
+
+    togglePlayerMenu: function() {
+        var menu = document.getElementById('playerStripMenu');
+        if (!menu) return;
+        if (menu.style.display !== 'none') { this.closePlayerMenu(); return; }
+        menu.style.display = 'block';
+        var btn = menu.parentNode && menu.parentNode.querySelector('.player-strip-more');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        UI._playerMenuOutside = function(e) {
+            if (!menu.contains(e.target) && !(btn && btn.contains(e.target))) UI.closePlayerMenu();
+        };
+        UI._playerMenuEsc = function(e) { if (e.key === 'Escape') UI.closePlayerMenu(); };
+        setTimeout(function() {
+            document.addEventListener('click', UI._playerMenuOutside);
+            document.addEventListener('keydown', UI._playerMenuEsc);
+        }, 0);
+    },
+
+    closePlayerMenu: function() {
+        var menu = document.getElementById('playerStripMenu');
+        if (menu) {
+            menu.style.display = 'none';
+            var btn = menu.parentNode && menu.parentNode.querySelector('.player-strip-more');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+        if (UI._playerMenuOutside) { document.removeEventListener('click', UI._playerMenuOutside); UI._playerMenuOutside = null; }
+        if (UI._playerMenuEsc) { document.removeEventListener('keydown', UI._playerMenuEsc); UI._playerMenuEsc = null; }
     },
 
 
