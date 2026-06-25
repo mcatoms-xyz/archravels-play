@@ -1,0 +1,1092 @@
+/* ui-panels1.js — UI module (split from the Session-40 monolith).
+   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+Object.assign(UI, {
+    /* =========================================================
+       SESSION 6: SPECIAL REQUESTS PANEL
+       Shows held SRs (not yet crafted) in a strip below the craft strip.
+       ========================================================= */
+
+    /**
+     * Render the Special Requests panel.
+     * Shows if player has held SRs; hidden when empty.
+     */
+    renderSpecialRequests: function() {
+        var strip = this.els.srStrip;
+        var grid = this.els.srGrid;
+        if (!strip || !grid) return;
+
+        var srOptions = Game.getSRCraftOptions();
+
+        // Session 15b: Update the board overlay SR reminder
+        this._renderSRBoardReminder();
+
+        if (srOptions.length === 0) {
+            strip.style.display = 'none';
+            return;
+        }
+
+        strip.style.display = 'block';
+        grid.innerHTML = '';
+
+        var phase = Game.state.phase;
+        var craftEnabled = (phase === 'playerActions' || phase === 'finalCraft') && Game.getAvailableActions().canCraft;
+
+        srOptions.forEach(function(opt) {
+            var sr = opt.sr;
+            var canClick = opt.canAfford && craftEnabled;
+
+            var slot = document.createElement('div');
+            slot.className = 'craft-slot sr-craft-slot ' + (canClick ? 'can-afford' : 'cannot-afford');
+            slot.setAttribute('tabindex', '0');
+            slot.setAttribute('aria-label', sr.name + ' — ' + sr.points + ' points' +
+                (sr.isFavorite ? ' (Favorite!)' : '') +
+                (canClick ? ', click to craft' : opt.canAfford ? '' : ', cannot afford'));
+
+            // Card image
+            var img = document.createElement('img');
+            img.className = 'craft-slot-img sr-img';
+            img.src = sr.img;
+            img.alt = sr.name + ' Special Request card';
+            slot.appendChild(img);
+
+            // Name + favorite indicator
+            var nameWrap = document.createElement('div');
+            nameWrap.className = 'craft-slot-name';
+            nameWrap.textContent = sr.name;
+            if (sr.isFavorite) {
+                var heart = document.createElement('span');
+                heart.className = 'sr-favorite-heart';
+                heart.textContent = ' ♥';
+                heart.title = 'Favorite Request! Worth +5 bonus points when crafted.';
+                nameWrap.appendChild(heart);
+            }
+            slot.appendChild(nameWrap);
+
+            // Points
+            var pts = document.createElement('div');
+            pts.className = 'sr-points-label';
+            pts.textContent = sr.points + ' pts' + (sr.isFavorite ? ' +5★' : '');
+            slot.appendChild(pts);
+
+            // Yarn cost — render based on colorRule
+            var costEl = document.createElement('div');
+            costEl.className = 'craft-slot-cost';
+            var srRule = sr.colorRule || 'specific';
+            if (srRule === 'specific' && sr.yarn) {
+                // Exact color dots
+                CARDS.COLORS.forEach(function(color) {
+                    if (!sr.yarn[color]) return;
+                    for (var d = 0; d < sr.yarn[color]; d++) {
+                        var dot = document.createElement('span');
+                        dot.className = 'craft-cost-dot';
+                        dot.style.backgroundColor = CARDS.COLOR_HEX[color];
+                        dot.setAttribute('data-cb-color', color);
+                        dot.setAttribute('aria-label', color + ' yarn');
+                        costEl.appendChild(dot);
+                    }
+                });
+            } else {
+                // Descriptive label for non-specific rules
+                var ruleLabels = {
+                    any:       sr.yarnCount + ' any yarn',
+                    sameColor: sr.yarnCount + ' same color',
+                    different: sr.yarnCount + ' diff. colors',
+                    give:      'Give ' + sr.yarnCount + ' each',
+                };
+                var lbl = document.createElement('span');
+                lbl.className = 'craft-cost-label';
+                lbl.textContent = ruleLabels[srRule] || '';
+                costEl.appendChild(lbl);
+            }
+            slot.appendChild(costEl);
+
+            // Click to craft
+            if (canClick) {
+                (function(srOption) {
+                    slot.addEventListener('click', function() {
+                        UI.onSRCraftClick(srOption.sr);
+                    });
+                })(opt);
+            }
+
+            grid.appendChild(slot);
+        });
+    },
+
+    /**
+     * Handle clicking an SR to craft it.
+     * Routes to color picker for non-specific colorRules.
+     */
+    onSRCraftClick: function(sr) {
+        var actions = Game.getAvailableActions();
+        if (!actions.canCraft) return;
+
+        var rule = sr.colorRule || 'specific';
+        var baseItemDef = { id: sr.id, name: sr.name, img: sr.img, points: sr.points };
+
+        // Session 8c: craftAnyColors — override to 'any' picker for SRs too
+        if (Game.state.craftAnyColors) {
+            var srYarnCount = sr.yarnCount || 0;
+            if (!srYarnCount && sr.yarn) {
+                CARDS.COLORS.forEach(function(c) { srYarnCount += (sr.yarn[c] || 0); });
+            }
+            this._pendingCraft = {
+                type: 'sr', srUid: sr.uid,
+                itemDef: Object.assign({}, baseItemDef, { colorRule: 'any', yarnCount: srYarnCount }),
+                yarnToSpend: null,
+                context: 'craftAnyColors',
+            };
+            this.showCraftColorPicker(this._pendingCraft.itemDef, '🌈 Any Colors — Choose ' + srYarnCount + ' Yarn');
+            return;
+        }
+
+        if (!Game.canAffordSpecialRequest(sr)) return;
+
+        if (rule === 'specific') {
+            // Exact colors — go straight to confirm
+            this._pendingCraft = {
+                type: 'sr', srUid: sr.uid,
+                itemDef: baseItemDef,
+                yarnToSpend: Object.assign({}, sr.yarn),
+            };
+            this.showCraftConfirm();
+
+        } else if (rule === 'give') {
+            // Give N yarn to each other player — treat as 'any' pick (lose yarn, gain points)
+            this._pendingCraft = {
+                type: 'sr', srUid: sr.uid,
+                itemDef: Object.assign({}, baseItemDef, { colorRule: 'any', yarnCount: sr.yarnCount }),
+                yarnToSpend: null,
+                context: 'srGive',
+            };
+            this.showCraftColorPicker(this._pendingCraft.itemDef, 'Choose ' + sr.yarnCount + ' Yarn to Give Away');
+
+        } else if (rule === 'specificPlusAny' || rule === 'specificPlusSame' || rule === 'sameColorPlus') {
+            // Session 36: compound expansion rules (Koi/Mallard/Dog Bandana/Skelly/Ghost).
+            // These pair a FIXED required yarn with a FLEXIBLE pick. The old picker had no
+            // target count for the first two → couldn't select anything. Fix: reserve the
+            // fixed yarn, open the picker for ONLY the flexible portion (capped by bowl minus
+            // the reserve), then merge both on confirm. craftSpecialRequest validates
+            // affordability only, so this picker is the rule-enforcer.
+            var reserved, flexRule, flexCount, exclude = null;
+            if (rule === 'specificPlusAny') {            // e.g. Koi: 3 orange + 2 any
+                reserved = Object.assign({}, sr.yarn || {});
+                flexRule = 'any'; flexCount = sr.anyCount || 0;
+            } else if (rule === 'specificPlusSame') {    // e.g. Dog Bandana: 3 purple + 2 of one color
+                reserved = Object.assign({}, sr.yarn || {});
+                flexRule = 'oneColor'; flexCount = sr.sameCount || 0;
+            } else {                                     // sameColorPlus, e.g. Skelly: 5 of one color (not orange) + 1 orange
+                reserved = Object.assign({}, sr.plusYarn || {});
+                flexRule = 'oneColor'; flexCount = sr.yarnCount || 0;
+                exclude = Object.keys(reserved);         // the "same" color cannot be a plus color
+            }
+            this._pendingCraft = {
+                type: 'sr', srUid: sr.uid,
+                itemDef: Object.assign({}, baseItemDef, { colorRule: flexRule, yarnCount: flexCount }),
+                yarnToSpend: null, reservedYarn: reserved, excludeColors: exclude,
+            };
+            var fixedLabel = this._fixedYarnLabel(reserved);
+            var verb = (flexRule === 'oneColor') ? (flexCount + ' of one color') : (flexCount + ' of any colors');
+            var notLabel = exclude ? (' (not ' + exclude.join('/') + ')') : '';
+            this.showCraftColorPicker(this._pendingCraft.itemDef, 'Plus ' + verb + notLabel + ' — also gives ' + fixedLabel);
+
+        } else {
+            // any / sameColor / different — open color picker
+            var pickerRule = rule === 'sameColor' ? 'oneColor' : rule; // map sameColor → oneColor
+            var pickerTitle = {
+                any:      'Choose Any ' + sr.yarnCount + ' Yarn',
+                sameColor:'Choose ' + sr.yarnCount + ' of One Color',
+                different:'Choose ' + sr.yarnCount + ' Different Colors',
+            };
+            this._pendingCraft = {
+                type: 'sr', srUid: sr.uid,
+                itemDef: Object.assign({}, baseItemDef, { colorRule: pickerRule, yarnCount: sr.yarnCount }),
+                yarnToSpend: null,
+            };
+            this.showCraftColorPicker(this._pendingCraft.itemDef, pickerTitle[rule] || ('Choose ' + sr.yarnCount + ' Yarn'));
+        }
+    },
+
+
+    /* =========================================================
+       CRAFT CONFIRMATION MODAL
+       ========================================================= */
+
+    showCraftConfirm: function() {
+        var pending = this._pendingCraft;
+        if (!pending) return;
+
+        var body = this.els.craftConfirmBody;
+        var html = '';
+        var isFrog = pending.context === 'frogIt';
+
+        html += '<img class="craft-confirm-item-img" src="' + pending.itemDef.img + '" alt="' + pending.itemDef.name + '">';
+        html += '<div class="craft-confirm-item-name">' + pending.itemDef.name + '</div>';
+
+        // SR: show points
+        if (pending.type === 'sr') {
+            var srInHand = this._findSRInHand(pending.srUid);
+            html += '<div class="sr-points-confirm">' + pending.itemDef.points + ' pts' +
+                (srInHand && srInHand.isFavorite ? ' +5★ Favorite!' : '') +
+                '</div>';
+        }
+
+        // Frog It: show points lost
+        if (isFrog) {
+            html += '<div class="frog-confirm-note">🐸 Returning this item — get yarn back.</div>';
+        }
+
+        var costLabel = isFrog ? 'Yarn to receive:' : 'Yarn to spend:';
+        var sign      = isFrog ? '+' : '-';
+
+        html += '<div class="craft-confirm-cost">';
+        html += '<span class="craft-confirm-cost-label">' + costLabel + '</span>';
+        CARDS.COLORS.forEach(function(color) {
+            if (!pending.yarnToSpend[color]) return;
+            var amount = pending.yarnToSpend[color];
+            var hex = CARDS.COLOR_HEX[color];
+            html += '<span class="confirm-yarn-tag" style="background:' + hex + '">' + sign + amount + ' ' +
+                color.charAt(0).toUpperCase() + color.slice(1) + '</span>';
+        });
+        html += '</div>';
+
+        body.innerHTML = html;
+        this.els.craftConfirmTitle.textContent = isFrog
+            ? 'Frog ' + pending.itemDef.name + '?'
+            : 'Craft ' + pending.itemDef.name + '?';
+        this.els.craftConfirmModal.style.display = 'flex';
+    },
+
+    /** Helper to find an SR in the player's hand by uid */
+    _findSRInHand: function(uid) {
+        return Game.state.player.specialRequests.find(function(sr) { return sr.uid === uid; });
+    },
+
+    onConfirmCraft: function() {
+        this.els.craftConfirmModal.style.display = 'none';
+        var pending = this._pendingCraft;
+        if (!pending) return;
+
+        var changed;
+        var isCraftCircle = pending.context === 'craftCircle';
+        var isFrogIt      = pending.context === 'frogIt';
+        var ccPlayerIdx   = pending.craftCirclePlayerIndex || 0;
+
+        // Session 17: Capture SR data before crafting (for moment modal)
+        var srData = null;
+        if (pending.type === 'sr' && pending.srUid && !isFrogIt) {
+            srData = UI._findSRInHand(pending.srUid);
+        }
+
+        if (isFrogIt) {
+            // Frog It: return item, get yarn back
+            changed = Game.frogIt(pending.frogItemIndex, pending.yarnToSpend);
+            if (changed) {
+                UI.renderYarnBowl(changed);
+                UI.renderCraftGrid();
+                UI.renderFinishedObjects();
+                UI.renderProjectStrip();
+                UI.renderActionBar();
+            }
+            this._pendingCraft = null;
+            return;
+        }
+
+        if (isCraftCircle) {
+            // Craft Circle: use the free-craft function (doesn't consume craftUsed)
+            changed = Game.craftCircleItem(
+                pending.type === 'item' ? pending.itemId : null,
+                pending.type === 'sr'   ? pending.srUid  : null,
+                pending.yarnToSpend,
+                ccPlayerIdx
+            );
+        } else if (pending.type === 'sr') {
+            changed = Game.craftSpecialRequest(pending.srUid, pending.yarnToSpend);
+        } else {
+            changed = Game.craft(pending.itemId, pending.yarnToSpend);
+        }
+
+        if (changed) {
+            // Session 8c: clear craftAnyColors after using it
+            if (pending.context === 'craftAnyColors') {
+                Game.state.craftAnyColors = false;
+            }
+            UI.renderYarnBowl(changed);
+            UI.renderCraftGrid();
+            UI.renderSpecialRequests();
+            UI.renderFinishedObjects();
+            UI.renderProjectStrip();
+            UI.renderActionBar();
+        }
+
+        // Session 17: Show SR completion moment (not for regular items or frog it)
+        if (changed && srData && !isCraftCircle) {
+            var isFav = srData.isFavorite;
+            var savedPending = pending;
+            this._pendingCraft = null;
+            var srPlayer = Game.state.player;
+            UI.showGameMoment({
+                badge: isFav ? 'Favorite Completed!' : 'SR Completed!',
+                badgeClass: isFav ? 'moment-favorite' : 'moment-sr',
+                img: srData.img,
+                title: srData.name,
+                desc: UI._getSRDesc('completed', srData, srPlayer.name, srPlayer.isAI),
+                points: srData.points
+            }, function() {
+                // Final craft phase: after 1 craft, auto-end
+                if (Game.state.phase === 'finalCraft' && !isCraftCircle) {
+                    Game.state.turn.craftUsed++;
+                    setTimeout(function() { Game.endFinalCraft(); }, 600);
+                }
+            });
+            return;
+        }
+
+        this._pendingCraft = null;
+
+        // Final craft phase: after 1 craft, auto-end
+        if (Game.state.phase === 'finalCraft' && changed && !isCraftCircle) {
+            Game.state.turn.craftUsed++;
+            setTimeout(function() { Game.endFinalCraft(); }, 600);
+            return;
+        }
+
+        if (isCraftCircle) {
+            // Advance to next player in the Craft Circle queue
+            var nextIdx = ccPlayerIdx + 1;
+            var cb = UI._craftCircleCallback;
+            UI._craftCircleCallback = null;
+            if (nextIdx < Game.state.playerCount) {
+                UI.showCraftCircleModal(nextIdx, cb);
+            } else {
+                if (cb) cb();
+            }
+        }
+    },
+
+    onCancelCraft: function() {
+        this.els.craftConfirmModal.style.display = 'none';
+        var pending = this._pendingCraft;
+        this._pendingCraft = null;
+
+        // If cancelling during Craft Circle, show the grid again
+        if (pending && pending.context === 'craftCircle') {
+            UI.showCraftCircleModal(pending.craftCirclePlayerIndex || 0, UI._craftCircleCallback);
+        }
+        // If cancelling during Frog It, show the frog list again
+        if (pending && pending.context === 'frogIt') {
+            UI.showFrogItModal();
+        }
+    },
+
+
+    /* =========================================================
+       CRAFT COLOR PICKER MODAL
+       ========================================================= */
+
+    _craftColorAlloc: {},
+
+    /**
+     * @param {Object} itemDef — item (or SR pseudo-item) with colorRule and yarnCount
+     * @param {string} [overrideTitle] — optional title to use instead of auto-generated one
+     */
+    // Session 36: pretty-print a fixed yarn map, e.g. {orange:3} → "3 Orange".
+    _fixedYarnLabel: function(map) {
+        return Object.keys(map || {}).map(function(c) {
+            return map[c] + ' ' + c.charAt(0).toUpperCase() + c.slice(1);
+        }).join(' + ');
+    },
+
+    showCraftColorPicker: function(itemDef, overrideTitle) {
+        var bowl = Game.state.player.yarnBowl;
+        var needed = itemDef.yarnCount;
+        var rule = itemDef.colorRule;
+
+        this._craftColorAlloc = {};
+        CARDS.COLORS.forEach(function(c) { UI._craftColorAlloc[c] = 0; });
+
+        this._buildCraftColorBody(itemDef, bowl);
+
+        var ruleLabel = {
+            oneColor: needed + ' of 1 color',
+            twoColors: needed + ' across 2 colors',
+            different: needed + ' different colors',
+            any: 'any ' + needed + ' yarn',
+        };
+        this.els.craftColorTitle.textContent = overrideTitle || ('Choose Yarn — ' + (ruleLabel[rule] || needed + ' yarn'));
+        this.els.craftColorConfirmBtn.disabled = true;
+
+        // Session 22: Inject off-turn context if this is a craft-circle color pick
+        var ccContent = this.els.craftColorModal.querySelector('.craft-color-content');
+        var contextContainer = ccContent.querySelector('.otc-container');
+        if (!contextContainer) {
+            contextContainer = document.createElement('div');
+            contextContainer.className = 'otc-container';
+            ccContent.insertBefore(contextContainer, this.els.craftColorBody);
+        }
+        var pending = this._pendingCraft;
+        if (pending && pending.context === 'craftCircle' && typeof pending.craftCirclePlayerIndex === 'number') {
+            var ccPlayer = Game.state.players[pending.craftCirclePlayerIndex];
+            contextContainer.innerHTML = this._buildOffTurnContext(ccPlayer, 'color-pick', overrideTitle || 'Choose Yarn');
+            // Hide title if context was rendered
+            if (contextContainer.innerHTML !== '') {
+                this.els.craftColorTitle.style.display = 'none';
+            } else {
+                this.els.craftColorTitle.style.display = '';
+            }
+        } else {
+            contextContainer.innerHTML = '';
+            this.els.craftColorTitle.style.display = '';
+        }
+
+        this.els.craftColorModal.style.display = 'flex';
+    },
+
+    _buildCraftColorBody: function(itemDef) {
+        var bowl = Game.state.player.yarnBowl;
+        var alloc = this._craftColorAlloc;
+        var needed = itemDef.yarnCount;
+        var rule = itemDef.colorRule;
+        // Session 36: Frog It is a RECEIVE flow — the player picks which yarn to get back,
+        // so selection is bound only by the count needed, not by what's in the bowl.
+        var isReceive = !!(this._pendingCraft && this._pendingCraft.context === 'frogIt');
+        // Session 36: compound SR rules reserve a FIXED yarn portion (auto-included) and may
+        // exclude colors from the flexible pick. Availability for the flexible part is the
+        // bowl minus what's reserved for the fixed part, so we never double-spend.
+        var reserved = (this._pendingCraft && this._pendingCraft.reservedYarn) || {};
+        var exclude  = (this._pendingCraft && this._pendingCraft.excludeColors) || [];
+        var totalAlloc = 0;
+        CARDS.COLORS.forEach(function(c) { totalAlloc += alloc[c]; });
+
+        var body = this.els.craftColorBody;
+        var html = '';
+
+        CARDS.COLORS.forEach(function(color) {
+            if (exclude.indexOf(color) !== -1) return;   // not allowed for the flexible portion
+            var available = (bowl[color] || 0) - (reserved[color] || 0);
+            if (available < 0) available = 0;
+            var current = alloc[color];
+            var hex = CARDS.COLOR_HEX[color];
+            var capName = color.charAt(0).toUpperCase() + color.slice(1);
+
+            if (rule === 'oneColor' && !isReceive && available < needed && current === 0) return;
+
+            var room = needed - totalAlloc + current;
+            var maxForColor = isReceive ? room : Math.min(available, room);
+            if (rule === 'different') maxForColor = Math.min(maxForColor, 1);
+            if (rule === 'oneColor') {
+                var otherUsed = false;
+                CARDS.COLORS.forEach(function(c) { if (c !== color && alloc[c] > 0) otherUsed = true; });
+                if (otherUsed) maxForColor = 0;
+            }
+
+            var canIncrement = current < maxForColor && totalAlloc < needed;
+            var canDecrement = current > 0;
+
+            html += '<div class="craft-color-row">';
+            html += '<div class="craft-color-info">';
+            html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
+            html += '<span class="craft-color-label">' + capName + '</span>';
+            if (!isReceive) html += '<span class="craft-color-available">(have ' + available + ')</span>';
+            html += '</div>';
+            html += '<div class="craft-color-controls">';
+            html += '<button aria-label="Use less ' + capName + '" onclick="UI._craftColorAdjust(\'' + color + '\', -1)" ' + (canDecrement ? '' : 'disabled') + '>-</button>';
+            html += '<span class="craft-color-count">' + current + '</span>';
+            html += '<button aria-label="Use more ' + capName + '" onclick="UI._craftColorAdjust(\'' + color + '\', 1)" ' + (canIncrement ? '' : 'disabled') + '>+</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+
+        html += '<div class="craft-color-summary">' + totalAlloc + ' of ' + needed + ' yarn selected</div>';
+
+        body.innerHTML = html;
+
+        var valid = totalAlloc === needed;
+        if (valid && rule === 'twoColors') {
+            var usedColors = CARDS.COLORS.filter(function(c) { return alloc[c] > 0; }).length;
+            valid = usedColors === 2;
+        }
+        this.els.craftColorConfirmBtn.disabled = !valid;
+    },
+
+    _craftColorAdjust: function(color, delta) {
+        var pending = this._pendingCraft;
+        if (!pending) return;
+
+        var rule = pending.itemDef.colorRule;
+        var needed = pending.itemDef.yarnCount;
+
+        if (rule === 'oneColor') {
+            if (delta > 0) {
+                CARDS.COLORS.forEach(function(c) { UI._craftColorAlloc[c] = 0; });
+                this._craftColorAlloc[color] = needed;
+            } else {
+                this._craftColorAlloc[color] = 0;
+            }
+        } else {
+            this._craftColorAlloc[color] = Math.max(0, this._craftColorAlloc[color] + delta);
+        }
+
+        this._buildCraftColorBody(pending.itemDef);
+    },
+
+    onCraftColorConfirm: function() {
+        this.els.craftColorModal.style.display = 'none';
+        var pending = this._pendingCraft;
+        if (!pending) return;
+
+        var spend = {};
+        CARDS.COLORS.forEach(function(c) {
+            if (UI._craftColorAlloc[c] > 0) spend[c] = UI._craftColorAlloc[c];
+        });
+        // Session 36: fold in the reserved fixed yarn (compound SR rules) so the final
+        // spend = fixed portion + the player's flexible pick.
+        if (pending.reservedYarn) {
+            Object.keys(pending.reservedYarn).forEach(function(c) {
+                spend[c] = (spend[c] || 0) + pending.reservedYarn[c];
+            });
+        }
+        pending.yarnToSpend = spend;
+
+        // frogIt context: color picker chose "yarn to receive", go straight to frog confirm
+        // (context is already set on _pendingCraft, showCraftConfirm handles display)
+        this.showCraftConfirm();
+    },
+
+    onCraftColorCancel: function() {
+        this.els.craftColorModal.style.display = 'none';
+        var pending = this._pendingCraft;
+        this._pendingCraft = null;
+        // If cancelling color picker during Craft Circle, re-show the Craft Circle modal
+        if (pending && pending.context === 'craftCircle') {
+            UI.showCraftCircleModal(pending.craftCirclePlayerIndex || 0, UI._craftCircleCallback);
+        }
+        // If cancelling color picker during Frog It, re-show frog list
+        if (pending && pending.context === 'frogIt') {
+            UI.showFrogItModal();
+        }
+    },
+
+
+    /* =========================================================
+       EXCHANGE MODAL
+       ========================================================= */
+
+    _exchangeGive: {},
+    _exchangeReceive: {},
+
+    showExchangeModal: function() {
+        this._exchangeGive = {};
+        this._exchangeReceive = {};
+        CARDS.COLORS.forEach(function(c) {
+            UI._exchangeGive[c] = 0;
+            UI._exchangeReceive[c] = 0;
+        });
+
+        this._buildExchangeBody();
+        this.els.exchangeConfirmBtn.disabled = true;
+        this.els.exchangeModal.style.display = 'flex';
+    },
+
+    _buildExchangeBody: function() {
+        var bowl = Game.state.player.yarnBowl;
+        var give = this._exchangeGive;
+        var receive = this._exchangeReceive;
+
+        var giveTotal = 0, receiveTotal = 0;
+        CARDS.COLORS.forEach(function(c) {
+            giveTotal += (give[c] || 0);
+            receiveTotal += (receive[c] || 0);
+        });
+
+        var html = '';
+
+        html += '<div class="exchange-section">';
+        html += '<div class="exchange-section-label">Give Away</div>';
+        CARDS.COLORS.forEach(function(color) {
+            var available = bowl[color] || 0;
+            var current = give[color] || 0;
+            var hex = CARDS.COLOR_HEX[color];
+            var capName = color.charAt(0).toUpperCase() + color.slice(1);
+
+            if (available === 0 && current === 0) return;
+
+            var canInc = current < available;
+            var canDec = current > 0;
+
+            html += '<div class="craft-color-row">';
+            html += '<div class="craft-color-info">';
+            html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
+            html += '<span class="craft-color-label">' + capName + '</span>';
+            html += '<span class="craft-color-available">(have ' + available + ')</span>';
+            html += '</div>';
+            html += '<div class="craft-color-controls">';
+            html += '<button aria-label="Give less ' + capName + '" onclick="UI._exchangeAdjust(\'give\',\'' + color + '\',-1)" ' + (canDec ? '' : 'disabled') + '>-</button>';
+            html += '<span class="craft-color-count">' + current + '</span>';
+            html += '<button aria-label="Give more ' + capName + '" onclick="UI._exchangeAdjust(\'give\',\'' + color + '\',1)" ' + (canInc ? '' : 'disabled') + '>+</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+
+        html += '<div class="exchange-section">';
+        html += '<div class="exchange-section-label">Receive</div>';
+        CARDS.COLORS.forEach(function(color) {
+            var current = receive[color] || 0;
+            var hex = CARDS.COLOR_HEX[color];
+            var capName = color.charAt(0).toUpperCase() + color.slice(1);
+
+            var canInc = receiveTotal < giveTotal;
+            var canDec = current > 0;
+
+            html += '<div class="craft-color-row">';
+            html += '<div class="craft-color-info">';
+            html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
+            html += '<span class="craft-color-label">' + capName + '</span>';
+            html += '</div>';
+            html += '<div class="craft-color-controls">';
+            html += '<button aria-label="Receive less ' + capName + '" onclick="UI._exchangeAdjust(\'receive\',\'' + color + '\',-1)" ' + (canDec ? '' : 'disabled') + '>-</button>';
+            html += '<span class="craft-color-count">' + current + '</span>';
+            html += '<button aria-label="Receive more ' + capName + '" onclick="UI._exchangeAdjust(\'receive\',\'' + color + '\',1)" ' + (canInc ? '' : 'disabled') + '>+</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+
+        html += '<div class="craft-color-summary">';
+        html += 'Give ' + giveTotal + ' → Receive ' + receiveTotal;
+        if (giveTotal > 0 && receiveTotal < giveTotal) {
+            html += '  <span style="opacity:0.6">(select ' + (giveTotal - receiveTotal) + ' more to receive)</span>';
+        }
+        html += '</div>';
+
+        this.els.exchangeBody.innerHTML = html;
+        this.els.exchangeConfirmBtn.disabled = !(giveTotal > 0 && giveTotal === receiveTotal);
+    },
+
+    _exchangeAdjust: function(side, color, delta) {
+        if (side === 'give') {
+            this._exchangeGive[color] = Math.max(0, (this._exchangeGive[color] || 0) + delta);
+        } else {
+            this._exchangeReceive[color] = Math.max(0, (this._exchangeReceive[color] || 0) + delta);
+        }
+        this._buildExchangeBody();
+    },
+
+    onExchangeConfirm: function() {
+        // Guard: only allow during playerActions with exchange available
+        if (Game.state.phase !== 'playerActions') return;
+        this.els.exchangeModal.style.display = 'none';
+
+        var give = {}, receive = {};
+        CARDS.COLORS.forEach(function(c) {
+            if (UI._exchangeGive[c] > 0) give[c] = UI._exchangeGive[c];
+            if (UI._exchangeReceive[c] > 0) receive[c] = UI._exchangeReceive[c];
+        });
+
+        var changed = Game.exchange(give, receive);
+        if (changed) {
+            UI.renderYarnBowl(changed);
+            UI.renderCraftGrid();
+            UI.renderSpecialRequests();
+            UI.renderActionBar();
+        }
+    },
+
+    onExchangeCancel: function() {
+        this.els.exchangeModal.style.display = 'none';
+    },
+
+
+    /* =========================================================
+       Session 15b: SR BOARD REMINDER OVERLAY
+       Mini thumbnails of held SRs overlaid on the player board
+       so human players can't miss them (like physical game).
+       ========================================================= */
+
+    _renderSRBoardReminder: function() {
+        var el = this.els.srBoardReminder;
+        if (!el) return;
+
+        var player = Game.state.player;
+        if (!player || !player.specialRequests || player.specialRequests.length === 0) {
+            el.style.display = 'none';
+            return;
+        }
+
+        // Check craft state once for all SRs
+        var phase = Game.state.phase;
+        var craftEnabled = (phase === 'playerActions' || phase === 'finalCraft') && Game.getAvailableActions().canCraft;
+        var srOptions = Game.getSRCraftOptions();
+
+        el.style.display = 'flex';
+        el.innerHTML = '';
+
+        player.specialRequests.forEach(function(sr) {
+            var card = document.createElement('div');
+            card.className = 'sr-reminder-card' + (sr.isFavorite ? ' sr-reminder-fav' : '');
+
+            // Thumbnail image
+            var img = document.createElement('img');
+            img.src = sr.img;
+            img.alt = sr.name;
+            card.appendChild(img);
+
+            if (sr.isFavorite) {
+                var heart = document.createElement('span');
+                heart.className = 'sr-reminder-heart';
+                heart.textContent = '♥';
+                card.appendChild(heart);
+            }
+
+            // Session 15b: Hover preview tooltip — pops up above the thumbnail
+            var tooltip = document.createElement('div');
+            tooltip.className = 'sr-hover-preview';
+
+            var previewImg = document.createElement('img');
+            previewImg.className = 'sr-preview-img';
+            previewImg.src = sr.img;
+            previewImg.alt = sr.name;
+            tooltip.appendChild(previewImg);
+
+            var info = document.createElement('div');
+            info.className = 'sr-preview-info';
+
+            var nameEl = document.createElement('div');
+            nameEl.className = 'sr-preview-name';
+            nameEl.textContent = sr.name;
+            if (sr.isFavorite) nameEl.innerHTML += ' <span style="color:#ff6b6b">♥</span>';
+            info.appendChild(nameEl);
+
+            var ptsEl = document.createElement('div');
+            ptsEl.className = 'sr-preview-points';
+            ptsEl.textContent = sr.points + ' pts' + (sr.isFavorite ? ' +5 bonus' : '');
+            info.appendChild(ptsEl);
+
+            // Cost dots
+            var costEl = document.createElement('div');
+            costEl.className = 'sr-preview-cost';
+            var srRule = sr.colorRule || 'specific';
+            if (srRule === 'specific' && sr.yarn) {
+                CARDS.COLORS.forEach(function(color) {
+                    if (!sr.yarn[color]) return;
+                    for (var d = 0; d < sr.yarn[color]; d++) {
+                        var dot = document.createElement('span');
+                        dot.className = 'craft-cost-dot';
+                        dot.style.backgroundColor = CARDS.COLOR_HEX[color];
+                        costEl.appendChild(dot);
+                    }
+                });
+            } else {
+                var ruleLabels = {
+                    any:       sr.yarnCount + ' any yarn',
+                    sameColor: sr.yarnCount + ' same color',
+                    different: sr.yarnCount + ' diff. colors',
+                    give:      'Give ' + sr.yarnCount + ' each'
+                };
+                var lbl = document.createElement('span');
+                lbl.className = 'sr-preview-cost-label';
+                lbl.textContent = ruleLabels[srRule] || '';
+                costEl.appendChild(lbl);
+            }
+            info.appendChild(costEl);
+
+            // Craft button (only when craft phase is active)
+            if (craftEnabled) {
+                var matchOpt = null;
+                srOptions.forEach(function(opt) {
+                    if (opt.sr.uid === sr.uid) matchOpt = opt;
+                });
+                var canCraft = matchOpt ? matchOpt.canAfford : false;
+                var btn = document.createElement('button');
+                btn.className = 'sr-preview-craft-btn';
+                btn.textContent = canCraft ? 'Craft' : 'Need yarn';
+                if (!canCraft) btn.disabled = true;
+                (function(srData) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        UI.onSRCraftClick(srData);
+                    });
+                })(sr);
+                info.appendChild(btn);
+            }
+
+            tooltip.appendChild(info);
+            card.appendChild(tooltip);
+            el.appendChild(card);
+        });
+    },
+
+
+    /* =========================================================
+       FINISHED OBJECTS
+       ========================================================= */
+
+    /**
+     * Session 10b: Finished Objects — 3 distinct zones (Projects, Items, SRs)
+     * with stacked duplicates and ×N count badges.
+     */
+    renderFinishedObjects: function() {
+        var items = Game.state.player.items;
+        var craftedSRs = Game.state.player.craftedSpecialRequests;
+        var completedProjects = Game.state.player.projects || [];
+
+        var grid = this.els.finishedGrid;
+        var totalEl = this.els.finishedTotal;
+        if (!grid) return;
+
+        // Session 15c: Color-match pill and show character name
+        var charType = Game.state.player ? Game.state.player.characterType : null;
+        var charId = Game.state.player ? Game.state.player.characterId : null;
+        var accent = charType ? (this._typeAccentColors[charType] || null) : null;
+        var titleEl = document.getElementById('foDrawerTitle');
+        var charNameEl = document.getElementById('foDrawerCharName');
+        if (titleEl && accent) {
+            titleEl.style.background = accent;
+        }
+        if (charNameEl && charId) {
+            var charDef = CARDS.getCharacter(charId);
+            charNameEl.textContent = charDef ? charDef.name : '';
+        }
+
+        grid.innerHTML = '';
+
+        var totalPoints = 0;
+
+        // Compute project points
+        var projPoints = 0;
+        completedProjects.forEach(function(p) { projPoints += p.points; });
+
+        // If nothing at all, show empty message but still show 0 point tag
+        if (items.length === 0 && craftedSRs.length === 0 && completedProjects.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'finished-empty';
+            empty.textContent = 'Craft items to earn points';
+            grid.appendChild(empty);
+            if (totalEl) {
+                totalEl.className = 'finished-objects-total has-points';
+                totalEl.innerHTML = '';
+                var zeroNum = document.createElement('span');
+                zeroNum.className = 'fo-total-num';
+                zeroNum.textContent = '0';
+                totalEl.appendChild(zeroNum);
+            }
+            return;
+        }
+
+        // --- Helper: group an array by a key, preserving order of first appearance ---
+        function groupBy(arr, keyFn) {
+            var groups = {};
+            var order = [];
+            arr.forEach(function(item) {
+                var key = keyFn(item);
+                if (!groups[key]) {
+                    groups[key] = [];
+                    order.push(key);
+                }
+                groups[key].push(item);
+            });
+            return { groups: groups, order: order };
+        }
+
+        // --- Helper: render a zone section ---
+        function renderZone(label, icon, zoneClass) {
+            var zone = document.createElement('div');
+            zone.className = 'fo-zone ' + (zoneClass || '');
+            var header = document.createElement('div');
+            header.className = 'fo-zone-header';
+            header.innerHTML = icon + ' ' + label;
+            zone.appendChild(header);
+            var content = document.createElement('div');
+            content.className = 'fo-zone-items';
+            zone.appendChild(content);
+            return { zone: zone, content: content };
+        }
+
+        // --- Helper: render a stacked item card ---
+        // Session 15c: Items show as silhouettes with no point tag at rest.
+        // Point tag appears on hover after zoom completes. Projects/SRs keep borders.
+        function renderCard(item, count, tagClass, isItem) {
+            var wrap = document.createElement('div');
+            wrap.className = 'finished-item-wrap' + (count > 1 ? ' fo-stacked' : '') +
+                (isItem ? ' fo-item-token' : '');
+
+            // Stack visual: offset shadow cards behind
+            if (count > 1) {
+                var stackBg = document.createElement('div');
+                stackBg.className = 'fo-stack-bg';
+                wrap.appendChild(stackBg);
+            }
+
+            var img = document.createElement('img');
+            img.className = 'finished-item';
+            img.src = item.img;
+            img.alt = item.name;
+            var basePts = item.points;
+            var totalPts = basePts * count;
+            img.title = item.name + ' (' + basePts + ' pts' + (item.isFavorite ? ' +5 Favorite!' : '') + ')' +
+                (count > 1 ? ' ×' + count + ' = ' + totalPts : '');
+            wrap.appendChild(img);
+
+            // Session 15c/17: Items get hover-only point tags via data-pts.
+            // Projects/SRs: no point tag — values already printed on card art.
+            if (isItem) {
+                wrap.setAttribute('data-pts', totalPts);
+            }
+
+            // Count badge for duplicates
+            if (count > 1) {
+                var badge = document.createElement('div');
+                badge.className = 'fo-count-badge';
+                badge.textContent = '×' + count;
+                wrap.appendChild(badge);
+            }
+
+            return { wrap: wrap, points: totalPts };
+        }
+
+        // Session 15c: Zone order is Items → SRs → Projects
+        // Items are what you need to make projects, SRs are a point of pride,
+        // projects are a nice reminder of what you accomplished.
+
+        // ========== ZONE 1: ITEMS ==========
+        // Canonical display order: hat, mittens, bear, scarf, blanket
+        var ITEM_ORDER = ['hat', 'mittens', 'bear', 'scarf', 'blanket'];
+        if (items.length > 0) {
+            var itemZone = renderZone('Items', '🧶', 'fo-zone-itemzone');
+            var itemGrouped = groupBy(items, function(i) { return i.id; });
+            ITEM_ORDER.forEach(function(key) {
+                if (!itemGrouped.groups[key]) return;
+                var group = itemGrouped.groups[key];
+                var card = renderCard(group[0], group.length, '', true);
+                itemZone.content.appendChild(card.wrap);
+                totalPoints += card.points;
+            });
+            grid.appendChild(itemZone.zone);
+        }
+
+        // ========== ZONE 2: SPECIAL REQUESTS ==========
+        if (craftedSRs.length > 0) {
+            var srZone = renderZone('Special Requests', '📋', 'fo-zone-srs');
+            var srGrouped = groupBy(craftedSRs, function(s) { return s.id || s.name; });
+            srGrouped.order.forEach(function(key) {
+                var group = srGrouped.groups[key];
+                var card = renderCard(group[0], group.length, '', false);
+                srZone.content.appendChild(card.wrap);
+                totalPoints += card.points;
+            });
+            grid.appendChild(srZone.zone);
+        }
+
+        // ========== ZONE 3: PROJECTS ==========
+        if (completedProjects.length > 0) {
+            var projZone = renderZone('Projects', '🏆', 'fo-zone-projects');
+            var projGrouped = groupBy(completedProjects, function(p) { return p.id || p.name; });
+            projGrouped.order.forEach(function(key) {
+                var group = projGrouped.groups[key];
+                var card = renderCard(group[0], group.length, 'point-tag-project', false);
+                projZone.content.appendChild(card.wrap);
+                totalPoints += card.points;
+            });
+            grid.appendChild(projZone.zone);
+        }
+
+        // If only projects exist and all items were turned in
+        if (items.length === 0 && craftedSRs.length === 0 && completedProjects.length > 0) {
+            var note = document.createElement('div');
+            note.className = 'finished-empty';
+            note.textContent = 'Items were turned in for projects';
+            grid.appendChild(note);
+        }
+
+        // Session 15c: Update total with point tag badge
+        if (totalEl) {
+            totalEl.className = 'finished-objects-total has-points';
+            totalEl.innerHTML = '';
+            var totalNum = document.createElement('span');
+            totalNum.className = 'fo-total-num';
+            totalNum.textContent = totalPoints;
+            totalEl.appendChild(totalNum);
+        }
+
+        // Session 15c: Attach hover point tags to item tokens
+        grid.querySelectorAll('.fo-item-token[data-pts]').forEach(function(item) {
+            var tag = document.createElement('div');
+            tag.className = 'fo-hover-tag';
+            var num = document.createElement('span');
+            num.className = 'fo-hover-tag-num';
+            num.textContent = item.getAttribute('data-pts');
+            tag.appendChild(num);
+            item.appendChild(tag);
+
+            var showTimer;
+            item.addEventListener('mouseenter', function() {
+                showTimer = setTimeout(function() { tag.classList.add('visible'); }, 200);
+            });
+            item.addEventListener('mouseleave', function() {
+                clearTimeout(showTimer);
+                tag.classList.remove('visible');
+            });
+        });
+
+        // Session 15b: Update drawer count badge
+        this._updateDrawerCount();
+    },
+
+    /**
+     * Session 15b: Toggle the Finished Objects drawer open/closed.
+     * @param {boolean} [forceState] — true = open, false = close, undefined = toggle
+     */
+    toggleFinishedDrawer: function(forceState) {
+        var drawer = this.els.foDrawer;
+        if (!drawer) return;
+        var isOpen = drawer.classList.contains('open');
+        var shouldOpen = (forceState !== undefined) ? forceState : !isOpen;
+        if (shouldOpen) {
+            drawer.classList.add('open');
+        } else {
+            drawer.classList.remove('open');
+        }
+    },
+
+    /**
+     * Session 15b: Update the count badge on the drawer tab.
+     * Also applies character-color styling to the badge and tab border.
+     */
+    _updateDrawerCount: function() {
+        var badge = this.els.foDrawerCount;
+        var tab = this.els.foDrawerTab;
+        if (!badge) return;
+        var items = Game.state.player ? Game.state.player.items : [];
+        var srs = Game.state.player ? (Game.state.player.craftedSpecialRequests || []) : [];
+        var projs = Game.state.player ? (Game.state.player.projects || []) : [];
+        var count = items.length + srs.length + projs.length;
+        badge.textContent = count;
+        if (count === 0) {
+            badge.classList.add('empty');
+        } else {
+            badge.classList.remove('empty');
+        }
+
+        // Apply character color to badge background and tab border
+        var charType = Game.state.player ? Game.state.player.characterType : null;
+        var accent = charType ? (this._typeAccentColors[charType] || null) : null;
+        if (accent) {
+            badge.style.background = accent;
+            // Darken the accent for the tab border
+            var r = parseInt(accent.slice(1,3), 16);
+            var g = parseInt(accent.slice(3,5), 16);
+            var b = parseInt(accent.slice(5,7), 16);
+            var darkR = Math.round(r * 0.5);
+            var darkG = Math.round(g * 0.5);
+            var darkB = Math.round(b * 0.5);
+            var darkColor = 'rgb(' + darkR + ',' + darkG + ',' + darkB + ')';
+            if (tab) tab.style.borderLeftColor = darkColor;
+        } else {
+            badge.style.background = '';
+            if (tab) tab.style.borderLeftColor = '';
+        }
+    },
+
+
+});
