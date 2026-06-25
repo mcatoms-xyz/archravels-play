@@ -4883,8 +4883,24 @@ body {
     border-bottom: none; border-left: 1px solid rgba(0,0,0,0.06); vertical-align: middle;
 }
 
+/* "View Craft Options" focus pulse on the craft strip */
+.craft-flash { animation: craftFlash 0.5s ease-in-out 3; }
+@keyframes craftFlash {
+    0%, 100% { filter: none; }
+    50% { filter: drop-shadow(0 0 12px #3769BE) drop-shadow(0 0 4px #3769BE) brightness(1.12); }
+}
+
 /* Dynamic modal widths per player count — Session 15 */
 .go-modal-wide { max-height: 75vh; overflow-y: auto; margin-top: 100px; }
+
+/* Session 40: Game Over scorecard fits landscape / TV screens without clipping.
+   Default margin-top:100px + 75vh overflowed short, wide viewports. */
+@media (orientation: landscape) and (min-width: 768px) {
+    .go-modal-wide { margin-top: 28px; max-height: 90vh; }
+}
+@media (orientation: landscape) and (max-height: 860px) {
+    .go-modal-wide { margin-top: 12px; max-height: 94vh; }
+}
 .go-modal-wide.go-players-2 { max-width: 520px !important; min-width: 420px; }
 .go-modal-wide.go-players-3 { max-width: 660px !important; min-width: 500px; }
 .go-modal-wide.go-players-4 { max-width: 800px !important; min-width: 600px; }

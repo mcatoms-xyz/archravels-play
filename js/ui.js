@@ -2063,7 +2063,7 @@ var UI = {
         // Buttons
         var buttonsHtml = '';
         if (hasAffordable) {
-            buttonsHtml += '<button class="btn btn-secondary" onclick="UI.renderCraftGrid(); UI.renderSpecialRequests();">View Craft Options</button>';
+            buttonsHtml += '<button class="btn btn-secondary" onclick="UI.focusCraftOptions()">View Craft Options</button>';
         }
         buttonsHtml += '<button class="btn btn-cta" onclick="UI.onEndFinalCraft()">Done →</button>';
 
@@ -2097,6 +2097,22 @@ var UI = {
         // Guard: only during finalCraft phase
         if (Game.state.phase !== 'finalCraft') return;
         Game.endFinalCraft();
+    },
+
+    // "View Craft Options" — the craft strip is always on the player board during
+    // finalCraft, so re-rendering did nothing visible. Instead, scroll it into
+    // view and pulse it so the player can see where to tap.
+    focusCraftOptions: function() {
+        this.renderCraftGrid();
+        this.renderSpecialRequests();
+        var grid = (this.els && this.els.craftGrid) || document.getElementById('craftGrid');
+        if (!grid) return;
+        try { grid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        catch (e) { grid.scrollIntoView(); }
+        grid.classList.remove('craft-flash');
+        void grid.offsetWidth;            // reflow so the animation can restart
+        grid.classList.add('craft-flash');
+        setTimeout(function () { grid.classList.remove('craft-flash'); }, 1500);
     },
 
     /**
