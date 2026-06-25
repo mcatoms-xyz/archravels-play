@@ -189,12 +189,16 @@ var AI = {
             return;
         }
         var self = this;
+        var gen = Game._gen;
 
         setTimeout(function() {
+            if (gen !== Game._gen) { if (callback) callback(); return; }
             // Step 1: Choose action space
             self._stepChooseSpace(function() {
+                if (gen !== Game._gen) return;
                 // Step 2: Execute player actions (shop, craft, exchange)
                 self._stepExecuteActions(function() {
+                    if (gen !== Game._gen) return;
                     // Step 3: End player actions → restock phase
                     Game.endPlayerActions();
                     UI.renderBazaar();
@@ -202,8 +206,10 @@ var AI = {
 
                     // Step 4: Restock actions (projects, patterns) before restocking deck
                     self._stepRestockActions(function() {
+                        if (gen !== Game._gen) return;
                         // Step 5: Restock from deck (events/SRs)
                         self._stepRestock(function() {
+                            if (gen !== Game._gen) return;
                             // Done!
                             self.showAction('Turn complete.', function() {
                                 Game.endTurn();

@@ -1712,15 +1712,25 @@ var UI = {
      * Session 8c: Reset the game and start over.
      */
     onNewGame: function() {
-        // In a Story Mode match, "new game" means back to the climb / next challenger —
-        // NOT the quick-game character-select setup.
-        if (window.Story && Story.storyGame) {
-            Story.open();
-            if (Story.lastMatch) Story.showResult(Story.lastMatch.win);
-            else Story.renderLadder();
-            return;
-        }
-        this.showSetupScreen();
+        // "New Game" returns to the clean main screen (landing) — no game running underneath.
+        this.returnToMainMenu();
+    },
+
+    returnToMainMenu: function() {
+        // 1) Invalidate any in-flight game/AI turn so stray renders + SOUNDS stop firing
+        Game._gen = (Game._gen || 0) + 1;
+        if (Game.state && Game.state._timerInterval) { clearInterval(Game.state._timerInterval); Game.state._timerInterval = null; }
+        // 2) Exit Story mode
+        if (window.Story) { Story.storyGame = false; Story.active = false; }
+        // 3) Close the nav menu + any open modals / dropdowns
+        var dd = document.getElementById('navMenuDropdown'); if (dd) dd.style.display = 'none';
+        ['setupModal','gameOverModal','eventModal','srModal','passDeviceModal'].forEach(function(k){
+            var el = UI.els[k]; if (el) el.style.display = 'none';
+        });
+        // 4) Hide in-game nav bits (player cards)
+        var ps = document.getElementById('playerStrip'); if (ps) ps.style.display = 'none';
+        // 5) Show the landing (main) screen — full-screen overlay covers the board
+        var landing = document.getElementById('landingScreen'); if (landing) landing.style.display = '';
     },
 
 

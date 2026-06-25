@@ -140,6 +140,7 @@ var Game = {
      *   If omitted, defaults to single-player Rebecca.
      */
     init: function(config) {
+        this._gen = (this._gen || 0) + 1;
         config = config || { players: [{ characterId: 'rebecca', name: 'Rebecca' }] };
         var playerConfigs = config.players;
         var numPlayers = playerConfigs.length;
