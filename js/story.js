@@ -408,7 +408,6 @@ var Story = {
   beginMatch: function(){
     var oppId=this.currentOpp();
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
-    try{ if(window.Sound){ Sound.music.startTheme(oppId); Sound.play('game-start'); } }catch(e){}
     var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
     // hide the landing/front door too — otherwise closing the story overlay reveals
@@ -429,17 +428,37 @@ var Story = {
     var ys = you ? (Game.calculateFinalScore(you).total||0) : 0;
     var os = opp ? (Game.calculateFinalScore(opp).total||0) : 0;
     var c = this.currentOpp();
-    this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[] };
-    try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
+    var stats = this.captureMatchStats(you, opp, ys, os);
+    this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[], stats:stats };
     if(this.lastMatch.win) this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
     this.open();
     this.showResult(this.lastMatch.win);
+  },
+  // Snapshot the per-match stats the achievement tests read. Pulled from the
+  // game-over player state + calculateFinalScore breakdown (no new in-play hooks).
+  captureMatchStats: function(you, opp, ys, os){
+    var learned=0, projects=0, srsFulfilled=0, favoriteSR=false, endingYarn=0, turns=0, crafterType='';
+    if(you){
+      turns = you.turnCount||0;
+      try{ endingYarn = Game.totalYarn(you); }catch(e){ endingYarn=0; }
+      projects = (you.projects||[]).length;
+      (you.patternTiles||[]).forEach(function(t){ if(t && t.learned) learned++; });
+      var crafted = you.craftedSpecialRequests||[];
+      srsFulfilled = crafted.length;
+      favoriteSR = crafted.some(function(sr){ return sr && sr.isFavorite; });
+      crafterType = you.characterType||'';
+    }
+    return {
+      score: ys, oppScore: os, margin: ys-os,
+      turns: turns, endingYarn: endingYarn, projects: projects,
+      patternsLearned: learned, srsFulfilled: srsFulfilled, favoriteSR: favoriteSR,
+      beatHank: !!(opp && opp.isHank), crafterType: crafterType
+    };
   },
   showResult: function(win){
     var c=this.currentOpp(), dlg=this.DIALOG[c]||{}, lm=this.lastMatch||{you:0,opp:0,timeMs:0};
     var secs=Math.round((lm.timeMs||0)/1000), mt=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');
     var banner = win ? 'Victory!' : 'Not this time';
-    var scoreBtn = '<button class="btn btn-ghost" onclick="UI.showGameOverModal()">\uD83D\uDCCB View Scorecard</button>';
     var details, actions;
     if(win){
       var earned = lm.earned||[];
@@ -457,7 +476,7 @@ var Story = {
     }
     this.screen('<div class="crumb">Match · Result</div><div class="result-banner '+(win?'win':'loss')+'">'+banner+'</div>'+
       '<div class="dialogbox">'+this.dialogHTML(c, win?(dlg.win||'Well played.'):(dlg.lose||'Got you this time.'))+'</div>'+
-      details+'<div class="match-actions">'+scoreBtn+actions+'</div>');
+      details+'<div class="match-actions">'+actions+'</div>');
   },
   nextChallenger: function(){
     if(this.beaten<this.ladder.length) this.beaten++;
@@ -514,18 +533,80 @@ var Story = {
           : '<button class="btn btn-gold stats-signout" onclick="Story.goSignIn()">Sign in</button>')+
       '</div>'+
       '<div class="stat-tiles">'+tiles+'</div>'+
+      '<div class="ach-cta-row"><button class="btn btn-ghost" onclick="Story.goAchievements()">🏅 View all achievements →</button></div>'+
       '<div class="section-h">Your Crafters</div><div class="crafter-board">'+board+'</div>'+
       this.backBar('Story.goTypes()','← Back to start'));
   },
   fmtTime: function(ms){ var m=Math.round(ms/60000); if(m<60) return m+'m'; return Math.floor(m/60)+'h '+(m%60)+'m'; },
 
+  /* ---- achievement board ---- */
+  goAchievements: async function(){
+    await this.ensureProfile();
+    var p=this.profile||{}, earnedMap=p.achievements||{}, ACH=this.ACH;
+    var earnedCount=ACH.filter(function(a){ return earnedMap[a.id]; }).length;
+    var totalPts=ACH.reduce(function(n,a){ return n+a.pts; },0);
+    var bank=p.bank||0;
+    var groups=['The Climb','Single Match','Crafty','Special Requests','Mastery','Capstone'];
+    var sections=groups.map(function(g){
+      var items=ACH.filter(function(a){ return a.group===g; });
+      if(!items.length) return '';
+      var cards=items.map(function(a){
+        var on=!!earnedMap[a.id], t=a.tier||1;
+        var starHTML='<span class="ach-stars t'+t+'">'+Array(t+1).join('★')+'</span>';
+        return '<div class="ach-card'+(on?' earned':' locked')+'">'+
+          '<div class="ach-ic">'+(on?'🏅':'🔒')+'</div>'+
+          '<div class="ach-body"><div class="ach-name">'+a.name+'</div><div class="ach-desc">'+a.desc+'</div></div>'+
+          '<div class="ach-side">'+starHTML+'<div class="ach-pts">'+a.pts+' pts</div></div>'+
+        '</div>';
+      }).join('');
+      return '<div class="ach-section"><div class="section-h">'+g+'</div><div class="ach-grid">'+cards+'</div></div>';
+    }).join('');
+    this.screen('<div class="crumb">Story Mode · Achievements</div>'+
+      '<div class="ach-hero"><div class="ach-hero-num">'+earnedCount+' <span>/ '+ACH.length+'</span></div>'+
+      '<div class="ach-hero-lbl">earned · bank '+bank+' / '+totalPts+' pts</div></div>'+
+      sections+
+      this.backBar('Story.goStats()','← Back to stats'));
+  },
+
   /* ---- achievements + persistence ---- */
+  // Full catalog (27). Group A entries carry a `test` and are LIVE now (read from
+  // the captureMatchStats snapshot + beaten count). Group B (needs in-play hooks)
+  // and Group C (run-scoped) are listed for the board; their `test` lands in later
+  // builds. tier: 1=★ 2=★★ 3=★★★ · group drives the board sections.
   ACH: [
-    {id:'firstStitch', name:'First Stitch', pts:10, test:function(p){ return (p._totalWins||0)>=1; }},
-    {id:'hooked',      name:'Hooked',       pts:10, test:function(p,s){ return s.beaten>=3; }},
-    {id:'halfway',     name:'Halfway Skein',pts:25, test:function(p,s){ return s.beaten>=6; }},
-    {id:'topCircle',   name:'Top of the Circle', pts:50, test:function(p,s){ return s.beaten>=11; }},
-    {id:'champion',    name:'Circle Champion',   pts:50, test:function(p,s){ return s.beaten>=11; }},
+    // ── The Climb (progression) ──
+    {id:'firstStitch', name:'First Stitch',      desc:'Win your first match',                  pts:10, tier:1, group:'The Climb', test:function(p,s){ return (p._totalWins||0)>=1; }},
+    {id:'hooked',      name:'Hooked',            desc:'Beat 3 rivals in a run',                pts:10, tier:1, group:'The Climb', test:function(p,s){ return s.beaten>=3; }},
+    {id:'halfway',     name:'Halfway Skein',     desc:'Beat 6 rivals in a run',                pts:25, tier:2, group:'The Climb', test:function(p,s){ return s.beaten>=6; }},
+    {id:'topCircle',   name:'Top of the Circle', desc:'Beat all 11 rivals in a run',           pts:25, tier:2, group:'The Climb', test:function(p,s){ return s.beaten>=11; }},
+    {id:'bestOfNook',  name:'Best of the Nook',  desc:'Beat Hank, the Stitchmeister',          pts:50, tier:3, group:'The Climb', test:function(p,s){ return !!s.beatHank; }},
+    {id:'champion',    name:'Circle Champion',   desc:'Complete a full run — all rivals + Hank',pts:50, tier:3, group:'The Climb', test:function(p,s){ return !!s.beatHank; }},
+    // ── In a single match (skill) ──
+    {id:'noFrogs',     name:'No Frogs Given',    desc:'Win a match without using Frog It',     pts:25, tier:2, group:'Single Match'},
+    {id:'blazing',     name:'Blazing Needles',   desc:'Win a match in 8 turns or fewer',       pts:25, tier:2, group:'Single Match', test:function(p,s){ return s.turns>0 && s.turns<=8; }},
+    {id:'showOff',     name:'Show Off',          desc:'Score 50+ in a match',                  pts:25, tier:2, group:'Single Match', test:function(p,s){ return s.score>=50; }},
+    {id:'clutch',      name:'Clutch Cast',       desc:'Win after trailing into the final round',pts:50, tier:3, group:'Single Match'},
+    {id:'runaway',     name:'Runaway Skein',     desc:'Win by 20+ points',                     pts:25, tier:2, group:'Single Match', test:function(p,s){ return s.margin>=20; }},
+    // ── Crafty (mechanics + character flavor) ──
+    {id:'assembly',    name:'Assembly Line',     desc:'Make four items in a single turn (Master Crafter)', pts:25, tier:2, group:'Crafty'},
+    {id:'twoForOne',   name:'Two for One',       desc:'Craft two items in one action (Maker)', pts:10, tier:1, group:'Crafty'},
+    {id:'colorOutside',name:'Color Outside the Lines', desc:'Finish a pattern with a color it didn’t ask for (Color Specialist)', pts:10, tier:1, group:'Crafty'},
+    {id:'offGrid',     name:'Off the Grid',      desc:'Win as a Spinner without taking a Shop action', pts:50, tier:3, group:'Crafty'},
+    {id:'yarnHoarder', name:'Yarn Hoarder',      desc:'Hold 12+ yarn at once',                 pts:10, tier:1, group:'Crafty'},
+    {id:'wasteNot',    name:'Waste Not',         desc:'Win a match ending with 2 or fewer yarn',pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.endingYarn<=2; }},
+    {id:'patternBuff', name:'Pattern Buff',      desc:'Learn 3+ pattern tiles in one match',   pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.patternsLearned>=3; }},
+    {id:'projectRunway',name:'Project Runway',   desc:'Complete 4+ projects in one match',     pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.projects>=4; }},
+    // ── Special Requests ──
+    {id:'teachersPet', name:'Teacher’s Pet',     desc:'Fulfill your crafter’s favorite Special Request', pts:10, tier:1, group:'Special Requests', test:function(p,s){ return !!s.favoriteSR; }},
+    {id:'crowdPleaser',name:'Crowd Pleaser',     desc:'Fulfill 4+ Special Requests in one match', pts:25, tier:2, group:'Special Requests', test:function(p,s){ return s.srsFulfilled>=4; }},
+    {id:'regifter',    name:'Re-gifter',         desc:'Hand a Special Request to an opponent', pts:10, tier:1, group:'Special Requests'},
+    // ── Mastery (across runs) ──
+    {id:'sixOfAKind',  name:'Six of a Kind',     desc:'Complete a run with one crafter of each type', pts:50, tier:3, group:'Mastery'},
+    {id:'fullDozen',   name:'The Full Dozen',    desc:'Complete a run with all 12 crafters',   pts:50, tier:3, group:'Mastery'},
+    {id:'matchingSet', name:'Matching Set',      desc:'Win a run with both crafters of a single type', pts:25, tier:2, group:'Mastery'},
+    {id:'flawless',    name:'Flawless',          desc:'Complete a run without losing a match', pts:50, tier:3, group:'Mastery'},
+    // ── Capstone ──
+    {id:'completionist',name:'Cozy Completionist',desc:'Earn every other achievement',         pts:50, tier:3, group:'Capstone'},
   ],
   // Bank the win once: score, per-game high, per-crafter, time, achievements.
   // Does NOT advance `beaten` (nextChallenger does that). Uses beaten+1 for tests
@@ -546,7 +627,8 @@ var Story = {
     cr.furthest=(beatenAfter>=11)?'Champion 🏆':(beatenAfter+' rivals beaten');
     p.crafters[this.picked]=cr;
     var earned=[];
-    this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test(p,{beaten:beatenAfter})){ p.achievements[a.id]=Date.now(); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
+    var sctx = Object.assign({beaten:beatenAfter}, (this.lastMatch&&this.lastMatch.stats)||{});
+    this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test && a.test(p,sctx)){ p.achievements[a.id]=Date.now(); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
     lm.earned=earned;
     this.save();
   },
