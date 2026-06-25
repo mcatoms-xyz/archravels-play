@@ -863,3 +863,20 @@ window.addEventListener('DOMContentLoaded', function() {
     UI.init();
 });
 
+
+// Session 40: re-render the player strip on resize/orientation change so the
+// "active card + menu" collapse toggles live when crossing the mobile breakpoint.
+(function () {
+    var t;
+    function onResize() {
+        clearTimeout(t);
+        t = setTimeout(function () {
+            if (window.Game && Game.state && Game.state.players && Game.state.players.length >= 2 &&
+                typeof UI !== 'undefined' && UI.renderPlayerStrip) {
+                UI.renderPlayerStrip();
+            }
+        }, 180);
+    }
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+})();
