@@ -144,7 +144,7 @@ body {
     align-items: center;
     /* Session 34: bottom padding clears the now-fixed action bar so the
        player area + drawer bottom are never hidden behind it. */
-    padding: 12px 16px calc(96px + env(safe-area-inset-bottom, 0px));
+    padding: 12px 16px 16px;   /* Session 38: action bar no longer fixed → no bottom clearance hack */
     gap: 14px;
     position: relative;
 }
@@ -390,24 +390,20 @@ body {
    empty (e.g. setup) nothing renders. Safe-area padding keeps it clear of the
    phone home indicator. */
 .action-bar-wrapper {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 60;
+    /* Session 38: the action/turn bar is its OWN distinct section in normal flow —
+       a full-width band sitting above the footer, in every screen mode (no longer a
+       floating tray pinned to the bottom). */
+    position: static;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0;
-    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
-    pointer-events: none;   /* empty areas pass taps through to the board */
-    /* Session 34b: docked tray scrim so on big screens the bar reads as the
-       bottom control area instead of a pill floating in empty space. */
-    background: linear-gradient(to top,
-        rgba(28, 20, 12, 0.92) 0%,
-        rgba(28, 20, 12, 0.60) 55%,
-        rgba(28, 20, 12, 0) 100%);
-    border-top: 1px solid rgba(0, 0, 0, 0.22);
+    padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    pointer-events: auto;
+    background: linear-gradient(180deg, #43351f 0%, #2c1f12 100%);
+    border-top: 2px solid rgba(0, 0, 0, 0.30);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 .action-bar-wrapper > * {
     pointer-events: auto;
@@ -415,10 +411,12 @@ body {
     max-width: 1100px;
 }
 .action-bar:empty { display: none; }
-/* No bar content (e.g. setup screen behind the modal) — collapse the tray. */
+/* No bar content (e.g. setup screen behind the modal) — collapse the band entirely. */
 .action-bar-wrapper:not(:has(.action-bar:not(:empty))) {
     background: none;
     border-top: none;
+    box-shadow: none;
+    padding: 0;
 }
 
 /* Session 18: Persistent tangled cat banner — full-width, very prominent */
@@ -4211,10 +4209,9 @@ body {
     .game-layout {
         display: grid;
         grid-template-columns: auto auto;   /* content-sized cols, centered as a pair */
-        grid-template-rows: auto auto auto auto;
+        grid-template-rows: auto auto auto;
         grid-template-areas:
             "feed   feed"
-            "action action"
             "board  player"
             "sr     sr";
         gap: 14px;
@@ -4237,11 +4234,6 @@ body {
         grid-area: player;
         max-width: 46vw;
         justify-self: start;
-    }
-    .action-bar-wrapper {
-        grid-area: action;
-        max-width: 1100px;
-        justify-self: center;
     }
     .sr-strip {
         grid-area: sr;
@@ -4267,10 +4259,9 @@ body {
 }
 
 @media (max-width: 880px) {
-    /* Session 34: the bottom action bar wraps to ~2 rows on narrow screens —
-       give the layout extra bottom clearance so nothing hides behind it. */
+    /* Session 38: action bar is now an in-flow section, no fixed-bar clearance needed */
     .game-layout {
-        padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: 12px;
     }
     .player-area {
         flex-direction: column;
@@ -4930,8 +4921,9 @@ body {
     z-index: 500;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    height: 48px;
+    justify-content: flex-start;   /* Session 38: branding left, turn+cards+menu pushed right */
+    gap: 14px;
+    height: 60px;                  /* Session 38: taller so the player cards fit in one bar */
     padding: 0 16px;
     background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
     box-shadow: 0 2px 8px rgba(0,0,0,0.35);
@@ -4976,6 +4968,11 @@ body {
     align-items: center;
     gap: 10px;
     font-size: 14px;
+    margin-left: auto;   /* Session 38: gap after branding, turn+cards+menu group sits right */
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.22);   /* Session 38: turn/timer reads as a distinct pill */
+    padding: 5px 12px;
+    border-radius: 10px;
 }
 
 .nav-player-name {
@@ -5053,7 +5050,7 @@ body {
 
 /* Push page content below sticky nav */
 .game-layout {
-    padding-top: 56px;
+    padding-top: 64px;   /* Session 38: single taller nav bar (60px) */
 }
 
 /* Hide old game header & player indicator (replaced by nav) */
@@ -5070,19 +5067,17 @@ body {
    ===================================================================== */
 
 .player-strip {
-    position: fixed;
-    top: 48px;
-    left: 0;
-    right: 0;
-    z-index: 490;
+    /* Session 38: merged into the nav bar — inline cluster, no longer its own fixed bar */
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 8px;
-    padding: 6px 16px;
-    background: linear-gradient(180deg, #4a3c2a 0%, #5a4a35 100%);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    min-width: 0;
+    flex-shrink: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
+.player-strip::-webkit-scrollbar { display: none; }
 
 .player-strip-card {
     display: flex;
@@ -5095,7 +5090,8 @@ body {
     background: rgba(255,255,255,0.08);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, transform 0.12s;
-    min-width: 140px;
+    min-width: 118px;          /* Session 38: trimmed so two cards fit in the nav bar */
+    flex-shrink: 0;
     position: relative;
 }
 
@@ -5172,9 +5168,9 @@ body {
     border: 1px solid rgba(0,0,0,0.2);
 }
 
-/* Push game layout down to accommodate strip */
+/* Session 38: strip is now inside the nav bar, so no extra second-bar offset */
 .game-layout.has-strip {
-    padding-top: 120px;
+    padding-top: 64px;
 }
 
 
@@ -6267,7 +6263,7 @@ body {
     .game-layout { padding-left: 0; padding-right: 0; }
     /* Session 36 (Amy/iPhone): give the board extra bottom clearance so its lowest
        craft row never sits under the fixed Turn/action bar + its scrim. */
-    .game-layout { padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
+    .game-layout { padding-bottom: 12px; }   /* Session 38: action bar no longer fixed */
     .board-image { max-width: 100vw; }
     .board-section { border-radius: 0; max-width: 100vw; }
     .player-area { padding: 0 6px; gap: 10px; }
