@@ -4885,6 +4885,15 @@ body {
 
 /* "View Craft Options" focus pulse on the craft strip */
 .craft-flash { animation: craftFlash 0.5s ease-in-out 3; }
+/* Session 40: restock-phase project is clickable to open the finish picker */
+.project-restock-clickable { cursor: pointer; }
+.project-restock-clickable::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    box-shadow: inset 0 0 0 2px #3769BE; opacity: 0; pointer-events: none;
+    animation: restockPulse 1.6s ease-in-out infinite;
+}
+.project-restock-clickable:hover::after { opacity: 1; animation: none; }
+@keyframes restockPulse { 0%,100% { opacity: .25; } 50% { opacity: .7; } }
 @keyframes craftFlash {
     0%, 100% { filter: none; }
     50% { filter: drop-shadow(0 0 12px #3769BE) drop-shadow(0 0 4px #3769BE) brightness(1.12); }

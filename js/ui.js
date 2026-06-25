@@ -4661,6 +4661,13 @@ var UI = {
             var canComplete = Game.canAffordProject(project);
             slot.className = 'project-overlay-slot' +
                              (canComplete ? ' project-completable' : '');
+            // Session 40: during restock, clicking a completable project opens the
+            // Finish-a-Project picker directly.
+            if (Game.state.phase === 'restock' && UI._restockDone && canComplete) {
+                slot.classList.add('project-restock-clickable');
+                slot.addEventListener('click', function(){ UI.showFinishProjectModal(); });
+                slot.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); UI.showFinishProjectModal(); } });
+            }
             slot.setAttribute('tabindex', '0');
             slot.setAttribute('aria-label', project.name + ' — ' + project.points + ' points' +
                 (canComplete ? ' (completable!)' : ''));

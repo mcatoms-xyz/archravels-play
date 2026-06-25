@@ -439,6 +439,7 @@ var Story = {
     var c=this.currentOpp(), dlg=this.DIALOG[c]||{}, lm=this.lastMatch||{you:0,opp:0,timeMs:0};
     var secs=Math.round((lm.timeMs||0)/1000), mt=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');
     var banner = win ? 'Victory!' : 'Not this time';
+    var scoreBtn = '<button class="btn btn-ghost" onclick="UI.showGameOverModal()">\uD83D\uDCCB View Scorecard</button>';
     var details, actions;
     if(win){
       var earned = lm.earned||[];
@@ -456,7 +457,7 @@ var Story = {
     }
     this.screen('<div class="crumb">Match · Result</div><div class="result-banner '+(win?'win':'loss')+'">'+banner+'</div>'+
       '<div class="dialogbox">'+this.dialogHTML(c, win?(dlg.win||'Well played.'):(dlg.lose||'Got you this time.'))+'</div>'+
-      details+'<div class="match-actions">'+actions+'</div>');
+      details+'<div class="match-actions">'+scoreBtn+actions+'</div>');
   },
   nextChallenger: function(){
     if(this.beaten<this.ladder.length) this.beaten++;

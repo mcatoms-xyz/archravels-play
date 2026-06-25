@@ -197,12 +197,22 @@ var Game = {
             srCards = CARDS.buildSpecialRequestsForMultiplayer(characterIds);
         }
 
-        // Shuffle SRs into the top half of the deck
-        var topHalf = deck.slice(0, Math.floor(deck.length / 2));
-        var bottomHalf = deck.slice(Math.floor(deck.length / 2));
-        topHalf = topHalf.concat(srCards);
-        this.shuffle(topHalf);
-        deck = topHalf.concat(bottomHalf);
+        // Session 40: Seed Special Requests toward the FRONT of the deck so they
+        // actually come up in a match. Non-favorites go into the front third;
+        // each player's own favorite goes into the front quarter (earlier) so
+        // players reliably encounter their favorite SR.
+        var favSRs   = srCards.filter(function(c){ return c.isFavorite; });
+        var otherSRs = srCards.filter(function(c){ return !c.isFavorite; });
+        // 1) Non-favorite SRs into the front third
+        var thirdCut = Math.max(otherSRs.length, Math.floor(deck.length / 3));
+        var front = deck.slice(0, thirdCut).concat(otherSRs);
+        this.shuffle(front);
+        deck = front.concat(deck.slice(thirdCut));
+        // 2) Favorites into the front quarter (earlier than the rest)
+        var quarterCut = Math.max(favSRs.length, Math.floor(deck.length / 4));
+        var head = deck.slice(0, quarterCut).concat(favSRs);
+        this.shuffle(head);
+        deck = head.concat(deck.slice(quarterCut));
 
         this.state.deck = deck;
         this.state.discard = [];
@@ -677,6 +687,7 @@ var Game = {
         // Session 15: Record turn start time for the new player
         this.state.turnStartTime = Date.now();
         try{ if(window.Sound && this.state.player && !this.state.player.isAI) Sound.play('turn-start'); }catch(e){}
+        try{ if(window.Sound && this.state.player && this.state.player.cantCraftNextTurn) Sound.play('ev-tangled-cat'); }catch(e){}
 
         // Session 9b: If next player is AI, run AI turn automatically
         if (this.state.player.isAI) {
@@ -891,6 +902,7 @@ var Game = {
         var target = this.state.players[playerIndex];
         if (target) {
             target.cantCraftNextTurn = true;
+            try{ if(window.Sound) Sound.play('ev-tangled-cat'); }catch(e){}
             // Session 18: Log event for turn history
             this._logAction('Event: Tangled Cat → ' + target.name + ' can\'t craft next turn', 'event');
         }

@@ -52,13 +52,13 @@ var AI = {
             // shopWeight 1.4→1.2 (less shopping emphasis since yield per card is higher),
             // craftWeight 1.15→1.35 (actively convert yarn to items),
             // projectWeight 1.3→1.4 (faster accumulation = faster project completion).
-            shopWeight:     1.2,   // yield per card is higher now, don't need to shop as hard
-            craftWeight:    1.35,  // actively craft — you're sitting on yarn, use it
+            shopWeight:     1.05,  // Session 40: shop a bit less so she pivots to crafting sooner
+            craftWeight:    1.7,   // Session 40: Rebecca was hoarding yarn — craft much more
             projectWeight:  1.4,   // fast accumulation feeds project strategy
             srWeight:       1.1,   // Session 16: slight boost to avoid SR penalties
             exchangeWeight: 0.7,
             uniqueWeight:   1.0,
-            hoardYarn: true,       // shop even without immediate crafts, but caps at 8 yarn now
+            hoardYarn: false,      // Session 40: stop padding shop turns — convert yarn into items
             alwaysMaxCards: true,  // always pick the maximum number of bazaar cards
         },
         masterCrafter: {
