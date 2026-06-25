@@ -1,6 +1,9 @@
-/* ui-panels1.js — UI module (split from the Session-40 monolith).
+/* ui-panels1.js — UI module (split from the Session-40 LIVE monolith).
    ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
+    _pendingCraft: null,
+
+
     /* =========================================================
        SESSION 6: SPECIAL REQUESTS PANEL
        Shows held SRs (not yet crafted) in a strip below the craft strip.
@@ -1042,6 +1045,7 @@ Object.assign(UI, {
         if (!drawer) return;
         var isOpen = drawer.classList.contains('open');
         var shouldOpen = (forceState !== undefined) ? forceState : !isOpen;
+        try{ if(window.Sound) Sound.play(shouldOpen?'drawer-open':'drawer-close'); }catch(e){}
         if (shouldOpen) {
             drawer.classList.add('open');
         } else {
@@ -1088,5 +1092,13 @@ Object.assign(UI, {
         }
     },
 
+
+    /* =========================================================
+       SESSION 8: PROJECT BOARD OVERLAY
+       Renders 3 face-up project cards as absolute overlays
+       directly on the board image's bottom card zones — the
+       same approach used for Bazaar cards. The old floating
+       #projectStrip (Session 7) has been removed from the HTML.
+       ========================================================= */
 
 });
