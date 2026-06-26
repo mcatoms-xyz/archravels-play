@@ -6759,3 +6759,22 @@ html { overflow-x: hidden; }
 @media (max-width: 760px) {
     .player-strip-menu { right: -4px; min-width: 190px; }
 }
+
+/* ===== Session 40: character portrait on player-pick buttons ===== */
+.player-select-avatar{ width:30px; height:30px; border-radius:50%; object-fit:cover; flex:0 0 auto; border:2px solid rgba(255,255,255,0.35); background:rgba(0,0,0,0.2); }
+.player-select-btn, .sr-give-player-btn{ display:inline-flex; align-items:center; gap:9px; }
+
+/* ===== Session 40: Donate modal — wider & shorter in tablet-landscape and up ===== */
+@media (orientation:landscape) and (min-width:768px){
+  .donate-content{
+    max-width:760px; width:760px; max-height:88vh;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:"title title" "ctx body" "foot foot";
+    column-gap:18px; row-gap:10px; align-items:start;
+  }
+  .donate-content > .modal-title{ grid-area:title; }
+  .donate-content > #donateContext{ grid-area:ctx; overflow-y:auto; max-height:66vh; min-height:0; }
+  .donate-content > #donateBody{ grid-area:body; align-self:center; }
+  .donate-content > .confirm-take-buttons{ grid-area:foot; }
+}
