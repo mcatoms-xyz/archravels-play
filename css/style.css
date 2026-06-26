@@ -6785,8 +6785,9 @@ html { overflow-x: hidden; }
 .xc-x-ico{ display:inline-block; min-width:15px; height:15px; line-height:13px; text-align:center; border-radius:50%; background:#a8443a; color:#fff; font-size:11px; font-weight:700; vertical-align:middle; }
 .xc-row{ margin:8px 0 12px; }
 .xc-row-label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted,#6e5640); margin:0 2px 7px; font-weight:700; }
-.xc-chips{ display:flex; flex-wrap:nowrap; gap:6px; }
+.xc-chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 .xc-chip-wrap{ position:relative; display:flex; flex:1 1 0; min-width:0; }
+@media (max-width:520px){ .xc-chip-wrap{ flex:0 0 calc(33.333% - 4px); } }
 .xc-chip{ display:inline-flex; flex-direction:column; align-items:center; gap:2px; width:100%; min-width:0; padding:8px 3px 6px; border-radius:12px; border:2px solid rgba(0,0,0,0.12); background:#fff7e8; color:#3a2a1d; cursor:pointer; font:inherit; transition:transform 0.1s, box-shadow 0.12s, border-color 0.12s; }
 .xc-chip:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.18); }
 .xc-chip:disabled{ opacity:0.38; cursor:default; }
