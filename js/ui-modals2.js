@@ -614,6 +614,49 @@ Object.assign(UI, {
        CRAFT GRID (regular items: hat, bear, mittens, scarf, blanket)
        ========================================================= */
 
+    // "What you can make" — a modal listing every item + SR the player can
+    // currently afford. Tapping one runs the SAME craft path as the on-board
+    // strip (onCraftClick / onSRCraftClick). Opened from "View Craft Options".
+    showCraftOptionsModal: function() {
+        var items = Game.getCraftOptions().filter(function(o) { return o.canAfford; });
+        var srs = Game.getSRCraftOptions().filter(function(o) { return o.canAfford; });
+        UI._craftOptItems = items; UI._craftOptSRs = srs;
+        var ov = document.getElementById('craftOptionsModal');
+        if (!ov) { ov = document.createElement('div'); ov.id = 'craftOptionsModal'; ov.className = 'modal-overlay'; document.body.appendChild(ov); }
+        var html = '<div class="modal-content"><div class="modal-title">What you can make</div>';
+        if (!items.length && !srs.length) {
+            html += '<div class="restock-modal-msg" style="font-style:italic;color:var(--text-muted)">Nothing you can afford right now.</div>';
+        } else {
+            html += '<div class="craft-options-grid">';
+            items.forEach(function(o, i) {
+                html += '<button class="craft-option-card" onclick="UI._craftOptionPick(\'item\',' + i + ')">' +
+                    '<img src="' + o.itemDef.img + '" alt=""><span class="co-name">' + o.itemDef.name + '</span>' +
+                    (o.itemDef.points ? '<span class="co-pts">' + o.itemDef.points + ' pts</span>' : '') + '</button>';
+            });
+            srs.forEach(function(o, i) {
+                var sr = o.sr;
+                html += '<button class="craft-option-card" onclick="UI._craftOptionPick(\'sr\',' + i + ')">' +
+                    '<img src="' + sr.img + '" alt=""><span class="co-name">' + sr.name + (sr.isFavorite ? ' ♥' : '') + '</span>' +
+                    '<span class="co-pts">' + sr.points + ' pts</span></button>';
+            });
+            html += '</div>';
+        }
+        html += '<div class="confirm-take-buttons"><button class="btn btn-secondary" onclick="UI._closeCraftOptions()">Close</button></div></div>';
+        ov.innerHTML = html;
+        ov.style.display = 'flex';
+    },
+
+    _craftOptionPick: function(type, idx) {
+        this._closeCraftOptions();
+        if (type === 'item') { var o = UI._craftOptItems[idx]; if (o) UI.onCraftClick(o); }
+        else { var s = UI._craftOptSRs[idx]; if (s) UI.onSRCraftClick(s.sr); }
+    },
+
+    _closeCraftOptions: function() {
+        var ov = document.getElementById('craftOptionsModal');
+        if (ov) ov.style.display = 'none';
+    },
+
     renderCraftGrid: function() {
         var grid = this.els.craftGrid;
         if (!grid) return;
