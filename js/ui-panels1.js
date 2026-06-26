@@ -457,66 +457,69 @@ Object.assign(UI, {
         var alloc = this._craftColorAlloc;
         var needed = itemDef.yarnCount;
         var rule = itemDef.colorRule;
-        // Session 36: Frog It is a RECEIVE flow — the player picks which yarn to get back,
-        // so selection is bound only by the count needed, not by what's in the bowl.
         var isReceive = !!(this._pendingCraft && this._pendingCraft.context === 'frogIt');
-        // Session 36: compound SR rules reserve a FIXED yarn portion (auto-included) and may
-        // exclude colors from the flexible pick. Availability for the flexible part is the
-        // bowl minus what's reserved for the fixed part, so we never double-spend.
         var reserved = (this._pendingCraft && this._pendingCraft.reservedYarn) || {};
         var exclude  = (this._pendingCraft && this._pendingCraft.excludeColors) || [];
-        var totalAlloc = 0;
-        CARDS.COLORS.forEach(function(c) { totalAlloc += alloc[c]; });
+        var total = 0; CARDS.COLORS.forEach(function(c) { total += alloc[c] || 0; });
 
-        var body = this.els.craftColorBody;
-        var html = '';
-
-        CARDS.COLORS.forEach(function(color) {
-            if (exclude.indexOf(color) !== -1) return;   // not allowed for the flexible portion
-            var available = (bowl[color] || 0) - (reserved[color] || 0);
-            if (available < 0) available = 0;
-            var current = alloc[color];
-            var hex = CARDS.COLOR_HEX[color];
-            var capName = color.charAt(0).toUpperCase() + color.slice(1);
-
-            if (rule === 'oneColor' && !isReceive && available < needed && current === 0) return;
-
-            var room = needed - totalAlloc + current;
-            var maxForColor = isReceive ? room : Math.min(available, room);
-            if (rule === 'different') maxForColor = Math.min(maxForColor, 1);
-            if (rule === 'oneColor') {
-                var otherUsed = false;
-                CARDS.COLORS.forEach(function(c) { if (c !== color && alloc[c] > 0) otherUsed = true; });
-                if (otherUsed) maxForColor = 0;
-            }
-
-            var canIncrement = current < maxForColor && totalAlloc < needed;
-            var canDecrement = current > 0;
-
-            html += '<div class="craft-color-row">';
-            html += '<div class="craft-color-info">';
-            html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
-            html += '<span class="craft-color-label">' + capName + '</span>';
-            if (!isReceive) html += '<span class="craft-color-available">(have ' + available + ')</span>';
-            html += '</div>';
-            html += '<div class="craft-color-controls">';
-            html += '<button aria-label="Use less ' + capName + '" onclick="UI._craftColorAdjust(\'' + color + '\', -1)" ' + (canDecrement ? '' : 'disabled') + '>-</button>';
-            html += '<span class="craft-color-count">' + current + '</span>';
-            html += '<button aria-label="Use more ' + capName + '" onclick="UI._craftColorAdjust(\'' + color + '\', 1)" ' + (canIncrement ? '' : 'disabled') + '>+</button>';
-            html += '</div>';
-            html += '</div>';
+        // 'twoColors' has no chip-disable concept (validated at confirm) → render as 'any'.
+        var chipRule = (rule === 'oneColor') ? 'oneColor' : (rule === 'different' ? 'different' : 'any');
+        var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
+        html += UI._yarnChips({
+            sel: alloc, rule: chipRule, need: needed,
+            maxFor: function(color) {
+                if (exclude.indexOf(color) !== -1) return 0;                 // not allowed
+                if (isReceive) return Infinity;                              // frog-it: bound only by count
+                var av = (bowl[color] || 0) - (reserved[color] || 0);
+                return av < 0 ? 0 : av;
+            },
+            sub: isReceive ? null : function(color) {
+                var av = (bowl[color] || 0) - (reserved[color] || 0); return 'have ' + (av < 0 ? 0 : av);
+            },
+            addFn: 'UI._craftChipAdd', clearFn: 'UI._craftChipClear'
         });
 
-        html += '<div class="craft-color-summary">' + totalAlloc + ' of ' + needed + ' yarn selected</div>';
+        var resTotal = 0; CARDS.COLORS.forEach(function(c) { resTotal += reserved[c] || 0; });
+        var valid = this._craftSelValid(itemDef);
+        html += '<div class="xc-balance' + (valid ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + needed +
+                ' yarn to ' + (isReceive ? 'receive' : 'spend') +
+                (resTotal > 0 ? ' <span class="xc-hint">(plus ' + this._fixedYarnLabel(reserved) + ' included)</span>' : '') +
+                (valid ? '<span class="xc-hint ok">Ready ✓</span>' : (rule === 'twoColors' ? '<span class="xc-hint">use exactly 2 colors</span>' : '')) + '</div>';
 
-        body.innerHTML = html;
-
-        var valid = totalAlloc === needed;
-        if (valid && rule === 'twoColors') {
-            var usedColors = CARDS.COLORS.filter(function(c) { return alloc[c] > 0; }).length;
-            valid = usedColors === 2;
-        }
+        this.els.craftColorBody.innerHTML = html;
         this.els.craftColorConfirmBtn.disabled = !valid;
+    },
+
+    _craftSelValid: function(itemDef) {
+        var alloc = this._craftColorAlloc, needed = itemDef.yarnCount;
+        var total = 0, distinct = 0;
+        CARDS.COLORS.forEach(function(c) { total += alloc[c] || 0; if (alloc[c] > 0) distinct++; });
+        if (total !== needed) return false;
+        if (itemDef.colorRule === 'twoColors') return distinct === 2;
+        return true;
+    },
+
+    _craftChipAdd: function(color) {
+        var pending = this._pendingCraft; if (!pending) return;
+        var def = pending.itemDef, rule = def.colorRule, need = def.yarnCount;
+        var alloc = this._craftColorAlloc;
+        var total = 0; CARDS.COLORS.forEach(function(c) { total += alloc[c] || 0; });
+        if (total >= need) return;
+        if ((pending.excludeColors || []).indexOf(color) !== -1) return;
+        if (rule === 'oneColor' && CARDS.COLORS.some(function(c) { return c !== color && alloc[c] > 0; })) return;
+        if (rule === 'different' && (alloc[color] || 0) >= 1) return;
+        if (pending.context !== 'frogIt') {
+            var reserved = pending.reservedYarn || {};
+            var av = (Game.state.player.yarnBowl[color] || 0) - (reserved[color] || 0);
+            if ((alloc[color] || 0) >= av) return;
+        }
+        alloc[color] = (alloc[color] || 0) + 1;
+        this._buildCraftColorBody(def);
+    },
+
+    _craftChipClear: function(color) {
+        this._craftColorAlloc[color] = 0;
+        if (this._pendingCraft) this._buildCraftColorBody(this._pendingCraft.itemDef);
     },
 
     _craftColorAdjust: function(color, delta) {
