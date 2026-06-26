@@ -795,9 +795,23 @@ Object.assign(UI, {
         var menu = document.getElementById('playerStripMenu');
         if (!menu) return;
         if (menu.style.display !== 'none') { this.closePlayerMenu(); return; }
-        menu.style.display = 'block';
         var btn = menu.parentNode && menu.parentNode.querySelector('.player-strip-more');
-        if (btn) btn.setAttribute('aria-expanded', 'true');
+        // position:fixed + JS coords so the dropdown ESCAPES the player-strip's
+        // overflow-x:auto clip (which was hiding it entirely). Right-align to the
+        // pill, clamped on-screen.
+        menu.style.display = 'block';
+        menu.style.visibility = 'hidden';
+        if (btn) {
+            var r = btn.getBoundingClientRect();
+            var mw = menu.offsetWidth || 200;
+            var left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+            menu.style.position = 'fixed';
+            menu.style.top = (r.bottom + 6) + 'px';
+            menu.style.left = left + 'px';
+            menu.style.right = 'auto';
+            btn.setAttribute('aria-expanded', 'true');
+        }
+        menu.style.visibility = '';
         UI._playerMenuOutside = function(e) {
             if (!menu.contains(e.target) && !(btn && btn.contains(e.target))) UI.closePlayerMenu();
         };
