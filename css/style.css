@@ -6839,7 +6839,17 @@ html { overflow-x: hidden; }
 .project-pts-overlay { font-size:clamp(6px,0.8vw,10px); padding:1px 5px; }
 
 /* ===== Session 40: center Your Patterns / SR rows (no right-clip) + craft-options cost dots ===== */
-.otc-pattern-grid, .otc-sr-grid { display:flex; flex-wrap:wrap; justify-content:center; }
+.otc-sr-grid { display:flex; flex-wrap:wrap; justify-content:center; }
+/* Session 40 fix: Your Patterns = always a single centered row of 3 on mobile.
+   Force a 3-col grid; let cards shrink (min-width:0) + tighten padding so the
+   dot-letter cards never wrap to a 2nd row or clip off the right. */
+.otc-pattern-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; justify-content:center; }
+.otc-pattern-grid .otc-need-card { min-width:0; padding:5px 6px; gap:5px; }
+.otc-pattern-grid .otc-need-card img { width:30px; height:30px; }
+.otc-pattern-grid .otc-need-card-name { font-size:10.5px; }
+.otc-pattern-grid .otc-need-card-dots { gap:2px; }
+/* Session 40: "What you can make" — unaffordable patterns shown but dimmed (not dropped) */
+.craft-option-card.co-disabled { opacity:.42; cursor:default; pointer-events:none; filter:saturate(.55); }
 .craft-option-card .co-cost { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; margin-top:3px; }
 
 /* ===== Session 40: selected-yarn pill chips in picker balance box (#27) ===== */
