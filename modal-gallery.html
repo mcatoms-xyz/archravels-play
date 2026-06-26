@@ -153,6 +153,13 @@
         try{ var def = w.CARDS.getItem ? w.CARDS.getItem('scarf') : w.CARDS.items[0]; p.items = p.items || []; if(!p.items.length) p.items.push(Object.assign({}, def)); }catch(e){}
         w.UI.showFrogItModal();
       } },
+    { label:'Craft — yarn picker',   run:function(w){
+        var def = Object.assign({}, (w.CARDS.getItem ? w.CARDS.getItem('bear') : w.CARDS.items[0]), { colorRule:'any', yarnCount:3 });
+        w.UI.showCraftColorPicker(def, 'Choose 3 Yarn');
+      } },
+    { label:'Craft Circle (event)',  run:function(w){ w.UI.showCraftCircleModal(0, noop); } },
+    { label:'Final Craft phase',     run:function(w){ try{ w.Game.state.phase='finalCraft'; }catch(e){} if(w.UI.showFinalCraftPhase) w.UI.showFinalCraftPhase(); } },
+    { label:'Exchange yarn',         run:function(w){ if(w.UI.showExchangeModal) w.UI.showExchangeModal(); } },
 
     { grp:'Moments & end' },
     { label:'Game Moment',           run:function(w){ w.UI.showGameMoment({ title:'Snugglesaurus', points:9, badge:'Special Request', desc:'A cozy little dino, crafted with care.' }, noop); } },
