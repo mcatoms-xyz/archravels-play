@@ -328,6 +328,47 @@ Object.assign(UI, {
                'onerror="this.style.visibility=\'hidden\'">';
     },
 
+    // Canonical display order for yarn chips, everywhere: ROYGBP.
+    ROYGBP: ['red', 'orange', 'yellow', 'green', 'blue', 'purple'],
+
+    // App-wide standard yarn-chip picker grid. One row of 6 (two rows of 3 on
+    // mobile, via CSS), tap-to-add, count badge, × clears that color.
+    // opts: { sel:{color:count}, rule:'any'|'oneColor'|'different', need:int|null,
+    //         maxFor:fn(color)->cap (Infinity = supply/no cap), sub:fn(color)->str|null,
+    //         addFn:'UI.xxx', clearFn:'UI.yyy' }
+    _yarnChips: function(opts) {
+        var sel = opts.sel || {}, rule = opts.rule || 'any';
+        var total = 0, distinct = 0;
+        this.ROYGBP.forEach(function(c) { var n = sel[c] || 0; total += n; if (n > 0) distinct++; });
+        var full = (opts.need != null && total >= opts.need);
+        var html = '<div class="xc-chips">';
+        this.ROYGBP.forEach(function(color) {
+            var cur = sel[color] || 0;
+            var cap = opts.maxFor ? opts.maxFor(color) : Infinity;
+            var disabled = full || cur >= cap;
+            if (rule === 'oneColor' && distinct > 0 && cur === 0) disabled = true;   // lock to first color
+            if (rule === 'different' && cur >= 1) disabled = true;                    // each color once
+            var hex = CARDS.COLOR_HEX[color];
+            var cn = color.charAt(0).toUpperCase() + color.slice(1);
+            var sub = opts.sub ? opts.sub(color) : null;
+            var h = '<span class="xc-chip-wrap">';
+            h += '<button class="xc-chip' + (cur > 0 ? ' active' : '') + '" ' + (disabled ? 'disabled' : '') +
+                 ' onclick="' + opts.addFn + '(\'' + color + '\')" data-cb-color="' + color + '" aria-label="' + cn + '">';
+            h += '<span class="xc-dot" style="background:' + hex + '" data-cb-color="' + color + '"></span>';
+            h += '<span class="xc-name">' + cn + '</span>';
+            if (sub != null) h += '<span class="xc-sub">' + sub + '</span>';
+            h += '</button>';
+            if (cur > 0) {
+                h += '<span class="xc-badge">' + cur + '</span>';
+                h += '<button class="xc-remove" onclick="' + opts.clearFn + '(\'' + color + '\')" aria-label="Clear ' + cn + '">×</button>';
+            }
+            h += '</span>';
+            html += h;
+        });
+        html += '</div>';
+        return html;
+    },
+
     _buildOffTurnContext: function(player, mode, instructionText, force) {
         if (!player) return '';
         if (!force) {
