@@ -179,10 +179,11 @@ Object.assign(UI, {
             // the reserve), then merge both on confirm. craftSpecialRequest validates
             // affordability only, so this picker is the rule-enforcer.
             var reserved, flexRule, flexCount, exclude = null;
-            if (rule === 'specificPlusAny') {            // e.g. Koi: 3 orange + 2 any
+            if (rule === 'specificPlusAny') {            // e.g. Koi: 3 orange + 2 of any OTHER color
                 reserved = Object.assign({}, sr.yarn || {});
                 flexRule = 'any'; flexCount = sr.anyCount || 0;
-            } else if (rule === 'specificPlusSame') {    // e.g. Dog Bandana: 3 purple + 2 of one color
+                exclude = Object.keys(reserved);         // the "+N" must be colors NOT in the specific set
+            } else if (rule === 'specificPlusSame') {    // e.g. Dog Bandana: 3 purple + 2 of one color (may overlap)
                 reserved = Object.assign({}, sr.yarn || {});
                 flexRule = 'oneColor'; flexCount = sr.sameCount || 0;
             } else {                                     // sameColorPlus, e.g. Skelly: 5 of one color (not orange) + 1 orange
