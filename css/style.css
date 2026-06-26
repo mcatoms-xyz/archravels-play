@@ -6812,3 +6812,11 @@ html { overflow-x: hidden; }
   25%, 75% { box-shadow: 0 0 0 4px rgba(217,165,33,0.95), 0 0 28px 9px rgba(217,165,33,0.55); }
 }
 .craft-flash { animation: craftFlashPulse 0.7s ease-in-out 2; border-radius: 10px; outline: 2px solid rgba(217,165,33,0.9); outline-offset: 2px; }
+
+/* ===== Session 40: "What you can make" craft-options modal ===== */
+.craft-options-grid{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:8px 0 4px; }
+.craft-option-card{ display:flex; flex-direction:column; align-items:center; gap:4px; width:110px; padding:9px 8px; border:2px solid var(--line,#e2d2b6); border-radius:12px; background:#fff7e8; cursor:pointer; font:inherit; color:#3a2a1d; transition:transform .1s, box-shadow .12s, border-color .12s; }
+.craft-option-card:hover{ transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.2); border-color:var(--gold,#d9a521); }
+.craft-option-card img{ width:62px; height:62px; object-fit:contain; }
+.craft-option-card .co-name{ font-size:12px; font-weight:700; text-align:center; line-height:1.12; }
+.craft-option-card .co-pts{ font-size:11px; color:var(--gold-d,#b8861a); font-weight:700; }
