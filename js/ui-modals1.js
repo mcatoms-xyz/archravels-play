@@ -903,7 +903,7 @@ Object.assign(UI, {
             Game.state.players.forEach(function(p, idx) {
                 if (idx === activeIdx) return; // can't target yourself
                 html += '<button class="btn btn-primary player-select-btn" onclick="UI._onTangledCatTarget(' + idx + ')">' +
-                    p.name + '</button>';
+                    UI._playerAvatar(p) + '<span>' + p.name + '</span></button>';
             });
             html += '</div>';
 
