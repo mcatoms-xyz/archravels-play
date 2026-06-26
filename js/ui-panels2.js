@@ -337,7 +337,7 @@ Object.assign(UI, {
     //         maxFor:fn(color)->cap (Infinity = supply/no cap), sub:fn(color)->str|null,
     //         addFn:'UI.xxx', clearFn:'UI.yyy' }
     _yarnChips: function(opts) {
-        var sel = opts.sel || {}, rule = opts.rule || 'any';
+        var sel = opts.sel || {}, rule = opts.rule || 'any', single = !!opts.single;
         var total = 0, distinct = 0;
         this.ROYGBP.forEach(function(c) { var n = sel[c] || 0; total += n; if (n > 0) distinct++; });
         var full = (opts.need != null && total >= opts.need);
@@ -345,9 +345,15 @@ Object.assign(UI, {
         this.ROYGBP.forEach(function(color) {
             var cur = sel[color] || 0;
             var cap = opts.maxFor ? opts.maxFor(color) : Infinity;
-            var disabled = full || cur >= cap;
-            if (rule === 'oneColor' && distinct > 0 && cur === 0) disabled = true;   // lock to first color
-            if (rule === 'different' && cur >= 1) disabled = true;                    // each color once
+            var disabled;
+            if (single) {
+                // single-pick: tap a color → addFn resolves immediately (no badge/count)
+                disabled = cap < 1;
+            } else {
+                disabled = full || cur >= cap;
+                if (rule === 'oneColor' && distinct > 0 && cur === 0) disabled = true;   // lock to first color
+                if (rule === 'different' && cur >= 1) disabled = true;                    // each color once
+            }
             var hex = CARDS.COLOR_HEX[color];
             var cn = color.charAt(0).toUpperCase() + color.slice(1);
             var sub = opts.sub ? opts.sub(color) : null;
@@ -358,7 +364,7 @@ Object.assign(UI, {
             h += '<span class="xc-name">' + cn + '</span>';
             if (sub != null) h += '<span class="xc-sub">' + sub + '</span>';
             h += '</button>';
-            if (cur > 0) {
+            if (!single && cur > 0) {
                 h += '<span class="xc-badge">' + cur + '</span>';
                 h += '<button class="xc-remove" onclick="' + opts.clearFn + '(\'' + color + '\')" aria-label="Clear ' + cn + '">×</button>';
             }
