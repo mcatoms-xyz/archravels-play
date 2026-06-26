@@ -545,7 +545,7 @@ Object.assign(UI, {
         var confirmBtn = document.getElementById('take5ConfirmBtn');
         if (picksDiv) {
             picksDiv.innerHTML = '<div class="xc-balance' + (total === 5 ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / 5 yarn' +
-                (total === 5 ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (5 - total) + ' more</span>') + '</div>';
+                (total === 5 ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (5 - total) + ' more</span>') + UI._selectedYarnChips(UI._take5) + '</div>';
         }
         if (confirmBtn) { confirmBtn.disabled = total < 5; confirmBtn.textContent = 'Take 5'; }
     },
