@@ -99,12 +99,21 @@
   }
 
   function run(label, fn){
-    if(!ready && !boot(3)){ log('Game not ready yet — try Reboot.', true); return; }
+    // Re-boot a FRESH game before every modal so state never leaks between triggers
+    // (e.g. a scorecard's New Game button bleeding onto the next modal).
+    if(!boot(3)){ log('Game not ready yet — try Reboot.', true); return; }
     try{ closeAll(); fn(W()); log('Showing: <b>'+label+'</b>'); }
     catch(e){ log('“'+label+'” errored: ' + e.message, true); }
   }
   var noop = function(){};
-  function evt(w, effect){ return (w.CARDS.events||[]).filter(function(e){return e.effect===effect;})[0]; }
+  // Event cards in CARDS.events carry a BARE filename; the real game deck prefixes
+  // 'Square Cards PNG/'. Mirror that so the gallery shows the real card preview.
+  function evt(w, effect){
+    var e = (w.CARDS.events||[]).filter(function(x){return x.effect===effect;})[0];
+    if(!e) return e;
+    var img = e.img && e.img.indexOf('/')===-1 ? ('Square Cards PNG/' + e.img) : e.img;
+    return Object.assign({}, e, { img: img });
+  }
   function activePlayer(w){ return w.Game.state.player; }
 
   // ---- modal catalog ----
