@@ -627,7 +627,7 @@ Object.assign(UI, {
 
         // GIVE — all six colors (dim the ones you don't have)
         html += '<div class="xc-row"><span class="xc-row-label">Give away</span><div class="xc-chips">';
-        CARDS.COLORS.forEach(function(color) {
+        UI.ROYGBP.forEach(function(color) {
             var have = bowl[color] || 0, cur = give[color] || 0;
             html += chip('give', color, cur, 'have ' + have, cur >= have);
         });
@@ -635,7 +635,7 @@ Object.assign(UI, {
 
         // RECEIVE — all six, total capped at what you give
         html += '<div class="xc-row"><span class="xc-row-label">Receive</span><div class="xc-chips">';
-        CARDS.COLORS.forEach(function(color) {
+        UI.ROYGBP.forEach(function(color) {
             html += chip('receive', color, receive[color] || 0, null, receiveTotal >= giveTotal);
         });
         html += '</div></div>';
