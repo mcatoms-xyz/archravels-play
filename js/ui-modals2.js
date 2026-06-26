@@ -602,6 +602,18 @@ Object.assign(UI, {
             var sr = opt.sr, rule = sr.colorRule || 'specific';
             if (rule === 'specific' && sr.yarn) {
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < (sr.yarn[c] || 0); d++) h += dot(c); });
+            } else if (rule === 'sameColorPlus') {
+                // N of one color + fixed extras (extras live in plusYarn). e.g. Ghost: 5 same + 1 red.
+                CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.plusYarn || {})[c] || 0); d++) h += dot(c); });
+                h += '<span class="craft-cost-label">+' + (sr.yarnCount || 0) + ' same</span>';
+            } else if (rule === 'specificPlusAny') {
+                // specific colors + N of any OTHER color. e.g. Koi: 3 orange + 2 any.
+                CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.yarn || {})[c] || 0); d++) h += dot(c); });
+                h += '<span class="craft-cost-label">+' + (sr.anyCount || 0) + ' any</span>';
+            } else if (rule === 'specificPlusSame') {
+                // specific colors + N of one color. e.g. Dog Bandana: 3 purple + 2 same.
+                CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.yarn || {})[c] || 0); d++) h += dot(c); });
+                h += '<span class="craft-cost-label">+' + (sr.sameCount || 0) + ' same</span>';
             } else {
                 var lbl = { any: sr.yarnCount + ' any', sameColor: sr.yarnCount + ' same', different: sr.yarnCount + ' diff.', give: 'Give ' + sr.yarnCount }[rule] || '';
                 h += '<span class="craft-cost-label">' + lbl + '</span>';
