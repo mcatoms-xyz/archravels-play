@@ -616,25 +616,32 @@ Object.assign(UI, {
     },
 
     showCraftOptionsModal: function() {
-        var items = Game.getCraftOptions().filter(function(o) { return o.canAfford; });
-        var srs = Game.getSRCraftOptions().filter(function(o) { return o.canAfford; });
+        // Session 40: show ALL of the player's patterns + held SRs, dimming the ones
+        // they can't currently afford — rather than silently dropping them. Keeps the
+        // list consistent (all 3 patterns always visible) instead of one vanishing.
+        var items = Game.getCraftOptions();
+        var srs = Game.getSRCraftOptions();
         UI._craftOptItems = items; UI._craftOptSRs = srs;
         var ov = document.getElementById('craftOptionsModal');
         if (!ov) { ov = document.createElement('div'); ov.id = 'craftOptionsModal'; ov.className = 'modal-overlay'; document.body.appendChild(ov); }
         var html = '<div class="modal-content"><div class="modal-title">What you can make</div>';
         if (!items.length && !srs.length) {
-            html += '<div class="restock-modal-msg" style="font-style:italic;color:var(--text-muted)">Nothing you can afford right now.</div>';
+            html += '<div class="restock-modal-msg" style="font-style:italic;color:var(--text-muted)">Nothing to craft right now.</div>';
         } else {
             html += '<div class="craft-options-grid">';
             items.forEach(function(o, i) {
-                html += '<button class="craft-option-card" onclick="UI._craftOptionPick(\'item\',' + i + ')">' +
+                var off = !o.canAfford;
+                html += '<button class="craft-option-card' + (off ? ' co-disabled' : '') + '"' +
+                    (off ? ' disabled aria-disabled="true"' : ' onclick="UI._craftOptionPick(\'item\',' + i + ')"') + '>' +
                     '<img src="' + o.itemDef.img + '" alt=""><span class="co-name">' + o.itemDef.name + '</span>' +
                     (o.itemDef.points ? '<span class="co-pts">' + o.itemDef.points + ' pts</span>' : '') +
                     '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
             });
             srs.forEach(function(o, i) {
                 var sr = o.sr;
-                html += '<button class="craft-option-card" onclick="UI._craftOptionPick(\'sr\',' + i + ')">' +
+                var off = !o.canAfford;
+                html += '<button class="craft-option-card' + (off ? ' co-disabled' : '') + '"' +
+                    (off ? ' disabled aria-disabled="true"' : ' onclick="UI._craftOptionPick(\'sr\',' + i + ')"') + '>' +
                     '<img src="' + sr.img + '" alt=""><span class="co-name">' + sr.name + (sr.isFavorite ? ' ♥' : '') + '</span>' +
                     '<span class="co-pts">' + sr.points + ' pts</span>' +
                     '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
