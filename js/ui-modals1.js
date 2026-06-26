@@ -317,7 +317,7 @@ Object.assign(UI, {
         // Buttons
         var buttonsHtml = '';
         if (hasAffordable) {
-            buttonsHtml += '<button class="btn btn-secondary" onclick="UI.focusCraftOptions()">View Craft Options</button>';
+            buttonsHtml += '<button class="btn btn-secondary" onclick="UI.showCraftOptionsModal()">View Craft Options</button>';
         }
         buttonsHtml += '<button class="btn btn-cta" onclick="UI.onEndFinalCraft()">Done →</button>';
 
