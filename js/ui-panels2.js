@@ -336,6 +336,16 @@ Object.assign(UI, {
     // opts: { sel:{color:count}, rule:'any'|'oneColor'|'different', need:int|null,
     //         maxFor:fn(color)->cap (Infinity = supply/no cap), sub:fn(color)->str|null,
     //         addFn:'UI.xxx', clearFn:'UI.yyy' }
+    // Selected yarn as shop-style pill chips (+N Color), for picker balance boxes.
+    _selectedYarnChips: function(sel) {
+        var h = '';
+        UI.ROYGBP.forEach(function(c) {
+            var n = sel[c] || 0;
+            if (n > 0) h += '<span class="confirm-yarn-tag" style="background:' + CARDS.COLOR_HEX[c] + '">+' + n + ' ' + c.charAt(0).toUpperCase() + c.slice(1) + '</span>';
+        });
+        return h ? '<div class="xc-selected">' + h + '</div>' : '';
+    },
+
     _yarnChips: function(opts) {
         var sel = opts.sel || {}, rule = opts.rule || 'any', single = !!opts.single;
         var total = 0, distinct = 0;
