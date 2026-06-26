@@ -277,15 +277,15 @@ Object.assign(UI, {
             };
             this.showCraftConfirm();
         } else {
-            // General/learned — player chooses yarn to get back.
-            // Session 36 fix: a refund is "receive N yarn of ANY colors you choose" — it is
-            // NOT bound by the item's craft color-rule (e.g. one-color), and must NOT be
-            // capped by what's currently in the bowl. Using the item's rule + a spend-style
-            // cap could leave the picker with no selectable colors (Done stuck greyed out).
+            // General/learned — refund follows the item's GENERAL pattern rule:
+            // Bear 3-of-one, Hat 2-different, Mittens 2+1 (twoColors), Scarf 4-different,
+            // Blanket 5-of-one. Receive mode bypasses the bowl cap so oneColor/twoColors
+            // never get stuck-greyed (that was the Session-36 reason for forcing 'any').
+            var def = CARDS.getItem(item.id) || {};
             var pickerItemDef = {
                 id: item.id, name: item.name, img: item.img, points: item.points,
-                colorRule: 'any',
-                yarnCount: item.yarnCount || 3,
+                colorRule: def.colorRule || 'any',
+                yarnCount: item.yarnCount || def.yarnCount || 3,
             };
             this._pendingCraft = {
                 context:       'frogIt',
