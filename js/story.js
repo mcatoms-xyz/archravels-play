@@ -589,7 +589,7 @@ var Story = {
     // ── In a single match (skill) ──
     {id:'noFrogs',     name:'No Frogs Given',    desc:'Win a match without using Frog It',     pts:25, tier:2, group:'Single Match'},
     {id:'blazing',     name:'Blazing Needles',   desc:'Win a match in 8 turns or fewer',       pts:25, tier:2, group:'Single Match', test:function(p,s){ return s.turns>0 && s.turns<=8; }},
-    {id:'showOff',     name:'Show Off',          desc:'Score 50+ in a match',                  pts:25, tier:2, group:'Single Match', test:function(p,s){ return s.score>=50; }},
+    {id:'showOff',     name:'Show Off',          desc:'Score 50+ in a match',                  pts:25, tier:2, group:'Single Match', live:true, test:function(p,s){ return s.score>=50; }},
     {id:'clutch',      name:'Clutch Cast',       desc:'Win after trailing into the final round',pts:50, tier:3, group:'Single Match'},
     {id:'runaway',     name:'Runaway Skein',     desc:'Win by 20+ points',                     pts:25, tier:2, group:'Single Match', test:function(p,s){ return s.margin>=20; }},
     // ── Crafty (mechanics + character flavor) ──
@@ -597,7 +597,7 @@ var Story = {
     {id:'twoForOne',   name:'Two for One',       desc:'Craft two items in one action (Maker)', pts:10, tier:1, group:'Crafty'},
     {id:'colorOutside',name:'Color Outside the Lines', desc:'Finish a pattern with a color it didn’t ask for (Color Specialist)', pts:10, tier:1, group:'Crafty'},
     {id:'offGrid',     name:'Off the Grid',      desc:'Win as a Spinner without taking a Shop action', pts:50, tier:3, group:'Crafty'},
-    {id:'yarnHoarder', name:'Yarn Hoarder',      desc:'Hold 12+ yarn at once',                 pts:10, tier:1, group:'Crafty'},
+    {id:'yarnHoarder', name:'Yarn Hoarder',      desc:'Hold 12+ yarn at once',                 pts:10, tier:1, group:'Crafty', live:true, test:function(p,s){ return s.totalYarn>=12; }},
     {id:'wasteNot',    name:'Waste Not',         desc:'Win a match ending with 2 or fewer yarn',pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.endingYarn<=2; }},
     {id:'patternBuff', name:'Pattern Buff',      desc:'Learn 3+ pattern tiles in one match',   pts:25, tier:2, group:'Crafty', live:true, test:function(p,s){ return s.patternsLearned>=3; }},
     {id:'projectRunway',name:'Project Runway',   desc:'Complete 4+ projects in one match',     pts:25, tier:2, group:'Crafty', live:true, test:function(p,s){ return s.projects>=4; }},
@@ -620,15 +620,17 @@ var Story = {
     var you=null, players=(Game.state&&Game.state.players)||[];
     players.forEach(function(p){ if(!p.isAI && !you) you=p; });
     if(!you) you=players[0]||null;
-    var learned=0, projects=0, srsFulfilled=0, favoriteSR=false;
+    var learned=0, projects=0, srsFulfilled=0, favoriteSR=false, totalYarn=0, score=0;
     if(you){
       (you.patternTiles||[]).forEach(function(t){ if(t && t.learned) learned++; });
       projects=(you.projects||[]).length;
       var crafted=you.craftedSpecialRequests||[];
       srsFulfilled=crafted.length;
       favoriteSR=crafted.some(function(sr){ return sr && sr.isFavorite; });
+      try{ totalYarn=Game.totalYarn(you); }catch(e){ var b=you.yarnBowl||{}; (CARDS.COLORS||[]).forEach(function(c){ totalYarn+=(b[c]||0); }); }
+      try{ score=(Game.calculateFinalScore(you).total)||0; }catch(e){ score=0; }
     }
-    return { patternsLearned:learned, projects:projects, srsFulfilled:srsFulfilled, favoriteSR:favoriteSR };
+    return { patternsLearned:learned, projects:projects, srsFulfilled:srsFulfilled, favoriteSR:favoriteSR, totalYarn:totalYarn, score:score };
   },
 
   // Re-check the `live` achievements during play. Any newly-earned one is banked,
@@ -675,7 +677,7 @@ var Story = {
   _wireLiveAchievementHooks: function(){
     if(this._liveHooksWired || !window.Game || !Game.render) return;
     this._liveHooksWired=true;
-    ['all','finishedObjects','specialRequests','projectStrip','craftGrid','turnHistory'].forEach(function(k){
+    ['all','finishedObjects','specialRequests','projectStrip','craftGrid','turnHistory','yarnBowl'].forEach(function(k){
       var orig=Game.render[k];
       Game.render[k]=function(){
         if(orig) try{ orig.apply(Game.render, arguments); }catch(e){}
