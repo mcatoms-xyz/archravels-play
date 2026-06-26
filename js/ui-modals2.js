@@ -1,11 +1,11 @@
 /* ui-modals2.js — UI module (split from the Session-40 LIVE monolith).
    ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
-    _yarnSaleChoices: [],
+    _yarnSale: {},
     _yarnSaleCallback: null,
 
     showYarnSaleModal: function(callback) {
-        this._yarnSaleChoices = [];
+        this._yarnSale = {};
         this._yarnSaleCallback = callback;
         // Session 24: Inject off-turn context so player can see board state
         var player = Game.state.player;
@@ -21,66 +21,35 @@ Object.assign(UI, {
     },
 
     _buildYarnSaleBody: function() {
-        var choices = this._yarnSaleChoices;
-        var needed = 3;
-        var totalSoFar = choices.length;
-
-        var html = '<div class="event-yarn-pick-summary">' +
-            'Choose ' + needed + ' Yarn tokens from the supply. (' + totalSoFar + '/' + needed + ' chosen)' +
-            '</div>';
-
-        html += '<div class="event-yarn-pick-grid">';
-        CARDS.COLORS.forEach(function(color) {
-            var hex = CARDS.COLOR_HEX[color];
-            var cap = color.charAt(0).toUpperCase() + color.slice(1);
-            var disabled = totalSoFar >= needed;
-            html += '<button class="color-pick-btn event-pick-btn" style="background:' + hex + '" ' +
-                (disabled ? 'disabled' : '') + ' onclick="UI._yarnSalePick(\'' + color + '\')">' +
-                cap + '</button>';
-        });
-        html += '</div>';
-
-        if (choices.length > 0) {
-            html += '<div class="event-chosen-bar">';
-            choices.forEach(function(color) {
-                var hex = CARDS.COLOR_HEX[color];
-                html += '<span class="confirm-yarn-tag" style="background:' + hex + '">+1 ' +
-                    color.charAt(0).toUpperCase() + color.slice(1) + '</span>';
-            });
-            html += '</div>';
-        }
-
-        html += '<div class="event-pick-controls">';
-        if (choices.length > 0) {
-            html += '<button class="btn btn-secondary" onclick="UI._yarnSaleUndo()">Undo</button>';
-        }
-        if (choices.length === needed) {
-            html += '<button class="btn btn-primary" onclick="UI._yarnSaleConfirm()">Take Yarn</button>';
-        }
-        html += '</div>';
-
+        var sel = this._yarnSale, need = 3;
+        var total = 0; UI.ROYGBP.forEach(function(c) { total += sel[c] || 0; });
+        var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
+        html += UI._yarnChips({ sel: sel, rule: 'any', need: need, addFn: 'UI._yarnSaleAdd', clearFn: 'UI._yarnSaleClear' });
+        html += '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
+                (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + '</div>';
+        html += '<div class="event-pick-controls"><button class="btn btn-primary" onclick="UI._yarnSaleConfirm()" ' + (total === need ? '' : 'disabled') + '>Take Yarn</button></div>';
         this.els.yarnSaleBody.innerHTML = html;
     },
 
-    _yarnSalePick: function(color) {
-        if (this._yarnSaleChoices.length >= 3) return;
-        this._yarnSaleChoices.push(color);
+    _yarnSaleAdd: function(color) {
+        var sel = this._yarnSale, total = 0; UI.ROYGBP.forEach(function(c) { total += sel[c] || 0; });
+        if (total >= 3) return;
+        sel[color] = (sel[color] || 0) + 1;
         this._buildYarnSaleBody();
     },
 
-    _yarnSaleUndo: function() {
-        this._yarnSaleChoices.pop();
+    _yarnSaleClear: function(color) {
+        this._yarnSale[color] = 0;
         this._buildYarnSaleBody();
     },
 
     _yarnSaleConfirm: function() {
         this.els.yarnSaleModal.style.display = 'none';
-        var changed = Game.applyYarnSale(this._yarnSaleChoices);
-        UI.renderYarnBowl(changed);
-        UI.renderCraftGrid();
-        UI.renderSpecialRequests();
-        var cb = this._yarnSaleCallback;
-        this._yarnSaleCallback = null;
+        var arr = [];
+        UI.ROYGBP.forEach(function(c) { var n = UI._yarnSale[c] || 0; for (var i = 0; i < n; i++) arr.push(c); });
+        var changed = Game.applyYarnSale(arr);
+        UI.renderYarnBowl(changed); UI.renderCraftGrid(); UI.renderSpecialRequests();
+        var cb = this._yarnSaleCallback; this._yarnSaleCallback = null;
         if (cb) cb();
     },
 
