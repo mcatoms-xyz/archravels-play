@@ -125,9 +125,7 @@ Object.assign(UI, {
             html += '<div class="event-yarn-pick-summary" style="color:var(--text-muted);font-style:italic">' +
                 'Your stash is empty — nothing to donate!' +
                 '</div>';
-            html += '<div class="event-pick-controls">' +
-                '<button class="btn btn-secondary" onclick="UI.onDonateCancel()">Skip</button>' +
-                '</div>';
+            // (Skip lives in the modal footer — no second one here.)
         } else {
             html += '<div class="event-yarn-pick-grid">';
             CARDS.COLORS.forEach(function(color) {
@@ -142,9 +140,7 @@ Object.assign(UI, {
                     '</button>';
             });
             html += '</div>';
-            html += '<div class="event-pick-controls">' +
-                '<button class="btn btn-secondary" onclick="UI.onDonateCancel()">Skip</button>' +
-                '</div>';
+            // (Skip lives in the modal footer — no second one here.)
         }
 
         this.els.donateBody.innerHTML = html;
@@ -172,7 +168,7 @@ Object.assign(UI, {
             Game.state.players.forEach(function(p, idx) {
                 if (idx === activeIdx) return;
                 html += '<button class="btn btn-primary player-select-btn" onclick="UI._onDonateTarget(' + idx + ')">' +
-                    p.name + '</button>';
+                    UI._playerAvatar(p) + '<span>' + p.name + '</span></button>';
             });
             html += '</div>';
 
@@ -545,7 +541,7 @@ Object.assign(UI, {
             if (i === activeIdx) return;
             var btn = document.createElement('button');
             btn.className = 'sr-give-player-btn';
-            btn.textContent = p.name + (p.isAI ? ' (CPU)' : '');
+            btn.innerHTML = UI._playerAvatar(p) + '<span>' + p.name + (p.isAI ? ' (CPU)' : '') + '</span>';
             (function(idx) {
                 btn.addEventListener('click', function() {
                     UI.onSRGiveTo(idx);
