@@ -567,20 +567,11 @@ Object.assign(UI, {
 
     buildColorPicker: function() {
         var grid = this.els.colorGrid;
-        grid.innerHTML = '';
-
-        CARDS.COLORS.forEach(function(color) {
-            var btn = document.createElement('button');
-            btn.className = 'color-pick-btn';
-            btn.style.backgroundColor = CARDS.COLOR_HEX[color];
-            btn.setAttribute('data-cb-color', color);
-            btn.setAttribute('aria-label', 'Pick ' + color.charAt(0).toUpperCase() + color.slice(1) + ' yarn');
-            btn.textContent = color.charAt(0).toUpperCase() + color.slice(1);
-            btn.addEventListener('click', function() {
-                UI.onColorPick(color);
-            });
-            grid.appendChild(btn);
-        });
+        if (!grid) return;
+        // Standard yarn-chip grid, single-pick (any color, ROYGBP). Covers every
+        // showColorPicker use: Friendly Clerk, Spinner Take 3 (pick 1 → gain 3),
+        // wild picks, etc. Picking a chip → UI.onColorPick(color) → the caller's cb.
+        grid.innerHTML = UI._yarnChips({ single: true, rule: 'any', addFn: 'UI.onColorPick' });
     },
 
     /**
