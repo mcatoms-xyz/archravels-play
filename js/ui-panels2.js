@@ -431,7 +431,7 @@ Object.assign(UI, {
                         var have = bowl[color] || 0;
                         for (var i = 0; i < needed; i++) {
                             var isHave = i < have;
-                            dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
+                            dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" data-cb-color="' + color + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
                             if (!isHave) allMet = false;
                         }
                     });
@@ -463,7 +463,7 @@ Object.assign(UI, {
                         var have = bowl[color] || 0;
                         for (var i = 0; i < needed; i++) {
                             var isHave = i < have;
-                            dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
+                            dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" data-cb-color="' + color + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
                             if (!isHave) allMet = false;
                         }
                     });
