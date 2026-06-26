@@ -414,6 +414,9 @@ var Story = {
     // hide the landing/front door too — otherwise closing the story overlay reveals
     // the homepage sitting on top of the freshly-started match (looked like "kicked back home").
     var landing=document.getElementById('landingScreen'); if(landing) landing.style.display='none';
+    // Session 40: reset per-match live-achievement tracking + wire detection hooks (once)
+    this._liveToasted = {}; this._matchEarned = [];
+    this._wireLiveAchievementHooks();
     Game.init({ players: [
       { characterId:this.picked, isAI:false, name:youName },
       { characterId:oppId,       isAI:true,  name:this.char(oppId).name }
@@ -596,11 +599,11 @@ var Story = {
     {id:'offGrid',     name:'Off the Grid',      desc:'Win as a Spinner without taking a Shop action', pts:50, tier:3, group:'Crafty'},
     {id:'yarnHoarder', name:'Yarn Hoarder',      desc:'Hold 12+ yarn at once',                 pts:10, tier:1, group:'Crafty'},
     {id:'wasteNot',    name:'Waste Not',         desc:'Win a match ending with 2 or fewer yarn',pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.endingYarn<=2; }},
-    {id:'patternBuff', name:'Pattern Buff',      desc:'Learn 3+ pattern tiles in one match',   pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.patternsLearned>=3; }},
-    {id:'projectRunway',name:'Project Runway',   desc:'Complete 4+ projects in one match',     pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.projects>=4; }},
+    {id:'patternBuff', name:'Pattern Buff',      desc:'Learn 3+ pattern tiles in one match',   pts:25, tier:2, group:'Crafty', live:true, test:function(p,s){ return s.patternsLearned>=3; }},
+    {id:'projectRunway',name:'Project Runway',   desc:'Complete 4+ projects in one match',     pts:25, tier:2, group:'Crafty', live:true, test:function(p,s){ return s.projects>=4; }},
     // ── Special Requests ──
-    {id:'teachersPet', name:'Teacher’s Pet',     desc:'Fulfill your crafter’s favorite Special Request', pts:10, tier:1, group:'Special Requests', test:function(p,s){ return !!s.favoriteSR; }},
-    {id:'crowdPleaser',name:'Crowd Pleaser',     desc:'Fulfill 4+ Special Requests in one match', pts:25, tier:2, group:'Special Requests', test:function(p,s){ return s.srsFulfilled>=4; }},
+    {id:'teachersPet', name:'Teacher’s Pet',     desc:'Fulfill your crafter’s favorite Special Request', pts:10, tier:1, group:'Special Requests', live:true, test:function(p,s){ return !!s.favoriteSR; }},
+    {id:'crowdPleaser',name:'Crowd Pleaser',     desc:'Fulfill 4+ Special Requests in one match', pts:25, tier:2, group:'Special Requests', live:true, test:function(p,s){ return s.srsFulfilled>=4; }},
     {id:'regifter',    name:'Re-gifter',         desc:'Hand a Special Request to an opponent', pts:10, tier:1, group:'Special Requests'},
     // ── Mastery (across runs) ──
     {id:'sixOfAKind',  name:'Six of a Kind',     desc:'Complete a run with one crafter of each type', pts:50, tier:3, group:'Mastery'},
@@ -610,6 +613,77 @@ var Story = {
     // ── Capstone ──
     {id:'completionist',name:'Cozy Completionist',desc:'Earn every other achievement',         pts:50, tier:3, group:'Capstone'},
   ],
+  // ===== Session 40: live (mid-match) achievement detection + toast =====
+  // Build a stats snapshot from the IN-PROGRESS match — only the fields that are
+  // meaningful before the game ends. Win/score/margin/beaten stay end-of-match only.
+  _liveStats: function(){
+    var you=null, players=(Game.state&&Game.state.players)||[];
+    players.forEach(function(p){ if(!p.isAI && !you) you=p; });
+    if(!you) you=players[0]||null;
+    var learned=0, projects=0, srsFulfilled=0, favoriteSR=false;
+    if(you){
+      (you.patternTiles||[]).forEach(function(t){ if(t && t.learned) learned++; });
+      projects=(you.projects||[]).length;
+      var crafted=you.craftedSpecialRequests||[];
+      srsFulfilled=crafted.length;
+      favoriteSR=crafted.some(function(sr){ return sr && sr.isFavorite; });
+    }
+    return { patternsLearned:learned, projects:projects, srsFulfilled:srsFulfilled, favoriteSR:favoriteSR };
+  },
+
+  // Re-check the `live` achievements during play. Any newly-earned one is banked,
+  // remembered for the end recap, and announced with a toast. Idempotent + cheap,
+  // so it's safe to call from render hooks. No-ops outside an active Story match.
+  checkAchievementsLive: function(){
+    if(!this.active || !this.profile) return;
+    var p=this.profile; p.achievements=p.achievements||{}; p.bank=p.bank||0; p.lifetimeStoryScore=p.lifetimeStoryScore||0;
+    this._liveToasted=this._liveToasted||{}; this._matchEarned=this._matchEarned||[];
+    var s=this._liveStats(), self=this, newly=[];
+    this.ACH.forEach(function(a){
+      if(!a.live || !a.test) return;
+      if(p.achievements[a.id] || self._liveToasted[a.id]) return;
+      if(a.test(p, s)){
+        self._liveToasted[a.id]=true;
+        p.achievements[a.id]=Date.now();
+        p.bank+=a.pts; p.lifetimeStoryScore+=a.pts;
+        self._matchEarned.push(a);
+        newly.push(a);
+      }
+    });
+    if(newly.length){
+      this.save();
+      newly.forEach(function(a,i){ setTimeout(function(){ self.achievementToast(a); }, i*500); });
+    }
+  },
+
+  achievementToast: function(a){
+    try{ if(window.Sound) Sound.play('achievement'); }catch(e){}
+    var host=document.getElementById('achToastHost');
+    if(!host){ host=document.createElement('div'); host.id='achToastHost'; document.body.appendChild(host); }
+    var el=document.createElement('div'); el.className='ach-toast';
+    el.innerHTML='<span class="ach-toast-badge">🏅</span>'+
+      '<span class="ach-toast-body"><span class="ach-toast-head">Achievement unlocked</span>'+
+      '<span class="ach-toast-name">'+a.name+' <span class="ach-toast-pts">+'+a.pts+'</span></span></span>';
+    host.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 420); }, 3300);
+  },
+
+  // Wrap a few render delegates so live checks run right after the actions that
+  // can unlock something (craft, learn, finish project, SR). Wired once; the
+  // checker self-guards, so it's a no-op outside Story matches.
+  _wireLiveAchievementHooks: function(){
+    if(this._liveHooksWired || !window.Game || !Game.render) return;
+    this._liveHooksWired=true;
+    ['all','finishedObjects','specialRequests','projectStrip','craftGrid','turnHistory'].forEach(function(k){
+      var orig=Game.render[k];
+      Game.render[k]=function(){
+        if(orig) try{ orig.apply(Game.render, arguments); }catch(e){}
+        try{ Story.checkAchievementsLive(); }catch(e){}
+      };
+    });
+  },
+
   // Bank the win once: score, per-game high, per-crafter, time, achievements.
   // Does NOT advance `beaten` (nextChallenger does that). Uses beaten+1 for tests
   // since this win means one more rival down.
@@ -628,7 +702,9 @@ var Story = {
     cr.beaten=Math.max(cr.beaten||0, beatenAfter);   // resumable progress
     cr.furthest=(beatenAfter>=11)?'Champion 🏆':(beatenAfter+' rivals beaten');
     p.crafters[this.picked]=cr;
-    var earned=[];
+    // Start from anything already unlocked mid-match (those are banked + toasted live),
+    // then add end-of-match-only achievements. Result is the full list for the recap.
+    var earned = (this._matchEarned || []).slice();
     var sctx = Object.assign({beaten:beatenAfter}, (this.lastMatch&&this.lastMatch.stats)||{});
     this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test && a.test(p,sctx)){ p.achievements[a.id]=Date.now(); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
     lm.earned=earned;
