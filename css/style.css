@@ -6857,3 +6857,11 @@ html { overflow-x: hidden; }
 /* ===== Session 40: action bar wraps cleanly (buttons drop to a right-aligned 2nd row, not overflow) (#30) ===== */
 .action-bar { flex-wrap: wrap; row-gap: 6px; }
 .action-bar .ab-buttons { margin-left: auto; }
+
+/* ===== Session 40: Craft Circle item picker — uniform token-image height (item & SR art have different aspect ratios) ===== */
+.craft-circle-grid .craft-slot-img {
+    height: clamp(60px, 7.5vw, 100px);
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
