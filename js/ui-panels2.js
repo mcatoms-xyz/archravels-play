@@ -319,6 +319,15 @@ Object.assign(UI, {
      * @param {boolean} [force] — if true, show context even for the active player
      * @returns {string} HTML string to inject into a modal, or '' if skipped
      */
+    // Small circular character portrait for player-pick buttons (tangled cat,
+    // donate recipient, SR give-to). Character ids match story-assets/portraits.
+    _playerAvatar: function(p) {
+        if (!p) return '';
+        var id = p.characterId || '';
+        return '<img class="player-select-avatar" src="story-assets/portraits/' + id + '.jpg" alt="" ' +
+               'onerror="this.style.visibility=\'hidden\'">';
+    },
+
     _buildOffTurnContext: function(player, mode, instructionText, force) {
         if (!player) return '';
         if (!force) {
