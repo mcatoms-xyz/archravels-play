@@ -1493,6 +1493,7 @@ var AI = {
             });
             for (var ai = 0; ai < sortedC.length && remaining > 0; ai++) {
                 var ac = sortedC[ai];
+                if (specYarn[ac]) continue;             // "+N other" must NOT be a specific color
                 var available = (bowl[ac] || 0) - (spend[ac] || 0);
                 if (available > 0) {
                     var take = Math.min(available, remaining);
