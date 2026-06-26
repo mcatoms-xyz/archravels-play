@@ -6853,3 +6853,7 @@ html { overflow-x: hidden; }
 /* ===== Session 40: color-picker modal wide enough for 3-up chips (no tall column, #26) ===== */
 #colorPickerModal .modal-content { max-width:min(740px, calc(100vw - 20px)); }
 .color-picker-grid { display:block; width:100%; }  /* override the old 3-col grid so the chip flex fills width */
+
+/* ===== Session 40: action bar wraps cleanly (buttons drop to a right-aligned 2nd row, not overflow) (#30) ===== */
+.action-bar { flex-wrap: wrap; row-gap: 6px; }
+.action-bar .ab-buttons { margin-left: auto; }
