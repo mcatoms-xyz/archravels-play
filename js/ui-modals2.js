@@ -26,7 +26,7 @@ Object.assign(UI, {
         var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
         html += UI._yarnChips({ sel: sel, rule: 'any', need: need, addFn: 'UI._yarnSaleAdd', clearFn: 'UI._yarnSaleClear' });
         html += '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
-                (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + '</div>';
+                (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + UI._selectedYarnChips(sel) + '</div>';
         html += '<div class="event-pick-controls"><button class="btn btn-primary" onclick="UI._yarnSaleConfirm()" ' + (total === need ? '' : 'disabled') + '>Take Yarn</button></div>';
         this.els.yarnSaleBody.innerHTML = html;
     },
