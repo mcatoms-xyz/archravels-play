@@ -6741,8 +6741,8 @@ html { overflow-x: hidden; }
 .player-strip-more .psm-count { font-size: 14px; }
 .player-strip-more .psm-caret { font-size: 11px; opacity: 0.85; }
 .player-strip-menu {
-    position: absolute; top: calc(100% + 8px); right: 0;
-    z-index: 1200;
+    position: fixed;  /* JS sets top/left so it escapes the strip's overflow clip */
+    z-index: 3000;
     background: linear-gradient(180deg, #3a2e1f 0%, #4a3c2a 100%);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 12px;
@@ -6757,7 +6757,7 @@ html { overflow-x: hidden; }
 }
 .player-strip-menu .player-strip-card.in-menu { min-width: 0; width: 100%; }
 @media (max-width: 760px) {
-    .player-strip-menu { right: -4px; min-width: 190px; }
+    .player-strip-menu { min-width: 190px; }
 }
 
 /* ===== Session 40: character portrait on player-pick buttons ===== */
