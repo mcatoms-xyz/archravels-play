@@ -494,7 +494,7 @@ Object.assign(UI, {
         html += '<div class="xc-balance' + (valid ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + needed +
                 ' yarn to ' + (isReceive ? 'receive' : 'spend') +
                 (resTotal > 0 ? ' <span class="xc-hint">(plus ' + this._fixedYarnLabel(reserved) + ' included)</span>' : '') +
-                (valid ? '<span class="xc-hint ok">Ready ✓</span>' : (rule === 'twoColors' ? '<span class="xc-hint">use exactly 2 colors</span>' : '')) + '</div>';
+                (valid ? '<span class="xc-hint ok">Ready ✓</span>' : (rule === 'twoColors' ? '<span class="xc-hint">use exactly 2 colors</span>' : '')) + UI._selectedYarnChips(alloc) + '</div>';
 
         this.els.craftColorBody.innerHTML = html;
         this.els.craftColorConfirmBtn.disabled = !valid;
