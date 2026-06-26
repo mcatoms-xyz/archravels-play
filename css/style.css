@@ -6796,7 +6796,7 @@ html { overflow-x: hidden; }
 .xc-name{ font-size:11px; font-weight:700; line-height:1.1; white-space:nowrap; }
 .xc-sub{ font-size:9.5px; color:#6e5640; opacity:0.8; }
 .xc-badge{ position:absolute; top:-7px; right:-7px; min-width:21px; height:21px; padding:0 5px; border-radius:11px; background:var(--gold,#d9a521); color:#241a10; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,0.3); pointer-events:none; }
-.xc-remove{ position:absolute; bottom:-8px; right:-8px; width:20px; height:20px; border-radius:50%; border:none; background:#a8443a; color:#fff; font-size:13px; line-height:1; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.3); padding:0; display:flex; align-items:center; justify-content:center; }
+.xc-remove{ position:absolute; bottom:-8px; left:-8px; width:20px; height:20px; border-radius:50%; border:none; background:#a8443a; color:#fff; font-size:13px; line-height:1; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.3); padding:0; display:flex; align-items:center; justify-content:center; }
 .xc-remove:hover{ background:#c2503f; }
 .xc-empty{ font-size:13px; color:var(--text-muted,#6e5640); font-style:italic; }
 .xc-balance{ margin-top:10px; text-align:center; font-size:14px; color:var(--walnut,#3a2a1d); padding:9px; border-radius:10px; background:rgba(0,0,0,0.05); }
