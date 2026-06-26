@@ -6841,3 +6841,11 @@ html { overflow-x: hidden; }
 /* ===== Session 40: center Your Patterns / SR rows (no right-clip) + craft-options cost dots ===== */
 .otc-pattern-grid, .otc-sr-grid { display:flex; flex-wrap:wrap; justify-content:center; }
 .craft-option-card .co-cost { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; margin-top:3px; }
+
+/* ===== Session 40: selected-yarn pill chips in picker balance box (#27) ===== */
+.xc-selected { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; margin-top:7px; }
+
+/* ===== Session 40: ☰ menu to top-left; cards + dropdown stay right (#31) ===== */
+.nav-right { order: -1; }
+.nav-menu-dropdown { left: 0; right: auto; }
+.player-strip { margin-left: auto; }
