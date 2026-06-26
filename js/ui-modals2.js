@@ -268,13 +268,11 @@ Object.assign(UI, {
                 var slot = document.createElement('div');
                 slot.className = 'craft-slot can-afford';
 
-                var imgSrc = opt.type === 'sr' ? opt.sr.img
-                    : (opt.tile && !opt.learned) ? opt.tile.img : opt.itemDef.img;
                 var name = opt.type === 'sr' ? opt.sr.name : opt.itemDef.name;
 
                 var img = document.createElement('img');
                 img.className = 'craft-slot-img';
-                img.src = imgSrc;
+                img.src = opt.type === 'sr' ? opt.sr.img : opt.itemDef.img;   // item/SR art, NOT the pattern tile
                 img.alt = name;
                 slot.appendChild(img);
 
@@ -285,25 +283,7 @@ Object.assign(UI, {
 
                 var costEl = document.createElement('div');
                 costEl.className = 'craft-slot-cost';
-                var yarnMap = opt.type === 'sr' ? opt.sr.yarn
-                    : (opt.tile && !opt.learned) ? opt.tile.exact : null;
-
-                if (yarnMap) {
-                    CARDS.COLORS.forEach(function(color) {
-                        if (!yarnMap[color]) return;
-                        for (var d = 0; d < yarnMap[color]; d++) {
-                            var dot = document.createElement('span');
-                            dot.className = 'craft-cost-dot';
-                            dot.style.backgroundColor = CARDS.COLOR_HEX[color];
-                            costEl.appendChild(dot);
-                        }
-                    });
-                } else {
-                    var lbl = document.createElement('span');
-                    lbl.className = 'craft-cost-label';
-                    lbl.textContent = opt.yarnNeeded;
-                    costEl.appendChild(lbl);
-                }
+                costEl.innerHTML = UI._costDotsHTML(opt);
                 slot.appendChild(costEl);
 
                 (function(option, pIdx) {
@@ -613,6 +593,28 @@ Object.assign(UI, {
     // "What you can make" — a modal listing every item + SR the player can
     // currently afford. Tapping one runs the SAME craft path as the on-board
     // strip (onCraftClick / onSRCraftClick). Opened from "View Craft Options".
+    // Cost dots for an item/SR option (with data-cb-color so the color letters show).
+    // SR: exact dots or a rule label. Item unlearned: exact dots. Item learned: neutral dots x yarnCount.
+    _costDotsHTML: function(opt) {
+        var dot = function(c) { return '<span class="craft-cost-dot" data-cb-color="' + c + '" style="background:' + CARDS.COLOR_HEX[c] + '"></span>'; };
+        var h = '';
+        if (opt.sr) {
+            var sr = opt.sr, rule = sr.colorRule || 'specific';
+            if (rule === 'specific' && sr.yarn) {
+                CARDS.COLORS.forEach(function(c) { for (var d = 0; d < (sr.yarn[c] || 0); d++) h += dot(c); });
+            } else {
+                var lbl = { any: sr.yarnCount + ' any', sameColor: sr.yarnCount + ' same', different: sr.yarnCount + ' diff.', give: 'Give ' + sr.yarnCount }[rule] || '';
+                h += '<span class="craft-cost-label">' + lbl + '</span>';
+            }
+        } else if (opt.tile && !opt.learned) {
+            CARDS.COLORS.forEach(function(c) { for (var d = 0; d < (opt.tile.exact[c] || 0); d++) h += dot(c); });
+        } else {
+            var n = (opt.itemDef && opt.itemDef.yarnCount) || 0;
+            for (var k = 0; k < n; k++) h += '<span class="craft-cost-dot craft-cost-dot-neutral"></span>';
+        }
+        return h;
+    },
+
     showCraftOptionsModal: function() {
         var items = Game.getCraftOptions().filter(function(o) { return o.canAfford; });
         var srs = Game.getSRCraftOptions().filter(function(o) { return o.canAfford; });
@@ -627,13 +629,15 @@ Object.assign(UI, {
             items.forEach(function(o, i) {
                 html += '<button class="craft-option-card" onclick="UI._craftOptionPick(\'item\',' + i + ')">' +
                     '<img src="' + o.itemDef.img + '" alt=""><span class="co-name">' + o.itemDef.name + '</span>' +
-                    (o.itemDef.points ? '<span class="co-pts">' + o.itemDef.points + ' pts</span>' : '') + '</button>';
+                    (o.itemDef.points ? '<span class="co-pts">' + o.itemDef.points + ' pts</span>' : '') +
+                    '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
             });
             srs.forEach(function(o, i) {
                 var sr = o.sr;
                 html += '<button class="craft-option-card" onclick="UI._craftOptionPick(\'sr\',' + i + ')">' +
                     '<img src="' + sr.img + '" alt=""><span class="co-name">' + sr.name + (sr.isFavorite ? ' ♥' : '') + '</span>' +
-                    '<span class="co-pts">' + sr.points + ' pts</span></button>';
+                    '<span class="co-pts">' + sr.points + ' pts</span>' +
+                    '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
             });
             html += '</div>';
         }
