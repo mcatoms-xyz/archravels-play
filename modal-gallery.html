@@ -160,6 +160,7 @@
     { label:'Craft Circle (event)',  run:function(w){ w.UI.showCraftCircleModal(0, noop); } },
     { label:'Final Craft phase',     run:function(w){ try{ w.Game.state.phase='finalCraft'; }catch(e){} if(w.UI.showFinalCraftPhase) w.UI.showFinalCraftPhase(); } },
     { label:'Exchange yarn',         run:function(w){ if(w.UI.showExchangeModal) w.UI.showExchangeModal(); } },
+    { label:'Craft Options (make)',  run:function(w){ var p=w.Game.state.player; p.yarnBowl={red:5,blue:5,green:5,yellow:5,orange:5,purple:5}; if(w.UI.showCraftOptionsModal) w.UI.showCraftOptionsModal(); } },
 
     { grp:'Moments & end' },
     { label:'Game Moment',           run:function(w){ w.UI.showGameMoment({ title:'Snugglesaurus', points:9, badge:'Special Request', desc:'A cozy little dino, crafted with care.' }, noop); } },
