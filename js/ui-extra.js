@@ -722,7 +722,7 @@ UI._closeTopmostModal = function() {
         { id: 'exchangeModal', close: function() { UI.onExchangeCancel(); } },
         { id: 'eventModal', close: function() { document.getElementById('eventOkBtn').click(); } },
         { id: 'srTakeModal', close: function() { UI.onSRTakeConfirm(); } },
-        { id: 'yarnSaleModal', close: function() { UI._yarnSaleChoices = []; UI._buildYarnSaleBody(); } },
+        { id: 'yarnSaleModal', close: function() { UI._yarnSale = {}; UI._buildYarnSaleBody(); } },
         { id: 'donateModal', close: function() { UI.onDonateCancel(); } },
         { id: 'craftCircleModal', close: function() { UI.onCraftCircleSkip(); } },
         { id: 'finishProjectModal', close: function() { UI.onCancelFinishProject(); } },
