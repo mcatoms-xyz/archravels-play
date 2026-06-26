@@ -6820,3 +6820,20 @@ html { overflow-x: hidden; }
 .craft-option-card img{ width:62px; height:62px; object-fit:contain; }
 .craft-option-card .co-name{ font-size:12px; font-weight:700; text-align:center; line-height:1.12; }
 .craft-option-card .co-pts{ font-size:11px; color:var(--gold-d,#b8861a); font-weight:700; }
+
+/* ===== Session 40: color letters inside cost dots + scarf single-row (Adam) ===== */
+.craft-cost-dot, .otc-dot { display:inline-flex; align-items:center; justify-content:center; }
+.otc-dot { width:14px; height:14px; }
+.otc-need-card-dots { flex-wrap:nowrap; }
+.craft-cost-dot::after, .otc-dot::after { font-weight:800; line-height:1; color:#fff; font-size:7.5px; pointer-events:none; }
+.craft-cost-dot[data-cb-color="red"]::after,    .otc-dot[data-cb-color="red"]::after    { content:"R"; }
+.craft-cost-dot[data-cb-color="orange"]::after, .otc-dot[data-cb-color="orange"]::after { content:"O"; }
+.craft-cost-dot[data-cb-color="green"]::after,  .otc-dot[data-cb-color="green"]::after  { content:"G"; }
+.craft-cost-dot[data-cb-color="blue"]::after,   .otc-dot[data-cb-color="blue"]::after   { content:"B"; }
+.craft-cost-dot[data-cb-color="purple"]::after, .otc-dot[data-cb-color="purple"]::after { content:"P"; }
+.craft-cost-dot[data-cb-color="yellow"]::after, .otc-dot[data-cb-color="yellow"]::after { content:"Y"; color:#3a2a1d; }
+
+/* ===== Session 40: shrink deck/project point labels ~50% (#33) ===== */
+.proj-pts-badge { font-size:8px; padding:1px 5px; border-radius:9px; }
+.project-deck-badge { font-size:clamp(6px,0.8vw,11px); }
+.project-pts-overlay { font-size:clamp(6px,0.8vw,10px); padding:1px 5px; }
