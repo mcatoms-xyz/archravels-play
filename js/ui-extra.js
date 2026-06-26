@@ -500,94 +500,54 @@ Object.assign(UI, {
        ========================================================= */
 
     /** Temporary state for the Take5 picker */
-    _take5Picks: [],
+    _take5: {},
 
-    /**
-     * Show the Take 5 color picker modal.
-     */
+    _take5Total: function() { var t = 0, s = this._take5; UI.ROYGBP.forEach(function(c) { t += s[c] || 0; }); return t; },
+
     showTake5Modal: function() {
-        this._take5Picks = [];
+        this._take5 = {};
         var modal = document.getElementById('take5Modal');
         if (!modal) return;
-
-        // Build color buttons
-        var grid = document.getElementById('take5ColorGrid');
-        grid.innerHTML = '';
-        var colors = CARDS.COLORS;
-        var hexMap = { red: '#d9534f', blue: '#5bc0de', green: '#5cb85c', yellow: '#f0ad4e', orange: '#e8833a', purple: '#9b59b6' };
-
-        colors.forEach(function(c) {
-            var btn = document.createElement('button');
-            btn.className = 'take5-color-btn';
-            btn.style.background = hexMap[c] || '#888';
-            btn.textContent = c.charAt(0).toUpperCase() + c.slice(1);
-            btn.addEventListener('click', function() { UI.onTake5Pick(c); });
-            grid.appendChild(btn);
-        });
-
-        this._updateTake5Display();
+        this._buildTake5();
         modal.style.display = 'flex';
     },
 
-    /**
-     * Handle a color pick in the Take5 modal.
-     */
+    _buildTake5: function() {
+        var grid = document.getElementById('take5ColorGrid');
+        if (grid) grid.innerHTML = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>' +
+            UI._yarnChips({ sel: this._take5, rule: 'any', need: 5, addFn: 'UI.onTake5Pick', clearFn: 'UI.onTake5Clear' });
+        this._updateTake5Display();
+    },
+
     onTake5Pick: function(color) {
-        if (this._take5Picks.length >= 5) return;
-        this._take5Picks.push(color);
-        this._updateTake5Display();
+        if (this._take5Total() >= 5) return;
+        this._take5[color] = (this._take5[color] || 0) + 1;
+        this._buildTake5();
     },
 
-    /**
-     * Reset Take5 picks.
-     */
-    onTake5Reset: function() {
-        this._take5Picks = [];
-        this._updateTake5Display();
-    },
+    onTake5Clear: function(color) { this._take5[color] = 0; this._buildTake5(); },
 
-    /**
-     * Confirm Take5 picks — apply to game state.
-     */
+    onTake5Reset: function() { this._take5 = {}; this._buildTake5(); },
+
     onTake5Confirm: function() {
-        if (this._take5Picks.length !== 5) return;
+        if (this._take5Total() !== 5) return;
         var modal = document.getElementById('take5Modal');
         if (modal) modal.style.display = 'none';
-
-        var changed = Game.applyTake5Any(this._take5Picks);
-        this._take5Picks = [];
-        UI.renderYarnBowl(changed);
-        UI.renderCraftGrid();
-        UI.renderSpecialRequests();
-        UI.renderActionBar();
+        var arr = []; UI.ROYGBP.forEach(function(c) { var n = UI._take5[c] || 0; for (var i = 0; i < n; i++) arr.push(c); });
+        var changed = Game.applyTake5Any(arr);
+        this._take5 = {};
+        UI.renderYarnBowl(changed); UI.renderCraftGrid(); UI.renderSpecialRequests(); UI.renderActionBar();
     },
 
-    /**
-     * Update the Take5 modal display (picked tokens + confirm button state).
-     */
     _updateTake5Display: function() {
-        var picks = this._take5Picks;
+        var total = this._take5Total();
         var picksDiv = document.getElementById('take5Picks');
         var confirmBtn = document.getElementById('take5ConfirmBtn');
-        var hexMap = { red: '#d9534f', blue: '#5bc0de', green: '#5cb85c', yellow: '#f0ad4e', orange: '#e8833a', purple: '#9b59b6' };
-
         if (picksDiv) {
-            var html = '';
-            for (var i = 0; i < 5; i++) {
-                if (picks[i]) {
-                    html += '<span class="take5-token" style="background:' + (hexMap[picks[i]] || '#888') + '">' +
-                        picks[i].charAt(0).toUpperCase() + '</span>';
-                } else {
-                    html += '<span class="take5-token take5-token-empty">?</span>';
-                }
-            }
-            picksDiv.innerHTML = html;
+            picksDiv.innerHTML = '<div class="xc-balance' + (total === 5 ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / 5 yarn' +
+                (total === 5 ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (5 - total) + ' more</span>') + '</div>';
         }
-
-        if (confirmBtn) {
-            confirmBtn.disabled = picks.length < 5;
-            confirmBtn.textContent = 'Confirm (' + picks.length + '/5)';
-        }
+        if (confirmBtn) { confirmBtn.disabled = total < 5; confirmBtn.textContent = 'Take 5'; }
     },
 });
 
