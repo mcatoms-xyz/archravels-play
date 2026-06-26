@@ -6865,3 +6865,66 @@ html { overflow-x: hidden; }
     max-width: 100%;
     object-fit: contain;
 }
+
+/* ===== Session 40: in-match achievement unlock toast (Story Mode) ===== */
+#achToastHost {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+.ach-toast {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 230px;
+    max-width: min(86vw, 380px);
+    padding: 10px 16px 10px 12px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff7e6 0%, #ffe9b8 100%);
+    border: 2px solid var(--gold, #d9a521);
+    box-shadow: 0 8px 24px rgba(60, 40, 10, 0.32), 0 0 0 4px rgba(217, 165, 33, 0.16);
+    color: #4a3617;
+    font-family: var(--font-system, system-ui, sans-serif);
+    opacity: 0;
+    transform: translateY(-18px) scale(0.96);
+    transition: opacity .32s ease, transform .32s cubic-bezier(.2,.9,.3,1.3);
+}
+.ach-toast.show { opacity: 1; transform: translateY(0) scale(1); }
+.ach-toast-badge {
+    font-size: 26px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 3px rgba(120, 80, 10, 0.4));
+    animation: achPop .5s ease both;
+}
+@keyframes achPop {
+    0% { transform: scale(0.2) rotate(-25deg); }
+    60% { transform: scale(1.25) rotate(8deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+.ach-toast-body { display: flex; flex-direction: column; line-height: 1.2; }
+.ach-toast-head {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #9a6b16;
+}
+.ach-toast-name { font-size: 15px; font-weight: 700; }
+.ach-toast-pts {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1f7a3d;
+    margin-left: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ach-toast { transition: opacity .2s ease; transform: none; }
+    .ach-toast.show { transform: none; }
+    .ach-toast-badge { animation: none; }
+}
