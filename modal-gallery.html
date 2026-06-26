@@ -22,8 +22,16 @@
   .side button:hover{ background:#ffffff1a; border-color:var(--gold); }
   .stage{ flex:1 1 auto; display:flex; flex-direction:column; align-items:center; padding:18px; gap:10px; min-width:0; }
   .sizeread{ font-size:12px; color:var(--muted); }
-  .frame{ background:#000; border-radius:14px; box-shadow:0 16px 50px #000000aa, 0 0 0 1px #ffffff14; overflow:hidden; transition:width .15s, height .15s; max-width:100%; }
-  iframe{ border:0; display:block; width:100%; height:100%; background:#c2aa83; }
+  .frame{ position:relative; background:#000; border-radius:14px; box-shadow:0 16px 50px #000000aa, 0 0 0 1px #ffffff14; overflow:hidden; transition:width .15s, height .15s, border-radius .15s; max-width:100%; }
+  iframe{ border:0; display:block; width:100%; height:100%; background:#c2aa83; position:relative; z-index:1; }
+  /* iOS safe-area overlays (Dynamic Island / notch + home-indicator bar) */
+  .safe{ position:absolute; left:0; right:0; z-index:5; pointer-events:none; display:none; align-items:center; justify-content:center;
+         background:rgba(215,165,33,0.10); }
+  .safe-top{ top:0; flex-direction:column; justify-content:flex-end; border-bottom:1px dashed rgba(215,165,33,0.6); }
+  .safe-bottom{ bottom:0; flex-direction:column; justify-content:flex-start; border-top:1px dashed rgba(215,165,33,0.6); }
+  .safe-tag{ font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,238,200,0.75); padding:2px 0; }
+  .island{ width:118px; height:30px; background:#000; border-radius:18px; box-shadow:0 0 0 1px #ffffff22; margin-bottom:5px; display:none; }
+  .home-ind{ width:140px; height:5px; background:rgba(255,255,255,0.85); border-radius:3px; margin-top:5px; }
   .log{ width:100%; max-width:900px; font-size:11.5px; color:var(--muted); background:#00000040; border:1px solid #ffffff14; border-radius:8px; padding:8px 10px; min-height:34px; white-space:pre-wrap; }
   .log b{ color:var(--gold); }
   .log .err{ color:#ff8a7a; }
@@ -37,12 +45,14 @@
 <body>
   <div class="topbar">
     <h1>🧶 Modal Gallery</h1>
-    <div class="hint">Boots a real 3-player game in the frame, then pops each modal so you can check layout, scroll &amp; clipping. Open this on a phone/TV and hit <b>Fill</b> to test that device's real viewport.</div>
+    <div class="hint">Boots a real 3-player game, then pops each modal/toast so you can tune layout per device. Pick an <b>iOS target viewport</b> (safe areas show the Dynamic Island + home-bar insets), or <b>Web</b> for desktop. <b>Fill</b> = this device's real viewport.</div>
     <div class="vp-group">
-      <button class="ctl" data-w="390" data-h="844">📱 Phone</button>
-      <button class="ctl" data-w="768" data-h="1024">📲 Tablet</button>
-      <button class="ctl" data-w="1280" data-h="720">🖥️ TV</button>
-      <button class="ctl" data-w="fill" data-h="fill">↔ Fill</button>
+      <button class="ctl" data-dev="iphone">📱 iPhone</button>
+      <button class="ctl" data-dev="promax">📱 Pro Max</button>
+      <button class="ctl" data-dev="ipad">📲 iPad</button>
+      <button class="ctl" data-dev="web">🖥️ Web</button>
+      <button class="ctl" data-dev="fill">↔ Fill</button>
+      <button class="ctl" id="safeToggle">🛡 Safe areas: on</button>
       <button class="ctl" id="reboot">⟳ Reboot</button>
     </div>
   </div>
@@ -51,7 +61,11 @@
     <div class="side" id="side"></div>
     <div class="stage">
       <div class="sizeread" id="sizeread">—</div>
-      <div class="frame" id="frame"><iframe id="stage" src="index.html"></iframe></div>
+      <div class="frame" id="frame">
+        <iframe id="stage" src="index.html"></iframe>
+        <div class="safe safe-top" id="safeTop"><div class="island"></div><span class="safe-tag">safe area</span></div>
+        <div class="safe safe-bottom" id="safeBottom"><span class="safe-tag">safe area</span><div class="home-ind"></div></div>
+      </div>
       <div class="log" id="log">Loading game…</div>
     </div>
   </div>
@@ -166,6 +180,14 @@
     { label:'Game Moment',           run:function(w){ w.UI.showGameMoment({ title:'Snugglesaurus', points:9, badge:'Special Request', desc:'A cozy little dino, crafted with care.' }, noop); } },
     { label:'Game Over scorecard',   run:function(w){ w.UI.showGameOverModal(); } },
 
+    { grp:'Achievement toasts' },
+    { label:'Achievement toast',     run:function(w){ if(w.Story&&w.Story.achievementToast) w.Story.achievementToast({name:'Pattern Buff', pts:25}); else log('Story not ready', true); } },
+    { label:'Achievement toasts ×3 (stack)', run:function(w){
+        if(!w.Story||!w.Story.achievementToast){ log('Story not ready', true); return; }
+        [{name:'Yarn Hoarder',pts:10},{name:'Show Off',pts:25},{name:'Crowd Pleaser',pts:25}]
+          .forEach(function(a,i){ setTimeout(function(){ w.Story.achievementToast(a); }, i*550); });
+      } },
+
     { grp:'Side panels' },
     { label:'Opponent board viewer', run:function(w){ w.UI.showOpponentPanel(1); } },
     { label:'Turn History',          run:function(w){ if(w.UI.showTurnHistory) w.UI.showTurnHistory(); } },
@@ -179,21 +201,50 @@
     side.appendChild(b);
   });
 
-  // ---- viewport presets ----
-  function setVP(w, h, btn){
-    Array.prototype.forEach.call(document.querySelectorAll('.vp-group .ctl'), function(b){ if(b.id!=='reboot') b.classList.remove('active'); });
-    if(w==='fill'){
-      frameBox.style.width='100%'; frameBox.style.height='calc(100vh - 130px)';
-      sizeread.textContent='Fill — this device’s viewport';
+  // ---- device viewport presets (iOS launch targets + web) ----
+  // top/bottom = iOS safe-area insets in CSS px (Dynamic Island + home indicator).
+  var DEVICES = {
+    iphone: { w:393, h:852,  top:59, bottom:34, island:true,  radius:46, label:'iPhone 16 / 15 · 393 × 852' },
+    promax: { w:430, h:932,  top:59, bottom:34, island:true,  radius:50, label:'iPhone 16 Pro Max · 430 × 932' },
+    ipad:   { w:820, h:1180, top:24, bottom:20, island:false, radius:22, label:'iPad · 820 × 1180' },
+    web:    { w:1280,h:800,  top:0,  bottom:0,  island:false, radius:12, label:'Web / Desktop · 1280 × 800' },
+    fill:   { fill:true, radius:10, label:'Fill — this device’s viewport' }
+  };
+  var safeTop = document.getElementById('safeTop');
+  var safeBottom = document.getElementById('safeBottom');
+  var islandEl = safeTop.querySelector('.island');
+  var safeOn = true;
+  var currentDev = 'iphone';
+
+  function paintSafe(d){
+    var hasInsets = !d.fill && (d.top>0 || d.bottom>0);
+    var show = safeOn && hasInsets;
+    safeTop.style.display    = (show && d.top>0)    ? 'flex' : 'none';
+    safeBottom.style.display = (show && d.bottom>0) ? 'flex' : 'none';
+    if(!d.fill){ safeTop.style.height = d.top+'px'; safeBottom.style.height = d.bottom+'px'; }
+    islandEl.style.display = (show && d.island) ? 'block' : 'none';
+  }
+  function applyDevice(key, btn){
+    var d = DEVICES[key]; if(!d) return;
+    currentDev = key;
+    Array.prototype.forEach.call(document.querySelectorAll('.vp-group .ctl'), function(b){ if(b.dataset.dev) b.classList.remove('active'); });
+    if(d.fill){
+      frameBox.style.width='100%'; frameBox.style.height='calc(100vh - 150px)';
     } else {
-      frameBox.style.width=w+'px'; frameBox.style.height=h+'px';
-      sizeread.textContent=w+' × '+h+' px';
+      frameBox.style.width=d.w+'px'; frameBox.style.height=d.h+'px';
     }
+    frameBox.style.borderRadius=(d.radius||12)+'px';
+    paintSafe(d);
+    sizeread.textContent = d.label + (safeOn && !d.fill && (d.top||d.bottom) ? '  ·  safe areas shown' : '');
     if(btn) btn.classList.add('active');
   }
   Array.prototype.forEach.call(document.querySelectorAll('.vp-group .ctl'), function(b){
     if(b.id==='reboot'){ b.onclick=function(){ ready=false; iframe.src='index.html'; log('Rebooting…'); }; return; }
-    b.onclick=function(){ setVP(b.dataset.w, b.dataset.h, b); };
+    if(b.id==='safeToggle'){ b.onclick=function(){
+      safeOn=!safeOn; b.textContent='🛡 Safe areas: '+(safeOn?'on':'off'); b.classList.toggle('active', safeOn);
+      applyDevice(currentDev, document.querySelector('.vp-group .ctl[data-dev="'+currentDev+'"]'));
+    }; b.classList.add('active'); return; }
+    b.onclick=function(){ applyDevice(b.dataset.dev, b); };
   });
 
   iframe.addEventListener('load', function(){
@@ -202,8 +253,8 @@
     (function wait(){ tries++; if(boot(3)) return; if(tries<25) setTimeout(wait, 200); else log('Game did not initialize — check console.', true); })();
   });
 
-  // default viewport: phone (most viewport issues live there)
-  setVP('390','844', document.querySelector('.vp-group .ctl'));
+  // default viewport: primary iPhone target
+  applyDevice('iphone', document.querySelector('.vp-group .ctl[data-dev="iphone"]'));
 })();
 </script>
 </body>
