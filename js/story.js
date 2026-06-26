@@ -597,7 +597,7 @@ var Story = {
     {id:'twoForOne',   name:'Two for One',       desc:'Craft two items in one action (Maker)', pts:10, tier:1, group:'Crafty'},
     {id:'colorOutside',name:'Color Outside the Lines', desc:'Finish a pattern with a color it didn’t ask for (Color Specialist)', pts:10, tier:1, group:'Crafty'},
     {id:'offGrid',     name:'Off the Grid',      desc:'Win as a Spinner without taking a Shop action', pts:50, tier:3, group:'Crafty'},
-    {id:'yarnHoarder', name:'Yarn Hoarder',      desc:'Hold 12+ yarn at once',                 pts:10, tier:1, group:'Crafty', live:true, test:function(p,s){ return s.totalYarn>=12; }},
+    {id:'yarnHoarder', name:'Yarn Hoarder',      desc:'Hold 30+ yarn at once',                 pts:10, tier:1, group:'Crafty', live:true, test:function(p,s){ return s.totalYarn>=30; }},
     {id:'wasteNot',    name:'Waste Not',         desc:'Win a match ending with 2 or fewer yarn',pts:25, tier:2, group:'Crafty', test:function(p,s){ return s.endingYarn<=2; }},
     {id:'patternBuff', name:'Pattern Buff',      desc:'Learn 3+ pattern tiles in one match',   pts:25, tier:2, group:'Crafty', live:true, test:function(p,s){ return s.patternsLearned>=3; }},
     {id:'projectRunway',name:'Project Runway',   desc:'Complete 4+ projects in one match',     pts:25, tier:2, group:'Crafty', live:true, test:function(p,s){ return s.projects>=4; }},
