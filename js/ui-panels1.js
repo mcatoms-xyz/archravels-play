@@ -155,14 +155,21 @@ Object.assign(UI, {
             this.showCraftConfirm();
 
         } else if (rule === 'give') {
-            // Give N yarn to each other player — treat as 'any' pick (lose yarn, gain points)
+            // Give N yarn to EACH other player → pick N × (players − 1) total, distributed
+            // round-robin in Game.craftSpecialRequest. (Bugfix S40: was only collecting N,
+            // so in a 4-player game it asked for 2 and only one opponent got yarn.)
+            var otherCount = Math.max(0, (Game.state.players.length || 1) - 1);
+            var givePer = sr.yarnCount || 0;
+            var giveTotal = givePer * otherCount;
             this._pendingCraft = {
                 type: 'sr', srUid: sr.uid,
-                itemDef: Object.assign({}, baseItemDef, { colorRule: 'any', yarnCount: sr.yarnCount }),
+                itemDef: Object.assign({}, baseItemDef, { colorRule: 'any', yarnCount: giveTotal }),
                 yarnToSpend: null,
                 context: 'srGive',
             };
-            this.showCraftColorPicker(this._pendingCraft.itemDef, 'Choose ' + sr.yarnCount + ' Yarn to Give Away');
+            var giveTitle = 'Choose ' + giveTotal + ' Yarn to Give Away' +
+                (otherCount > 1 ? ' (' + givePer + ' to each of ' + otherCount + ' players)' : '');
+            this.showCraftColorPicker(this._pendingCraft.itemDef, giveTitle);
 
         } else if (rule === 'specificPlusAny' || rule === 'specificPlusSame' || rule === 'sameColorPlus') {
             // Session 36: compound expansion rules (Koi/Mallard/Dog Bandana/Skelly/Ghost).
