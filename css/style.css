@@ -6849,3 +6849,7 @@ html { overflow-x: hidden; }
 .nav-right { order: -1; }
 .nav-menu-dropdown { left: 0; right: auto; }
 .player-strip { margin-left: auto; }
+
+/* ===== Session 40: color-picker modal wide enough for 3-up chips (no tall column, #26) ===== */
+#colorPickerModal .modal-content { max-width:min(740px, calc(100vw - 20px)); }
+.color-picker-grid { width:100%; }
