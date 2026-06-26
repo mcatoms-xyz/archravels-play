@@ -72,7 +72,11 @@
   function boot(n){
     n = n || 3;
     try{
-      var w = W(), C = w.CARDS, G = w.Game, UI = w.UI;
+      var w = W();
+      // cards.js declares `const CARDS` (lexical, not on window) — expose the game
+      // globals onto the iframe window so the gallery can reach them cross-frame.
+      try{ w.eval("try{window.CARDS=CARDS}catch(e){} try{window.Game=Game}catch(e){} try{window.UI=UI}catch(e){} try{window.AI=AI}catch(e){} try{window.Story=Story}catch(e){} try{window.Sound=Sound}catch(e){}"); }catch(e){}
+      var C = w.CARDS, G = w.Game, UI = w.UI;
       if(!C || !G || !UI){ return false; }
       var ids = Object.keys(C.characters).filter(function(c){ return c!=='hank'; }).slice(0, n);
       G.init({ players: ids.map(function(id,i){ return { characterId:id, name:C.getCharacter(id).name, isAI: i>0 }; }) });
