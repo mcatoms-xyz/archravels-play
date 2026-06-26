@@ -1366,12 +1366,12 @@ var Game = {
                     return (bowl[sc] || 0) >= specYarn[sc];
                 });
                 if (!specOK) return false;
-                // Count available "other" yarn (colors not in specific, or surplus of specific)
+                // "Other" = colors NOT in the specific set. Surplus of a specific color does
+                // NOT count (Koi = 3 orange + 2 of any color OTHER than orange).
                 var otherAvail = 0;
                 CARDS.COLORS.forEach(function(c) {
-                    var avail = bowl[c] || 0;
-                    var needed = specYarn[c] || 0;
-                    otherAvail += Math.max(0, avail - needed);
+                    if (specYarn[c]) return;          // specific colors are not "other"
+                    otherAvail += (bowl[c] || 0);
                 });
                 return otherAvail >= anyNeeded;
             }
