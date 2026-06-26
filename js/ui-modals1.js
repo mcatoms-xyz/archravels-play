@@ -269,6 +269,7 @@ Object.assign(UI, {
         if (revealed.length === 0) {
             // No events or SRs — re-render to show any new restock actions, then let player act
             UI.renderBazaar();
+            UI.renderProjectStrip();   // S40 fix #19: re-render so the click-to-finish handler attaches now that _restockDone is true
             UI.renderActionBar();
         } else {
             // Process the queue of revealed Events/SRs, then return to restock bar
@@ -416,6 +417,7 @@ Object.assign(UI, {
         if (Game.state.phase !== 'restock') return;
         this._restockDone = true;
         UI.renderBazaar();
+        UI.renderProjectStrip();   // S40 fix #19: attach the click-to-finish handler
         UI.renderActionBar();
     },
 
