@@ -611,29 +611,26 @@ Object.assign(UI, {
             h += '<button class="xc-chip' + (count > 0 ? ' active' : '') + '" ' + (plusDisabled ? 'disabled' : '') +
                  ' onclick="UI._exchangeAdjust(\'' + side + '\',\'' + color + '\',1)" data-cb-color="' + color + '"' +
                  ' aria-label="' + cap + (side === 'give' ? ' to give' : ' to receive') + '">';
-            h += '<span class="xc-dot" style="background:' + hex + '"></span>';
+            h += '<span class="xc-dot" style="background:' + hex + '" data-cb-color="' + color + '"></span>';
             h += '<span class="xc-name">' + cap + '</span>';
             if (sub != null) h += '<span class="xc-sub">' + sub + '</span>';
             h += '</button>';
             if (count > 0) {
                 h += '<span class="xc-badge">' + count + '</span>';
-                h += '<button class="xc-remove" onclick="UI._exchangeAdjust(\'' + side + '\',\'' + color + '\',-1)" aria-label="Remove one ' + cap + '">×</button>';
+                h += '<button class="xc-remove" onclick="UI._exchangeClear(\'' + side + '\',\'' + color + '\')" aria-label="Clear ' + cap + '">×</button>';
             }
             h += '</span>';
             return h;
         }
 
-        var html = '';
-        // GIVE — only colors you actually have
+        var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
+
+        // GIVE — all six colors (dim the ones you don't have)
         html += '<div class="xc-row"><span class="xc-row-label">Give away</span><div class="xc-chips">';
-        var anyGive = false;
         CARDS.COLORS.forEach(function(color) {
             var have = bowl[color] || 0, cur = give[color] || 0;
-            if (have === 0 && cur === 0) return;
-            anyGive = true;
-            html += chip('give', color, cur, have + ' have', cur >= have);
+            html += chip('give', color, cur, 'have ' + have, cur >= have);
         });
-        if (!anyGive) html += '<span class="xc-empty">No yarn to exchange.</span>';
         html += '</div></div>';
 
         // RECEIVE — all six, total capped at what you give
@@ -643,7 +640,6 @@ Object.assign(UI, {
         });
         html += '</div></div>';
 
-        // BALANCE BAR
         var balanced = giveTotal > 0 && giveTotal === receiveTotal;
         html += '<div class="xc-balance' + (balanced ? ' ok' : '') + '">';
         html += '<span class="xc-tot">' + giveTotal + '</span> give <span class="xc-arrow">⇄</span> receive <span class="xc-tot">' + receiveTotal + '</span>';
@@ -656,25 +652,35 @@ Object.assign(UI, {
         this.els.exchangeConfirmBtn.disabled = !balanced;
     },
 
+    _exchangeSum: function(o) { var t = 0; CARDS.COLORS.forEach(function(c) { t += o[c] || 0; }); return t; },
+
     _exchangeAdjust: function(side, color, delta) {
         var bowl = Game.state.player.yarnBowl;
-        var sum = function(o) { var t = 0; CARDS.COLORS.forEach(function(c) { t += o[c] || 0; }); return t; };
         if (side === 'give') {
             var max = bowl[color] || 0;
             this._exchangeGive[color] = Math.max(0, Math.min(max, (this._exchangeGive[color] || 0) + delta));
-            // if give drops below current receive total, trim receive to match
-            var gt = sum(this._exchangeGive);
-            var over = sum(this._exchangeReceive) - gt;
-            for (var i = CARDS.COLORS.length - 1; i >= 0 && over > 0; i--) {
-                var c = CARDS.COLORS[i];
-                while (over > 0 && this._exchangeReceive[c] > 0) { this._exchangeReceive[c]--; over--; }
-            }
+            this._trimReceive();
         } else {
-            var giveT = sum(this._exchangeGive), recT = sum(this._exchangeReceive);
-            var headroom = Math.max(0, giveT - recT);
+            var headroom = Math.max(0, this._exchangeSum(this._exchangeGive) - this._exchangeSum(this._exchangeReceive));
             this._exchangeReceive[color] = Math.max(0, Math.min((this._exchangeReceive[color] || 0) + headroom, (this._exchangeReceive[color] || 0) + delta));
         }
         this._buildExchangeBody();
+    },
+
+    // × clears that color entirely.
+    _exchangeClear: function(side, color) {
+        if (side === 'give') { this._exchangeGive[color] = 0; this._trimReceive(); }
+        else { this._exchangeReceive[color] = 0; }
+        this._buildExchangeBody();
+    },
+
+    // keep total received from exceeding total given
+    _trimReceive: function() {
+        var over = this._exchangeSum(this._exchangeReceive) - this._exchangeSum(this._exchangeGive);
+        for (var i = CARDS.COLORS.length - 1; i >= 0 && over > 0; i--) {
+            var c = CARDS.COLORS[i];
+            while (over > 0 && this._exchangeReceive[c] > 0) { this._exchangeReceive[c]--; over--; }
+        }
     },
 
     onExchangeConfirm: function() {
