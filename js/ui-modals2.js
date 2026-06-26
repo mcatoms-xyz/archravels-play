@@ -94,22 +94,14 @@ Object.assign(UI, {
             html += '<div class="event-yarn-pick-summary" style="color:var(--text-muted);font-style:italic">' +
                 'Your stash is empty — nothing to donate!' +
                 '</div>';
-            // (Skip lives in the modal footer — no second one here.)
         } else {
-            html += '<div class="event-yarn-pick-grid">';
-            CARDS.COLORS.forEach(function(color) {
-                var amount = bowl[color] || 0;
-                var hex = CARDS.COLOR_HEX[color];
-                var cap = color.charAt(0).toUpperCase() + color.slice(1);
-                html += '<button class="color-pick-btn event-pick-btn" ' +
-                    'style="background:' + hex + '; position:relative" ' +
-                    (amount === 0 ? 'disabled' : '') +
-                    ' onclick="UI._donatePickColor(\'' + color + '\')">' +
-                    cap + '<br><span style="font-size:11px;opacity:0.85">(have ' + amount + ')</span>' +
-                    '</button>';
+            // Standard yarn-chip grid, single-pick: tap a color you have → gives it.
+            html += UI._yarnChips({
+                single: true, rule: 'any',
+                maxFor: function(c) { return bowl[c] || 0; },
+                sub: function(c) { return 'have ' + (bowl[c] || 0); },
+                addFn: 'UI._donatePickColor'
             });
-            html += '</div>';
-            // (Skip lives in the modal footer — no second one here.)
         }
 
         this.els.donateBody.innerHTML = html;
