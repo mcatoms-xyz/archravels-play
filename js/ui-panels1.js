@@ -600,85 +600,79 @@ Object.assign(UI, {
 
     _buildExchangeBody: function() {
         var bowl = Game.state.player.yarnBowl;
-        var give = this._exchangeGive;
-        var receive = this._exchangeReceive;
-
+        var give = this._exchangeGive, receive = this._exchangeReceive;
         var giveTotal = 0, receiveTotal = 0;
-        CARDS.COLORS.forEach(function(c) {
-            giveTotal += (give[c] || 0);
-            receiveTotal += (receive[c] || 0);
-        });
+        CARDS.COLORS.forEach(function(c) { giveTotal += give[c] || 0; receiveTotal += receive[c] || 0; });
+
+        function chip(side, color, count, sub, plusDisabled) {
+            var hex = CARDS.COLOR_HEX[color];
+            var cap = color.charAt(0).toUpperCase() + color.slice(1);
+            var h = '<span class="xc-chip-wrap">';
+            h += '<button class="xc-chip' + (count > 0 ? ' active' : '') + '" ' + (plusDisabled ? 'disabled' : '') +
+                 ' onclick="UI._exchangeAdjust(\'' + side + '\',\'' + color + '\',1)" data-cb-color="' + color + '"' +
+                 ' aria-label="' + cap + (side === 'give' ? ' to give' : ' to receive') + '">';
+            h += '<span class="xc-dot" style="background:' + hex + '"></span>';
+            h += '<span class="xc-name">' + cap + '</span>';
+            if (sub != null) h += '<span class="xc-sub">' + sub + '</span>';
+            h += '</button>';
+            if (count > 0) {
+                h += '<span class="xc-badge">' + count + '</span>';
+                h += '<button class="xc-remove" onclick="UI._exchangeAdjust(\'' + side + '\',\'' + color + '\',-1)" aria-label="Remove one ' + cap + '">×</button>';
+            }
+            h += '</span>';
+            return h;
+        }
 
         var html = '';
-
-        html += '<div class="exchange-section">';
-        html += '<div class="exchange-section-label">Give Away</div>';
+        // GIVE — only colors you actually have
+        html += '<div class="xc-row"><span class="xc-row-label">Give away</span><div class="xc-chips">';
+        var anyGive = false;
         CARDS.COLORS.forEach(function(color) {
-            var available = bowl[color] || 0;
-            var current = give[color] || 0;
-            var hex = CARDS.COLOR_HEX[color];
-            var capName = color.charAt(0).toUpperCase() + color.slice(1);
-
-            if (available === 0 && current === 0) return;
-
-            var canInc = current < available;
-            var canDec = current > 0;
-
-            html += '<div class="craft-color-row">';
-            html += '<div class="craft-color-info">';
-            html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
-            html += '<span class="craft-color-label">' + capName + '</span>';
-            html += '<span class="craft-color-available">(have ' + available + ')</span>';
-            html += '</div>';
-            html += '<div class="craft-color-controls">';
-            html += '<button aria-label="Give less ' + capName + '" onclick="UI._exchangeAdjust(\'give\',\'' + color + '\',-1)" ' + (canDec ? '' : 'disabled') + '>-</button>';
-            html += '<span class="craft-color-count">' + current + '</span>';
-            html += '<button aria-label="Give more ' + capName + '" onclick="UI._exchangeAdjust(\'give\',\'' + color + '\',1)" ' + (canInc ? '' : 'disabled') + '>+</button>';
-            html += '</div>';
-            html += '</div>';
+            var have = bowl[color] || 0, cur = give[color] || 0;
+            if (have === 0 && cur === 0) return;
+            anyGive = true;
+            html += chip('give', color, cur, have + ' have', cur >= have);
         });
-        html += '</div>';
+        if (!anyGive) html += '<span class="xc-empty">No yarn to exchange.</span>';
+        html += '</div></div>';
 
-        html += '<div class="exchange-section">';
-        html += '<div class="exchange-section-label">Receive</div>';
+        // RECEIVE — all six, total capped at what you give
+        html += '<div class="xc-row"><span class="xc-row-label">Receive</span><div class="xc-chips">';
         CARDS.COLORS.forEach(function(color) {
-            var current = receive[color] || 0;
-            var hex = CARDS.COLOR_HEX[color];
-            var capName = color.charAt(0).toUpperCase() + color.slice(1);
-
-            var canInc = receiveTotal < giveTotal;
-            var canDec = current > 0;
-
-            html += '<div class="craft-color-row">';
-            html += '<div class="craft-color-info">';
-            html += '<span class="craft-color-dot" style="background:' + hex + '" data-cb-color="' + color + '" aria-label="' + capName + '"></span>';
-            html += '<span class="craft-color-label">' + capName + '</span>';
-            html += '</div>';
-            html += '<div class="craft-color-controls">';
-            html += '<button aria-label="Receive less ' + capName + '" onclick="UI._exchangeAdjust(\'receive\',\'' + color + '\',-1)" ' + (canDec ? '' : 'disabled') + '>-</button>';
-            html += '<span class="craft-color-count">' + current + '</span>';
-            html += '<button aria-label="Receive more ' + capName + '" onclick="UI._exchangeAdjust(\'receive\',\'' + color + '\',1)" ' + (canInc ? '' : 'disabled') + '>+</button>';
-            html += '</div>';
-            html += '</div>';
+            html += chip('receive', color, receive[color] || 0, null, receiveTotal >= giveTotal);
         });
-        html += '</div>';
+        html += '</div></div>';
 
-        html += '<div class="craft-color-summary">';
-        html += 'Give ' + giveTotal + ' → Receive ' + receiveTotal;
-        if (giveTotal > 0 && receiveTotal < giveTotal) {
-            html += '  <span style="opacity:0.6">(select ' + (giveTotal - receiveTotal) + ' more to receive)</span>';
-        }
+        // BALANCE BAR
+        var balanced = giveTotal > 0 && giveTotal === receiveTotal;
+        html += '<div class="xc-balance' + (balanced ? ' ok' : '') + '">';
+        html += '<span class="xc-tot">' + giveTotal + '</span> give <span class="xc-arrow">⇄</span> receive <span class="xc-tot">' + receiveTotal + '</span>';
+        if (giveTotal === 0) html += '<span class="xc-hint">Tap yarn above to give</span>';
+        else if (receiveTotal < giveTotal) html += '<span class="xc-hint">Pick ' + (giveTotal - receiveTotal) + ' more to receive</span>';
+        else html += '<span class="xc-hint ok">Ready ✓</span>';
         html += '</div>';
 
         this.els.exchangeBody.innerHTML = html;
-        this.els.exchangeConfirmBtn.disabled = !(giveTotal > 0 && giveTotal === receiveTotal);
+        this.els.exchangeConfirmBtn.disabled = !balanced;
     },
 
     _exchangeAdjust: function(side, color, delta) {
+        var bowl = Game.state.player.yarnBowl;
+        var sum = function(o) { var t = 0; CARDS.COLORS.forEach(function(c) { t += o[c] || 0; }); return t; };
         if (side === 'give') {
-            this._exchangeGive[color] = Math.max(0, (this._exchangeGive[color] || 0) + delta);
+            var max = bowl[color] || 0;
+            this._exchangeGive[color] = Math.max(0, Math.min(max, (this._exchangeGive[color] || 0) + delta));
+            // if give drops below current receive total, trim receive to match
+            var gt = sum(this._exchangeGive);
+            var over = sum(this._exchangeReceive) - gt;
+            for (var i = CARDS.COLORS.length - 1; i >= 0 && over > 0; i--) {
+                var c = CARDS.COLORS[i];
+                while (over > 0 && this._exchangeReceive[c] > 0) { this._exchangeReceive[c]--; over--; }
+            }
         } else {
-            this._exchangeReceive[color] = Math.max(0, (this._exchangeReceive[color] || 0) + delta);
+            var giveT = sum(this._exchangeGive), recT = sum(this._exchangeReceive);
+            var headroom = Math.max(0, giveT - recT);
+            this._exchangeReceive[color] = Math.max(0, Math.min((this._exchangeReceive[color] || 0) + headroom, (this._exchangeReceive[color] || 0) + delta));
         }
         this._buildExchangeBody();
     },
