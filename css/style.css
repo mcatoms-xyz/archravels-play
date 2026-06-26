@@ -6852,4 +6852,4 @@ html { overflow-x: hidden; }
 
 /* ===== Session 40: color-picker modal wide enough for 3-up chips (no tall column, #26) ===== */
 #colorPickerModal .modal-content { max-width:min(740px, calc(100vw - 20px)); }
-.color-picker-grid { width:100%; }
+.color-picker-grid { display:block; width:100%; }  /* override the old 3-col grid so the chip flex fills width */
