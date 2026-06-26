@@ -6780,20 +6780,20 @@ html { overflow-x: hidden; }
 }
 
 /* ===== Session 40: compact Exchange picker (tap-to-add, two rows) ===== */
-.exchange-content{ max-width:540px; }
+.exchange-content{ max-width:min(740px, calc(100vw - 20px)); }
+#yarnSaleModal .modal-content{ max-width:min(740px, calc(100vw - 20px)); }
 .xc-help{ font-size:11.5px; color:var(--text-muted,#6e5640); text-align:center; margin:2px 0 11px; }
 .xc-x-ico{ display:inline-block; min-width:15px; height:15px; line-height:13px; text-align:center; border-radius:50%; background:#a8443a; color:#fff; font-size:11px; font-weight:700; vertical-align:middle; }
 .xc-row{ margin:8px 0 12px; }
 .xc-row-label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted,#6e5640); margin:0 2px 7px; font-weight:700; }
-.xc-chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
-.xc-chip-wrap{ position:relative; display:flex; flex:1 1 0; min-width:0; }
-@media (max-width:520px){ .xc-chip-wrap{ flex:0 0 calc(33.333% - 4px); } }
-.xc-chip{ display:inline-flex; flex-direction:column; align-items:center; gap:2px; width:100%; min-width:0; padding:8px 3px 6px; border-radius:12px; border:2px solid rgba(0,0,0,0.12); background:#fff7e8; color:#3a2a1d; cursor:pointer; font:inherit; transition:transform 0.1s, box-shadow 0.12s, border-color 0.12s; }
+.xc-chips{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+.xc-chip-wrap{ position:relative; display:flex; flex:0 0 auto; width:104px; }
+.xc-chip{ display:inline-flex; flex-direction:column; align-items:center; gap:3px; width:100%; min-width:0; padding:9px 6px 7px; border-radius:12px; border:2px solid rgba(0,0,0,0.12); background:#fff7e8; color:#3a2a1d; cursor:pointer; font:inherit; transition:transform 0.1s, box-shadow 0.12s, border-color 0.12s; }
 .xc-chip:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.18); }
 .xc-chip:disabled{ opacity:0.38; cursor:default; }
 .xc-chip.active{ border-color:var(--gold,#d9a521); background:#fff; box-shadow:0 0 0 1px var(--gold,#d9a521) inset; }
-.xc-dot{ width:20px; height:20px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,0.12) inset; }
-.xc-name{ font-size:10.5px; font-weight:700; line-height:1.1; white-space:nowrap; }
+.xc-dot{ width:24px; height:24px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,0.12) inset; }
+.xc-name{ font-size:11px; font-weight:700; line-height:1.1; white-space:nowrap; }
 .xc-sub{ font-size:9.5px; color:#6e5640; opacity:0.8; }
 .xc-badge{ position:absolute; top:-7px; right:-7px; min-width:21px; height:21px; padding:0 5px; border-radius:11px; background:var(--gold,#d9a521); color:#241a10; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,0.3); pointer-events:none; }
 .xc-remove{ position:absolute; bottom:-8px; right:-8px; width:20px; height:20px; border-radius:50%; border:none; background:#a8443a; color:#fff; font-size:13px; line-height:1; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.3); padding:0; display:flex; align-items:center; justify-content:center; }
