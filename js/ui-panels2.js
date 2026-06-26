@@ -492,10 +492,20 @@ Object.assign(UI, {
                         allMet = totalYarn >= (sr.yarnCount || 0);
                         dotHtml = '<span style="font-size:10px;color:var(--text-muted)">' + ruleLabels[rule] + '</span>';
                     } else if (rule === 'sameColorPlus' && sr.plusYarn) {
-                        // Has specific plusYarn + N same color
-                        var sameCount = (sr.yarnCount || 0) - 1;
-                        dotHtml += '<span style="font-size:10px;color:var(--text-muted)">+' + sameCount + ' same</span>';
-                        allMet = false; // Can't easily check
+                        // The extra(s) live in plusYarn (NOT sr.yarn), so the dots loop above
+                        // skipped them — render them here, then the N-same-color portion.
+                        // yarnCount IS the same portion (Ghost = 5 same + 1 red), not yarnCount-1.
+                        CARDS.COLORS.forEach(function(color) {
+                            var needed = sr.plusYarn[color];
+                            if (!needed) return;
+                            var have = bowl[color] || 0;
+                            for (var i = 0; i < needed; i++) {
+                                var isHave = i < have;
+                                dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" data-cb-color="' + color + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
+                            }
+                        });
+                        dotHtml += '<span style="font-size:10px;color:var(--text-muted)">+' + (sr.yarnCount || 0) + ' same</span>';
+                        allMet = false; // flexible portion — can't precheck cheaply
                     } else if (rule === 'specificPlusAny' && sr.anyCount) {
                         dotHtml += '<span style="font-size:10px;color:var(--text-muted)">+' + sr.anyCount + ' any</span>';
                         allMet = false;
