@@ -452,8 +452,16 @@ Object.assign(UI, {
         this.els.craftColorModal.style.display = 'flex';
     },
 
+    _craftBowl: function() {
+        var p = this._pendingCraft;
+        if (p && p.context === 'craftCircle' && typeof p.craftCirclePlayerIndex === 'number') {
+            return Game.state.players[p.craftCirclePlayerIndex].yarnBowl;
+        }
+        return Game.state.player.yarnBowl;
+    },
+
     _buildCraftColorBody: function(itemDef) {
-        var bowl = Game.state.player.yarnBowl;
+        var bowl = this._craftBowl();
         var alloc = this._craftColorAlloc;
         var needed = itemDef.yarnCount;
         var rule = itemDef.colorRule;
@@ -471,7 +479,9 @@ Object.assign(UI, {
                 if (exclude.indexOf(color) !== -1) return 0;                 // not allowed
                 if (isReceive) return Infinity;                              // frog-it: bound only by count
                 var av = (bowl[color] || 0) - (reserved[color] || 0);
-                return av < 0 ? 0 : av;
+                if (av < 0) av = 0;
+                if (rule === 'oneColor' && av < needed) return 0;            // need N of ONE color -> must have N
+                return av;
             },
             sub: isReceive ? null : function(color) {
                 var av = (bowl[color] || 0) - (reserved[color] || 0); return 'have ' + (av < 0 ? 0 : av);
@@ -503,16 +513,21 @@ Object.assign(UI, {
         var pending = this._pendingCraft; if (!pending) return;
         var def = pending.itemDef, rule = def.colorRule, need = def.yarnCount;
         var alloc = this._craftColorAlloc;
+        if ((pending.excludeColors || []).indexOf(color) !== -1) return;
+        var isReceive = pending.context === 'frogIt';
+        var reserved = pending.reservedYarn || {};
+        var avail = isReceive ? Infinity : Math.max(0, (this._craftBowl()[color] || 0) - (reserved[color] || 0));
+        if (rule === 'oneColor') {
+            if (avail < need) return;                                  // must have the full amount of one color
+            CARDS.COLORS.forEach(function(c) { alloc[c] = 0; });
+            alloc[color] = need;                                       // auto-fill the whole amount
+            this._buildCraftColorBody(def);
+            return;
+        }
         var total = 0; CARDS.COLORS.forEach(function(c) { total += alloc[c] || 0; });
         if (total >= need) return;
-        if ((pending.excludeColors || []).indexOf(color) !== -1) return;
-        if (rule === 'oneColor' && CARDS.COLORS.some(function(c) { return c !== color && alloc[c] > 0; })) return;
         if (rule === 'different' && (alloc[color] || 0) >= 1) return;
-        if (pending.context !== 'frogIt') {
-            var reserved = pending.reservedYarn || {};
-            var av = (Game.state.player.yarnBowl[color] || 0) - (reserved[color] || 0);
-            if ((alloc[color] || 0) >= av) return;
-        }
+        if ((alloc[color] || 0) >= avail) return;
         alloc[color] = (alloc[color] || 0) + 1;
         this._buildCraftColorBody(def);
     },
