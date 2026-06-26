@@ -75,6 +75,10 @@ Object.assign(UI, {
             }
         }
         this._buildDonateBody();
+        // You can only SKIP a donate if you have nothing to give.
+        var hasYarn = CARDS.COLORS.some(function(c) { return (Game.state.player.yarnBowl[c] || 0) > 0; });
+        var skipBtn = this.els.donateModal.querySelector('.confirm-take-buttons button');
+        if (skipBtn) skipBtn.style.display = hasYarn ? 'none' : '';
         this.els.donateModal.style.display = 'flex';
     },
 
