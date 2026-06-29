@@ -893,6 +893,8 @@ var UI = {
      * Session 17 single-row redesign: renderActionBar manages a single element.
      * Layout: [ab-phase icon+label] [ab-divider] [ab-middle chips/status] [ab-buttons]
      */
+    _roundTxt: function() { return document.body.classList.contains('cap-native') ? String(Game.currentRound()) : ('Round ' + Game.currentRound()); },
+
     renderActionBar: function() {
         var bar = this.els.actionBar;
         var phase = Game.state.phase;
@@ -949,7 +951,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">🧶</span>' +
-                '<span class="ab-phase-label">Round ' + Game.currentRound() + '</span>' +
+                '<span class="ab-phase-label">' + UI._roundTxt() + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' +
@@ -1001,7 +1003,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">📍</span>' +
-                '<span class="ab-phase-label">Round ' + Game.currentRound() + '</span>' +
+                '<span class="ab-phase-label">' + UI._roundTxt() + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' + middleHtml + '</div>';
@@ -1247,7 +1249,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">⚡</span>' +
-                '<span class="ab-phase-label">Round ' + Game.currentRound() + (document.body.classList.contains('cap-native') ? '' : ' — ' + spaceLabel) + '</span>' +
+                '<span class="ab-phase-label">' + UI._roundTxt() + (document.body.classList.contains('cap-native') ? '' : ' — ' + spaceLabel) + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' + chipsHtml + '</div>' +
