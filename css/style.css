@@ -7151,3 +7151,31 @@ body.cap-native .ab-buttons .btn {
     .setup-players,
     .setup-players.setup-3col { grid-template-columns: 1fr; }
 }
+
+/* Session 41: Quick Play setup — PHONE = compact rows (not stacked cards).
+   Each player tile becomes a horizontal block: header (icon + name + AI toggle)
+   on top, the type + character pickers sharing the line below. Tablet+ keeps the
+   nice cards (this only applies <=600px). */
+@media (max-width: 600px) {
+    .setup-players { min-height: 0; gap: 8px; }
+    .setup-tile {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        padding: 10px 12px;
+    }
+    .setup-tile-header { flex: 1 1 100%; }
+    .setup-tile-icon { width: 30px; height: 30px; }
+    .setup-type-select {
+        flex: 1 1 38%;
+        width: auto;
+        min-width: 120px;
+        font-size: 15px;
+    }
+    .setup-character-select {
+        flex: 1 1 50%;
+        width: auto;
+        min-width: 140px;
+    }
+}
