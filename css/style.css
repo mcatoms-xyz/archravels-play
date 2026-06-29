@@ -7246,3 +7246,24 @@ body.cap-native .landing-credit {
     font-size: 11px;
     text-wrap: balance;
 }
+
+/* =================================================================
+   SESSION 41 (cap-native) — feed move + action-box combine + nav card.
+   ================================================================= */
+/* Move the turn-history FEED between the bazaar and the player board,
+   near-full width with even margins. (game-layout children reordered.) */
+body.cap-native .game-layout { display: flex; flex-direction: column; }
+body.cap-native .board-section { order: 1; }
+body.cap-native .action-feed  { order: 2; margin: 8px; max-width: none; width: auto; }
+body.cap-native .player-area  { order: 3; }
+
+/* Action box: round/action label + the Shop/Craft pills on ONE row
+   (the buttons already wrap to their own row beneath). */
+body.cap-native .ab-divider { display: none; }
+body.cap-native .ab-phase-label { font-size: 13px; }
+body.cap-native .ab-phase { flex: 0 0 auto; }
+body.cap-native .ab-middle { flex: 1 1 auto; flex-wrap: nowrap; gap: 6px; min-width: 0; }
+
+/* Compact the nav player card (full dropdown-merge is still a separate task):
+   drop the "-N pts · N items" detail line so the card is smaller. */
+body.cap-native .player-strip-detail { display: none; }
