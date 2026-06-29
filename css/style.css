@@ -7131,3 +7131,23 @@ body.cap-native .ab-buttons .btn {
     flex: 1 1 auto;
     min-width: 88px;
 }
+
+/* Session 41: Quick Play setup modal on phones. The .go-players-* min-widths
+   (420–800px) overflow a ~390px screen; cap to the viewport + stack the player
+   tiles into one column. Narrow-width only — desktop/tablet unchanged. */
+@media (max-width: 600px) {
+    .go-modal-wide,
+    .go-modal-wide.go-players-2,
+    .go-modal-wide.go-players-3,
+    .go-modal-wide.go-players-4,
+    .go-modal-wide.go-players-5,
+    .go-modal-wide.go-players-6 {
+        min-width: 0 !important;
+        max-width: 94vw !important;
+        width: 94vw;
+        margin-top: 12px;
+    }
+    .setup-content.setup-wide { max-width: 94vw; }
+    .setup-players,
+    .setup-players.setup-3col { grid-template-columns: 1fr; }
+}
