@@ -6734,21 +6734,24 @@ html { overflow-x: hidden; }
 #story-root .srb-hero-lbl{font-size:.92rem;color:var(--walnut-soft);margin-top:4px}
 #story-root .srb-disclaimer{max-width:680px;margin:0 auto 18px;font-size:.86rem;line-height:1.4;color:var(--walnut-soft);background:var(--cream);border:1px dashed var(--line);border-radius:12px;padding:10px 14px;text-align:center}
 #story-root .srb-disclaimer b{color:var(--walnut)}
-#story-root .srb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:880px;margin:0 auto}
-@media (max-width:760px){ #story-root .srb-grid{grid-template-columns:repeat(3,1fr)} }
-@media (max-width:480px){ #story-root .srb-grid{grid-template-columns:repeat(2,1fr);gap:9px} }
-#story-root .srb-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:10px 9px;box-shadow:var(--shadow-sm);min-height:150px;justify-content:space-between}
+#story-root .srb-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:1040px;margin:0 auto}
+@media (max-width:760px){ #story-root .srb-grid{grid-template-columns:repeat(4,1fr);gap:9px} }
+@media (max-width:480px){ #story-root .srb-grid{grid-template-columns:repeat(3,1fr);gap:8px} }
+#story-root .srb-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:9px;box-shadow:var(--shadow-sm);aspect-ratio:1/1;justify-content:space-between;overflow:hidden}
 #story-root .srb-cell.unlocked{cursor:pointer}
 #story-root .srb-cell.unlocked.on{background:linear-gradient(165deg,#fff7e3 0%,#fbecc6 100%);border-color:var(--gold)}
-#story-root .srb-cell.off{opacity:.8}
-#story-root .srb-art{width:100%;aspect-ratio:1/1;object-fit:contain;border-radius:9px}
+#story-root .srb-cell.off{opacity:.82}
+#story-root .srb-art{flex:1 1 auto;min-height:0;width:100%;object-fit:contain;border-radius:9px}
 #story-root .srb-art.dim{opacity:.4;filter:grayscale(.5)}
-#story-root .srb-name{font-size:.78rem;font-weight:700;color:var(--walnut);text-align:center;line-height:1.15}
-#story-root .srb-toggle{font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;border-radius:20px;padding:4px 10px;border:1.5px solid var(--line);background:var(--cream-2);color:var(--walnut-soft);transition:background .15s,border-color .15s,color .15s}
-#story-root .srb-toggle.on{background:var(--gold);border-color:var(--gold-d);color:#3a2a08}
-#story-root .srb-cell.locked{align-items:center;justify-content:center;border-style:dashed;background:var(--cream-2);opacity:.92}
-#story-root .srb-q{font-size:2.2rem;font-weight:800;color:var(--tan-d);line-height:1}
-#story-root .srb-hint{font-size:.72rem;color:var(--walnut-soft);text-align:center;line-height:1.2;margin-top:4px}
+#story-root .srb-name{flex:0 0 auto;font-size:.74rem;font-weight:700;color:var(--walnut);text-align:center;line-height:1.12;max-height:2.3em;overflow:hidden}
+/* sliding on/off toggle switch */
+#story-root .srb-switch{flex:0 0 auto;position:relative;width:44px;height:23px;border:none;border-radius:23px;padding:0;cursor:pointer;background:var(--tan-d);transition:background .18s}
+#story-root .srb-switch.on{background:var(--gold-d)}
+#story-root .srb-knob{position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:left .18s}
+#story-root .srb-switch.on .srb-knob{left:24px}
+#story-root .srb-cell.locked{align-items:center;justify-content:center;gap:8px;border-style:dashed;border-width:2px;background:var(--cream-2);opacity:.95}
+#story-root .srb-q{font-size:2.6rem;font-weight:800;color:var(--tan-d);line-height:1}
+#story-root .srb-hint{font-size:.7rem;color:var(--walnut-soft);text-align:center;line-height:1.2}
 #story-root .srb-cell.coming{cursor:pointer}
 #story-root .srb-ribbon{font-size:.7rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#7a5a12;background:#f3e2b8;border:1px solid var(--gold-d);border-radius:20px;padding:3px 9px}
 .ach-toast.floor .ach-toast-badge{animation:none}
