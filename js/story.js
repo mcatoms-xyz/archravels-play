@@ -765,7 +765,7 @@ var Story = {
         return '<div class="srb-cell unlocked'+(on?' on':' off')+'" onclick="Story.srPreview(\''+id+'\')">'+
           '<img class="srb-art" src="'+sr.img+'" alt="'+sr.name+'">'+
           '<div class="srb-name">'+sr.name+'</div>'+
-          '<button class="srb-toggle'+(on?' on':'')+'" onclick="event.stopPropagation();Story.srToggle(\''+id+'\')">'+(on?'✓ In your games':'Off')+'</button>'+
+          '<button class="srb-switch'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="Show '+sr.name+' in Story games" onclick="event.stopPropagation();Story.srToggle(\''+id+'\')"><span class="srb-knob"></span></button>'+
         '</div>';
       }
       if(info.kind==='comingSoon'){
