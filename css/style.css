@@ -7207,17 +7207,17 @@ body.cap-native {
    them. Web is unaffected.
    ================================================================= */
 body.cap-native .modal-overlay {
-    align-items: flex-end;
+    align-items: center;
     z-index: 600;
 }
 body.cap-native .modal-content {
-    max-width: 100%;
-    width: 100%;
+    max-width: 94vw;
+    width: auto;
     max-height: 88vh;
     overflow-y: auto;
     overflow-x: hidden;
-    border-radius: 18px 18px 0 0;
-    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 16px;
+    padding: 20px 18px;
 }
 
 /* Session 41 (cap-native): card previews never clip at the screen edge — center them
@@ -7254,7 +7254,7 @@ body.cap-native .landing-credit {
    near-full width with even margins. (game-layout children reordered.) */
 body.cap-native .game-layout { display: flex; flex-direction: column; gap: 6px; }
 body.cap-native .board-section { order: 1; }
-body.cap-native .action-feed  { order: 2; margin: 0 8px; max-width: none; width: auto; }
+body.cap-native .action-feed  { order: 2; margin: 4px auto 0; max-width: calc(100% - 16px); width: auto; }
 body.cap-native .player-area  { order: 3; }
 
 /* Action box: round/action label + the Shop/Craft pills on ONE row
@@ -7289,17 +7289,14 @@ body.cap-native .merged-nav { display: flex; align-items: center; position: rela
 .mn-ic { width: 22px; height: 22px; border-radius: 50%; object-fit: contain; flex: 0 0 auto; }
 .mn-name { font-size: 13px; max-width: 88px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mn-caret { font-size: 11px; opacity: .8; }
-.mn-menu {
-    position: absolute; top: calc(100% + 6px); right: 0; z-index: 700;
-    background: #2a2014; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.5); padding: 6px; min-width: 184px;
+.mn-drawer {
+    position: fixed; left: 0; right: 0; z-index: 700;
+    background: #2a2014; border-bottom: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.55);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    animation: mn-slidedown .18s ease;
 }
-.mn-menu-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: #b8a888; padding: 4px 8px 6px; }
-.mn-item {
-    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
-    background: rgba(255,255,255,0.05); border: none; border-radius: 8px;
-    color: #f0e6d2; font-family: inherit; font-size: 13px; font-weight: 600;
-    padding: 8px 10px; margin: 3px 0; cursor: pointer;
-}
-.mn-item:hover { background: rgba(255,255,255,0.12); }
-.mn-item .mn-ic { width: 20px; height: 20px; }
+@keyframes mn-slidedown { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.mn-drawer-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: #b8a888; padding: 2px 4px 8px; }
+.mn-drawer-cards { display: flex; flex-direction: column; gap: 8px; max-height: 70vh; overflow-y: auto; }
+.mn-drawer-cards .player-strip-card { width: 100%; cursor: pointer; }
