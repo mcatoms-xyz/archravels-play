@@ -138,7 +138,14 @@ var Story = {
   },
   // Make sure the saved profile (cloud if signed in, else local) is loaded before
   // showing any profile-dependent screen (stats / ladder resume).
-  ensureProfile: async function(){ if(!this.profile) this.profile = await SaveAPISafe(this); this.srEnsure(this.profile); return this.profile; },
+  ensureProfile: async function(){
+    if(!this.profile) this.profile = await SaveAPISafe(this);
+    var p=this.profile; this.srEnsure(p);
+    var changed=this.srBackfill(p);                 // retro-unlock past Story wins (once)
+    var np=this.srSyncPacks(p); if(np && np.length) changed=true;
+    if(changed) this.save();
+    return p;
+  },
   // Force a fresh load (used on sign-in/out so we pull the right identity's data),
   // then refresh whatever profile-dependent screen is currently open.
   loadProfile: async function(){
@@ -685,6 +692,32 @@ var Story = {
       newPacks.push(pk);
     });
     return newPacks;
+  },
+  // One-time retroactive unlock for players who beat crafters BEFORE the SR Board
+  // existed. The profile stores, per crafter you've played as, how many rivals you
+  // beat (`crafters[id].beaten`); the ladder order is fixed, so "beat N rivals as X"
+  // deterministically identifies which opponents → unlock their favorites. Hank's
+  // reward comes from the beat-Hank achievement. Runs once (guarded by _backfilled).
+  // Returns true if it changed anything (caller saves).
+  srBackfill: function(p){
+    p=p||this.profile; if(!p) return false;
+    var b=this.srEnsure(p);
+    if(b._backfilled) return false;
+    var self=this, LADDER=this.LADDER_ORDER, crafters=p.crafters||{}, changed=false;
+    Object.keys(crafters).forEach(function(pickedId){
+      var n=(crafters[pickedId] && crafters[pickedId].beaten)||0;
+      if(n<=0) return;
+      var oppOrder=LADDER.filter(function(c){ return c!==pickedId; });  // rivals faced, in order
+      for(var i=0;i<n && i<oppOrder.length;i++){
+        var fav=self.faveSR(oppOrder[i]);
+        if(fav && self.srUnlock(p, fav.id)) changed=true;
+      }
+    });
+    if(p.achievements && (p.achievements.bestOfNook || p.achievements.champion)){
+      if(self.srUnlock(p, self.SR_BOARD.hankReward)) changed=true;
+    }
+    b._backfilled=true;
+    return changed;
   },
   // The enabled-SR id list to hand Game.init for a Story match (null = full pool).
   srEnabledIds: function(){
