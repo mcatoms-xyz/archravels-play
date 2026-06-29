@@ -7187,7 +7187,7 @@ body.cap-native .project-pts-overlay { display: none; }
 /* Finished Objects drawer ~full player-board width on phone. */
 body.cap-native .fo-drawer { width: 90%; right: 2%; }
 /* Blanket's 5 on-board craft-cost dots were squishing at phone width — shrink them. */
-body.cap-native .craft-board-overlay .craft-slot-cost .craft-cost-dot {
+body.cap-native .craft-board-overlay .craft-slot:last-child .craft-slot-cost .craft-cost-dot {
     width: 9px;
     height: 9px;
     border-width: 1px;
@@ -7252,9 +7252,9 @@ body.cap-native .landing-credit {
    ================================================================= */
 /* Move the turn-history FEED between the bazaar and the player board,
    near-full width with even margins. (game-layout children reordered.) */
-body.cap-native .game-layout { display: flex; flex-direction: column; }
+body.cap-native .game-layout { display: flex; flex-direction: column; gap: 6px; }
 body.cap-native .board-section { order: 1; }
-body.cap-native .action-feed  { order: 2; margin: 8px; max-width: none; width: auto; }
+body.cap-native .action-feed  { order: 2; margin: 0 8px; max-width: none; width: auto; }
 body.cap-native .player-area  { order: 3; }
 
 /* Action box: round/action label + the Shop/Craft pills on ONE row
@@ -7267,3 +7267,39 @@ body.cap-native .ab-middle { flex: 1 1 auto; flex-wrap: nowrap; gap: 6px; min-wi
 /* Compact the nav player card (full dropdown-merge is still a separate task):
    drop the "-N pts · N items" detail line so the card is smaller. */
 body.cap-native .player-strip-detail { display: none; }
+
+/* =================================================================
+   SESSION 41 — MERGED NAV (cap-native / iOS app only).
+   The round/timer status + the big player card collapse into one
+   pill: [Round N · ⏱ · avatar · name ▾] → tap opens a dropdown of
+   all player boards. Hides the old nav-center + player-strip.
+   ================================================================= */
+.merged-nav { display: none; }
+body.cap-native .nav-center,
+body.cap-native .player-strip { display: none !important; }
+body.cap-native .merged-nav { display: flex; align-items: center; position: relative; margin-left: auto; }
+.mn-main {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(0,0,0,0.28); border: 1.5px solid rgba(255,255,255,0.18);
+    border-radius: 22px; padding: 4px 10px 4px 12px; cursor: pointer;
+    color: #f0e6d2; font-family: inherit; font-weight: 700; line-height: 1;
+}
+.mn-round { font-size: 12px; white-space: nowrap; }
+.mn-timer { font-size: 12px; color: #e8c55a; white-space: nowrap; }
+.mn-ic { width: 22px; height: 22px; border-radius: 50%; object-fit: contain; flex: 0 0 auto; }
+.mn-name { font-size: 13px; max-width: 88px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mn-caret { font-size: 11px; opacity: .8; }
+.mn-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 700;
+    background: #2a2014; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5); padding: 6px; min-width: 184px;
+}
+.mn-menu-head { font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: #b8a888; padding: 4px 8px 6px; }
+.mn-item {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+    background: rgba(255,255,255,0.05); border: none; border-radius: 8px;
+    color: #f0e6d2; font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 8px 10px; margin: 3px 0; cursor: pointer;
+}
+.mn-item:hover { background: rgba(255,255,255,0.12); }
+.mn-item .mn-ic { width: 20px; height: 20px; }
