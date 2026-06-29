@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ArchRavels — Digital Prototype</title>
 
     <!-- Game fonts loaded via @font-face in style.css -->
@@ -659,6 +659,32 @@
         vv.addEventListener('scroll', placeBar);
         window.addEventListener('orientationchange', placeBar);
         placeBar();
+    })();
+    </script>
+
+    <!-- Session 41: native (Capacitor) app-shell hook. Tags the page `cap-native`
+         so the locked-bar + notch CSS applies ONLY inside the app, and keeps page
+         content clear of the pinned, variable-height action bar. No-ops on the web. -->
+    <script>
+    (function () {
+        try {
+            var cap = window.Capacitor;
+            var native = !!(cap && (typeof cap.isNativePlatform === 'function'
+                ? cap.isNativePlatform()
+                : (cap.platform && cap.platform !== 'web')));
+            if (!native) return;
+            if (document.body) document.body.classList.add('cap-native');
+            function syncAB() {
+                var ab = document.getElementById('actionBarWrapper');
+                var gl = document.querySelector('.game-layout');
+                if (ab && gl) gl.style.setProperty('--ab-h', ab.offsetHeight + 'px');
+            }
+            var ab = document.getElementById('actionBarWrapper');
+            if (window.ResizeObserver && ab) new ResizeObserver(syncAB).observe(ab);
+            window.addEventListener('resize', syncAB);
+            window.addEventListener('orientationchange', syncAB);
+            setTimeout(syncAB, 300); setInterval(syncAB, 1500);
+        } catch (e) {}
     })();
     </script>
 
