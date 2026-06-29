@@ -1061,7 +1061,7 @@ var AI = {
                 UI.renderCraftGrid();
                 UI.renderSpecialRequests();
                 self._handleFriendlyClerkAI(playerIdx + 1, callback);
-            }, player.name + ': Choose 1 Yarn (Friendly Clerk)');
+            }, player.name + ': Choose 1 Yarn (Friendly Clerk)', player, true);
         }
     },
 
