@@ -7234,3 +7234,15 @@ body.cap-native .project-hover-preview.preview-visible {
     z-index: 600;
 }
 body.cap-native .sr-hover-preview { z-index: 600; }
+
+/* Session 41 (cap-native): landing — top-align + safe-area so the logo isn't cut off
+   when content is taller than the phone; balance the credit line so it doesn't orphan. */
+body.cap-native .landing-screen {
+    justify-content: flex-start;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+body.cap-native .landing-credit {
+    font-size: 11px;
+    text-wrap: balance;
+}
