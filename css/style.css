@@ -7179,3 +7179,6 @@ body.cap-native .ab-buttons .btn {
         min-width: 140px;
     }
 }
+
+/* Session 41 (cap-native): drop the "# pts" tag on in-game project cards. App-only. */
+body.cap-native .project-pts-overlay { display: none; }
