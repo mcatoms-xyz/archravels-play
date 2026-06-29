@@ -652,6 +652,7 @@ Object.assign(UI, {
      * renderPlayerIndicator() so it stays in sync with turn changes.
      */
     renderPlayerStrip: function() {
+        this._renderMergedNav();   // Session 41: cap-native merged nav (round+timer+player → board dropdown)
         var strip = document.getElementById('playerStrip');
         if (!strip) return;
 
@@ -720,6 +721,64 @@ Object.assign(UI, {
         });
         wrap.appendChild(menu);
         strip.appendChild(wrap);
+    },
+
+    /* =========================================================
+       Session 41: MERGED NAV (cap-native / iOS app only).
+       Collapses the round/phase/timer status text + the big player
+       card into ONE compact control: [Round N · ⏱timer · avatar ▾].
+       Tapping it opens a dropdown of every player's board. The old
+       nav-center + player-strip are hidden in cap-native via CSS.
+       ========================================================= */
+    _renderMergedNav: function() {
+        var nav = document.getElementById('navBar');
+        if (!nav) return;
+        var host = document.getElementById('mergedNav');
+        var isNative = document.body.classList.contains('cap-native');
+        if (!isNative) { if (host) host.style.display = 'none'; return; }
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'mergedNav';
+            host.className = 'merged-nav';
+            var navRight = nav.querySelector('.nav-right');
+            nav.insertBefore(host, navRight);
+        }
+        host.style.display = '';
+        var st = Game.state;
+        if (!st || !st.players || !st.players.length) { host.innerHTML = ''; return; }
+        var activeIdx = st.activePlayerIndex || 0;
+        var active = st.players[activeIdx];
+        var round = (typeof Game.currentRound === 'function') ? Game.currentRound() : ((st.turn && st.turn.number) || 1);
+        var tEl = document.getElementById('navTimer');
+        var timer = (tEl && tEl.style.display !== 'none' && tEl.textContent) ? tEl.textContent : '';
+        var icon = function(p) { var ic = UI._typeIcons[p.characterType]; return ic ? '<img class="mn-ic" src="' + ic + '" alt="">' : ''; };
+        var items = st.players.map(function(p, i) {
+            return '<button class="mn-item" type="button" onclick="UI.closeMergedNav();UI.showOpponentPanel(' + i + ')">' +
+                icon(p) + '<span>' + p.name + (i === activeIdx ? ' (you)' : '') + '</span></button>';
+        }).join('');
+        host.innerHTML =
+            '<button class="mn-main" type="button" onclick="UI.toggleMergedNav(event)" aria-haspopup="true" aria-label="Round ' + round + ', ' + (active ? active.name : '') + ' — view player boards">' +
+                '<span class="mn-round">Round ' + round + '</span>' +
+                (timer ? '<span class="mn-timer">⏱ ' + timer + '</span>' : '') +
+                icon(active) +
+                '<span class="mn-name">' + (active ? active.name : '') + '</span>' +
+                '<span class="mn-caret">▾</span>' +
+            '</button>' +
+            '<div class="mn-menu" id="mergedNavMenu" style="display:none">' +
+                '<div class="mn-menu-head">Player boards · tap to view</div>' + items +
+            '</div>';
+    },
+    toggleMergedNav: function(e) {
+        if (e) e.stopPropagation();
+        var m = document.getElementById('mergedNavMenu');
+        if (!m) return;
+        var open = m.style.display !== 'none';
+        m.style.display = open ? 'none' : 'block';
+        if (!open) setTimeout(function() { document.addEventListener('click', function h() { UI.closeMergedNav(); document.removeEventListener('click', h); }); }, 0);
+    },
+    closeMergedNav: function() {
+        var m = document.getElementById('mergedNavMenu');
+        if (m) m.style.display = 'none';
     },
 
     // Build one player card (used inline and inside the collapse menu). Clicking it
