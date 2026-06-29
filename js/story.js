@@ -795,38 +795,58 @@ var Story = {
     requestAnimationFrame(function(){ ov.classList.add('open'); });
   },
   srDetailClose: function(){ var o=document.getElementById('srDetail'); if(o){ o.classList.remove('open'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },200); } },
+  // Render one board cell (unlocked = art that opens the detail panel; locked = dotted "?").
+  srCellHTML: function(id){
+    var sr=CARDS.getSpecialRequest(id); if(!sr) return '';
+    var b=this.srEnsure(this.profile), info=this.srSource(id), isUnlocked=b.unlocked.indexOf(id)!==-1;
+    if(isUnlocked){
+      var on=b.enabled.indexOf(id)!==-1;
+      return '<div class="srb-cell unlocked'+(on?' on':' off')+'" onclick="Story.srDetail(\''+id+'\')" title="'+sr.name+'">'+
+        '<img class="srb-art" src="'+sr.img+'" alt="'+sr.name+'"></div>';
+    }
+    return '<div class="srb-cell locked" onclick="Story.srDetail(\''+id+'\')" title="'+(info.hint||'Locked')+'">'+
+      '<div class="srb-q">?</div><div class="srb-lockover">'+(info.hint||'Locked')+'</div></div>';
+  },
   goSRBoard: async function(){
     await this.ensureProfile();
     var p=this.profile||{}, b=this.srEnsure(p), self=this;
     this.srSyncPacks(p); this.save();   // make sure the board reflects current unlocks
-    var order=this.srBoardOrder();
-    var unlockedCount=order.filter(function(id){ return b.unlocked.indexOf(id)!==-1; }).length;
-    var enabledCount=order.filter(function(id){ return b.enabled.indexOf(id)!==-1; }).length;
-    var cells=order.map(function(id){
-      var sr=CARDS.getSpecialRequest(id); if(!sr) return '';
-      var info=self.srSource(id), isUnlocked=b.unlocked.indexOf(id)!==-1;
-      if(isUnlocked){
-        var on=b.enabled.indexOf(id)!==-1;
-        return '<div class="srb-cell unlocked'+(on?' on':' off')+'" onclick="Story.srDetail(\''+id+'\')" title="'+sr.name+'">'+
-          '<img class="srb-art" src="'+sr.img+'" alt="'+sr.name+'">'+
-        '</div>';
-      }
-      if(info.kind==='comingSoon'){
-        return '<div class="srb-cell coming" onclick="Story.srDetail(\''+id+'\')" title="Coming soon">'+
-          '<img class="srb-art dim" src="'+sr.img+'" alt="'+sr.name+'">'+
-          '<div class="srb-ribbon">Soon</div>'+
-        '</div>';
-      }
-      return '<div class="srb-cell locked" onclick="Story.srDetail(\''+id+'\')" title="'+(info.hint||'Locked')+'">'+
-        '<div class="srb-q">?</div>'+
-        '<div class="srb-lockover">'+(info.hint||'Locked')+'</div>'+
+    var B=this.SR_BOARD;
+    // Build the grouped sections (8 MS coming-soon SRs intentionally excluded for now).
+    var favIds=[]; this.LADDER_ORDER.forEach(function(cid){ var f=self.faveSR(cid); if(f) favIds.push(f.id); });
+    var sections=[
+      {title:'Starters',         sub:'Yours from the very start', ids:B.starters},
+      {title:'Crafter Favorites',sub:'Beat a crafter in Story to earn theirs', ids:favIds}
+    ];
+    B.packs.forEach(function(pk){ sections.push({title:pk.name, sub:'Unlocks at '+pk.milestone+' achievements', ids:pk.srs, packAch:pk.ach}); });
+    sections.push({title:'Boss Reward', sub:'Beat Hank, the Stitchmeister', ids:[B.hankReward]});
+
+    var allIds=[], sectionsHTML='';
+    sections.forEach(function(sec){
+      var cells='', u=0;
+      sec.ids.forEach(function(id){
+        if(!CARDS.getSpecialRequest(id)) return;
+        allIds.push(id);
+        if(b.unlocked.indexOf(id)!==-1) u++;
+        cells+=self.srCellHTML(id);
+      });
+      var done = (sec.packAch && p.achievements && p.achievements[sec.packAch]);
+      sectionsHTML+='<div class="srb-section">'+
+        '<div class="srb-sec-head">'+
+          '<span class="srb-sec-title">'+sec.title+(done?' <span class="srb-sec-done">unlocked</span>':'')+'</span>'+
+          '<span class="srb-sec-sub">'+sec.sub+'</span>'+
+          '<span class="srb-sec-prog">'+u+'/'+sec.ids.length+'</span>'+
+        '</div>'+
+        '<div class="srb-grid">'+cells+'</div>'+
       '</div>';
-    }).join('');
+    });
+    var unlockedCount=allIds.filter(function(id){ return b.unlocked.indexOf(id)!==-1; }).length;
+    var enabledCount=allIds.filter(function(id){ return b.enabled.indexOf(id)!==-1; }).length;
     this.screen('<div class="crumb">Story Mode · Special Request Board</div>'+
-      '<div class="srb-hero"><div class="srb-hero-num">'+unlockedCount+' <span>/ '+order.length+'</span></div>'+
+      '<div class="srb-hero"><div class="srb-hero-num">'+unlockedCount+' <span>/ '+allIds.length+'</span></div>'+
       '<div class="srb-hero-lbl">unlocked · '+enabledCount+' active in your Story games</div></div>'+
       '<div class="srb-disclaimer">📖 This board affects <b>Story Mode only</b>. Quick Play &amp; pass-and-play always draw from the full deck. Your chosen crafter always brings their own favorite, whatever you toggle.</div>'+
-      '<div class="srb-grid">'+cells+'</div>'+
+      sectionsHTML+
       this.backBar('Story.goStats()','← Back to stats'));
   },
   // ===== Session 40: live (mid-match) achievement detection + toast =====
