@@ -545,6 +545,12 @@ Object.assign(UI, {
                         'src="Wood Yarn Tokens PNG/' + color + '.png" ' +
                         'alt="' + color.charAt(0).toUpperCase() + color.slice(1) + ' Yarn">' +
                     '<span class="yarn-count" id="yarnCount_' + color + '">0</span>' +
+                    // Playtest 6/29: colorblind key — reuses the .craft-cost-dot
+                    // CB treatment (shape + color + pattern + letter) so the bowl
+                    // column carries the same combo as the preview dots. Hidden
+                    // unless colorblind-mode is on (see .yarn-cb-key CSS).
+                    '<span class="yarn-cb-key craft-cost-dot" data-cb-color="' + color + '" ' +
+                        'style="background-color:' + CARDS.COLOR_HEX[color] + '" aria-hidden="true"></span>' +
                 '</div>';
 
             grid.appendChild(slot);
@@ -697,7 +703,9 @@ Object.assign(UI, {
             // Session 22: Three states — clickable (can-afford + craft phase), affordable but wrong phase, unaffordable
             var slotClass = 'craft-slot';
             if (canClick) {
-                slotClass += ' can-afford';
+                // Playtest 6/29: pulse craftable items so it's clear a craft
+                // action is available after choosing a craft space.
+                slotClass += ' can-afford craft-slot-pulse';
             } else if (!opt.canAfford) {
                 slotClass += ' cannot-afford';
             }
