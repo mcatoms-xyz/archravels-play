@@ -138,7 +138,7 @@ var Story = {
   },
   // Make sure the saved profile (cloud if signed in, else local) is loaded before
   // showing any profile-dependent screen (stats / ladder resume).
-  ensureProfile: async function(){ if(!this.profile) this.profile = await SaveAPISafe(this); return this.profile; },
+  ensureProfile: async function(){ if(!this.profile) this.profile = await SaveAPISafe(this); this.srEnsure(this.profile); return this.profile; },
   // Force a fresh load (used on sign-in/out so we pull the right identity's data),
   // then refresh whatever profile-dependent screen is currently open.
   loadProfile: async function(){
@@ -420,7 +420,7 @@ var Story = {
     Game.init({ players: [
       { characterId:this.picked, isAI:false, name:youName },
       { characterId:oppId,       isAI:true,  name:this.char(oppId).name }
-    ]});
+    ], srEnabledIds: this.srEnabledIds() });   // Session 41: Story honors the SR Board loadout
     UI.renderAll();
     var tb=document.getElementById('takeoverBar'); if(tb) tb.style.display='none';
   },
@@ -538,7 +538,7 @@ var Story = {
           : '<button class="btn btn-gold stats-signout" onclick="Story.goSignIn()">Sign in</button>')+
       '</div>'+
       '<div class="stat-tiles">'+tiles+'</div>'+
-      '<div class="ach-cta-row"><button class="btn btn-ghost" onclick="Story.goAchievements()">🏅 View all achievements →</button></div>'+
+      '<div class="ach-cta-row"><button class="btn btn-ghost" onclick="Story.goAchievements()">🏅 View all achievements →</button><button class="btn btn-ghost" onclick="Story.goSRBoard()">🧶 Special Request Board →</button></div>'+
       '<div class="section-h">Your Crafters</div><div class="crafter-board">'+board+'</div>'+
       this.backBar('Story.goTypes()','← Back to start'));
   },
@@ -551,7 +551,7 @@ var Story = {
     var earnedCount=ACH.filter(function(a){ return earnedMap[a.id]; }).length;
     var totalPts=ACH.reduce(function(n,a){ return n+a.pts; },0);
     var bank=p.bank||0;
-    var groups=['The Climb','Single Match','Crafty','Special Requests','Mastery','Capstone'];
+    var groups=['The Climb','Single Match','Crafty','Special Requests','Collection','Mastery','Capstone'];
     var sections=groups.map(function(g){
       var items=ACH.filter(function(a){ return a.group===g; });
       if(!items.length) return '';
@@ -610,9 +610,182 @@ var Story = {
     {id:'fullDozen',   name:'The Full Dozen',    desc:'Complete a run with all 12 crafters',   pts:50, tier:3, group:'Mastery'},
     {id:'matchingSet', name:'Matching Set',      desc:'Win a run with both crafters of a single type', pts:25, tier:2, group:'Mastery'},
     {id:'flawless',    name:'Flawless',          desc:'Complete a run without losing a match', pts:50, tier:3, group:'Mastery'},
+    // ── Collection (unlock SR packs — low value, awarded when a pack unlocks) ──
+    {id:'packFantasy',  name:'Once Upon a Skein', desc:'Unlock the Fantasy Pack',    pts:5, tier:1, group:'Collection', packUnlock:true},
+    {id:'packSweater',  name:'Sweater Weather',   desc:'Unlock the Sweater Pack',    pts:5, tier:1, group:'Collection', packUnlock:true},
+    {id:'packScifi',    name:'Out of This Whorl', desc:'Unlock the Sci-Fi Pack',     pts:5, tier:1, group:'Collection', packUnlock:true},
+    {id:'packWizard',   name:'Wand & Wool',       desc:'Unlock the Wizard Pack',     pts:5, tier:1, group:'Collection', packUnlock:true},
+    {id:'packDiceTower',name:'Natural 20',        desc:'Unlock the Dice Tower Pack', pts:5, tier:1, group:'Collection', packUnlock:true},
     // ── Capstone ──
     {id:'completionist',name:'Cozy Completionist',desc:'Earn every other achievement',         pts:50, tier:3, group:'Capstone'},
   ],
+
+  /* ===== Session 41: Special Request Board (Story-only collection / loadout) =====
+     Config for the SR Board. 42-card digital universe split into: 2 OG starters
+     (unlocked from the start), 12 character favorites (unlock 1:1 by beating each
+     crafter), 1 Hank reward, 5 achievement-milestone Packs (19 SRs), and 8 Magic
+     Socks "coming soon" SRs (Quick Play only; locked placeholders on the board). */
+  SR_BOARD: {
+    starters:   ['buttonEye','friendship'],
+    hankReward: 'everyonesWelcomeExp',
+    comingSoon: ['turtle','platypus','koi','mallard','spider','skelly','ghost','bat'],
+    packs: [
+      {id:'fantasy',   name:'Fantasy Pack',    ach:'packFantasy',   milestone:3,  srs:['trogdor','dwarfsBeard','loot','shoulderMonster']},
+      {id:'sweater',   name:'Sweater Pack',    ach:'packSweater',   milestone:6,  srs:['undone','spaceSuit','friendlyNeighbor','tatteredSweater']},
+      {id:'scifi',     name:'Sci-Fi Pack',     ach:'packScifi',     milestone:10, srs:['laserSword','tomsScarf','trouble','cunningHat']},
+      {id:'wizard',    name:'Wizard Pack',     ach:'packWizard',    milestone:14, srs:['houseScarfRY','houseScarfBO','houseScarfGY','houseScarfYP']},
+      {id:'diceTower', name:'Dice Tower Pack', ach:'packDiceTower', milestone:20, srs:['diceTower','shinyMathRocks','tomsHat']},
+    ],
+  },
+
+  // Ensure the profile has an srBoard, seeded with the 2 OG starters (migration-safe).
+  srEnsure: function(p){
+    p = p || this.profile; if(!p) return null;
+    if(!p.srBoard || !p.srBoard.unlocked || !p.srBoard.enabled){
+      p.srBoard = { unlocked: this.SR_BOARD.starters.slice(), enabled: this.SR_BOARD.starters.slice() };
+    }
+    var b=p.srBoard;
+    this.SR_BOARD.starters.forEach(function(id){
+      if(b.unlocked.indexOf(id)===-1) b.unlocked.push(id);
+      if(b.enabled.indexOf(id)===-1)  b.enabled.push(id);
+    });
+    return b;
+  },
+  // Unlock an SR onto the board. Newly-unlocked SRs default to ON. Returns true if newly unlocked.
+  srUnlock: function(p, id){
+    if(!id) return false;
+    var b=this.srEnsure(p); if(!b) return false;
+    if(b.unlocked.indexOf(id)!==-1) return false;
+    b.unlocked.push(id);
+    if(b.enabled.indexOf(id)===-1) b.enabled.push(id);
+    return true;
+  },
+  // Achievements that count toward Pack milestones — excludes the pack-unlock awards
+  // themselves so unlocking a pack can never cascade-trigger the next one.
+  srMilestoneCount: function(p){
+    var earned=(p&&p.achievements)||{};
+    return this.ACH.filter(function(a){ return !a.packUnlock && earned[a.id]; }).length;
+  },
+  // Unlock any Packs whose milestone is met; award each pack's (low-value) achievement
+  // once. Returns the array of newly-unlocked pack objects (for toasts).
+  srSyncPacks: function(p){
+    p=p||this.profile; if(!p) return [];
+    this.srEnsure(p);
+    p.achievements=p.achievements||{}; p.bank=p.bank||0; p.lifetimeStoryScore=p.lifetimeStoryScore||0;
+    var n=this.srMilestoneCount(p), self=this, newPacks=[];
+    this.SR_BOARD.packs.forEach(function(pk){
+      if(n < pk.milestone) return;
+      if(p.achievements[pk.ach]) return;          // pack already unlocked
+      pk.srs.forEach(function(id){ self.srUnlock(p, id); });
+      var a=self.ACH.find(function(x){ return x.id===pk.ach; });
+      p.achievements[pk.ach]=Date.now();
+      if(a){ p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; }
+      newPacks.push(pk);
+    });
+    return newPacks;
+  },
+  // The enabled-SR id list to hand Game.init for a Story match (null = full pool).
+  srEnabledIds: function(){
+    var b=this.srEnsure(this.profile);
+    return (b && b.enabled && b.enabled.length) ? b.enabled.slice() : null;
+  },
+  // Minimum SRs that must stay enabled (the default pool floor).
+  SR_FLOOR: 2,
+  // Fixed display order for the board: starters → 12 favorites (ladder order) →
+  // 5 packs → Hank reward → coming soon. De-duped, only real cards.
+  srBoardOrder: function(){
+    var B=this.SR_BOARD, self=this, ids=B.starters.slice();
+    this.LADDER_ORDER.forEach(function(cid){ var f=self.faveSR(cid); if(f) ids.push(f.id); });
+    B.packs.forEach(function(pk){ ids=ids.concat(pk.srs); });
+    ids.push(B.hankReward);
+    ids=ids.concat(B.comingSoon);
+    var seen={}, out=[];
+    ids.forEach(function(id){ if(!seen[id] && CARDS.getSpecialRequest(id)){ seen[id]=1; out.push(id); } });
+    return out;
+  },
+  // Classify an SR for the board: kind + a human hint on how it's unlocked.
+  srSource: function(id){
+    var B=this.SR_BOARD;
+    if(B.starters.indexOf(id)!==-1) return {kind:'starter'};
+    if(id===B.hankReward) return {kind:'hank', hint:'Beat Hank, the Stitchmeister'};
+    if(B.comingSoon.indexOf(id)!==-1) return {kind:'comingSoon'};
+    for(var i=0;i<B.packs.length;i++){ if(B.packs[i].srs.indexOf(id)!==-1) return {kind:'pack', hint:B.packs[i].name+' · '+B.packs[i].milestone+' achievements'}; }
+    var sr=CARDS.getSpecialRequest(id);
+    if(sr && sr.favoriteOf){ var ch=this.char(sr.favoriteOf); return {kind:'favorite', hint:'Beat '+(ch?ch.name:sr.favoriteOf)+' in Story'}; }
+    return {kind:'other'};
+  },
+  // Toggle an unlocked SR on/off for Story games. Enforces the enabled floor.
+  srToggle: function(id){
+    var p=this.profile; if(!p) return; var b=this.srEnsure(p);
+    if(b.unlocked.indexOf(id)===-1) return;     // can't toggle a locked SR
+    var i=b.enabled.indexOf(id);
+    if(i!==-1){
+      if(b.enabled.length<=this.SR_FLOOR){ this.srFloorNudge(); return; }
+      b.enabled.splice(i,1);
+    } else {
+      b.enabled.push(id);
+    }
+    this.save();
+    this.goSRBoard();
+  },
+  srFloorNudge: function(){
+    var host=document.getElementById('achToastHost');
+    if(!host){ host=document.createElement('div'); host.id='achToastHost'; document.body.appendChild(host); }
+    var el=document.createElement('div'); el.className='ach-toast floor';
+    el.innerHTML='<span class="ach-toast-badge">🧶</span><span class="ach-toast-body">'+
+      '<span class="ach-toast-head">Keep at least '+this.SR_FLOOR+' enabled</span>'+
+      '<span class="ach-toast-name">Your Story pool needs a minimum.</span></span>';
+    host.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },420); },2600);
+  },
+  // Open the SR art in the shared lightbox (works for unlocked + coming-soon tease).
+  srPreview: function(id){
+    var sr=CARDS.getSpecialRequest(id); if(!sr) return;
+    var lb=document.getElementById('srlightbox');
+    if(!lb){ lb=document.createElement('div'); lb.id='srlightbox'; lb.onclick=function(){ lb.classList.remove('open'); };
+      lb.innerHTML='<div class="lb-inner"><img id="srlbImg"><div class="lb-name" id="srlbName"></div><div class="lb-close">Tap anywhere to close</div></div>';
+      document.body.appendChild(lb); }
+    document.getElementById('srlbImg').src=sr.img;
+    document.getElementById('srlbName').textContent=sr.name;
+    lb.classList.add('open');
+  },
+  goSRBoard: async function(){
+    await this.ensureProfile();
+    var p=this.profile||{}, b=this.srEnsure(p), self=this;
+    this.srSyncPacks(p); this.save();   // make sure the board reflects current unlocks
+    var order=this.srBoardOrder();
+    var unlockedCount=order.filter(function(id){ return b.unlocked.indexOf(id)!==-1; }).length;
+    var enabledCount=order.filter(function(id){ return b.enabled.indexOf(id)!==-1; }).length;
+    var cells=order.map(function(id){
+      var sr=CARDS.getSpecialRequest(id); if(!sr) return '';
+      var info=self.srSource(id), isUnlocked=b.unlocked.indexOf(id)!==-1;
+      if(isUnlocked){
+        var on=b.enabled.indexOf(id)!==-1;
+        return '<div class="srb-cell unlocked'+(on?' on':' off')+'" onclick="Story.srPreview(\''+id+'\')">'+
+          '<img class="srb-art" src="'+sr.img+'" alt="'+sr.name+'">'+
+          '<div class="srb-name">'+sr.name+'</div>'+
+          '<button class="srb-toggle'+(on?' on':'')+'" onclick="event.stopPropagation();Story.srToggle(\''+id+'\')">'+(on?'✓ In your games':'Off')+'</button>'+
+        '</div>';
+      }
+      if(info.kind==='comingSoon'){
+        return '<div class="srb-cell coming" onclick="Story.srPreview(\''+id+'\')">'+
+          '<img class="srb-art dim" src="'+sr.img+'" alt="'+sr.name+'">'+
+          '<div class="srb-ribbon">Coming soon</div>'+
+        '</div>';
+      }
+      return '<div class="srb-cell locked" title="'+(info.hint||'Locked')+'">'+
+        '<div class="srb-q">?</div>'+
+        '<div class="srb-hint">'+(info.hint||'Locked')+'</div>'+
+      '</div>';
+    }).join('');
+    this.screen('<div class="crumb">Story Mode · Special Request Board</div>'+
+      '<div class="srb-hero"><div class="srb-hero-num">'+unlockedCount+' <span>/ '+order.length+'</span></div>'+
+      '<div class="srb-hero-lbl">unlocked · '+enabledCount+' active in your Story games</div></div>'+
+      '<div class="srb-disclaimer">📖 This board affects <b>Story Mode only</b>. Quick Play &amp; pass-and-play always draw from the full deck. Your chosen crafter always brings their own favorite, whatever you toggle.</div>'+
+      '<div class="srb-grid">'+cells+'</div>'+
+      this.backBar('Story.goStats()','← Back to stats'));
+  },
   // ===== Session 40: live (mid-match) achievement detection + toast =====
   // Build a stats snapshot from the IN-PROGRESS match — only the fields that are
   // meaningful before the game ends. Win/score/margin/beaten stay end-of-match only.
@@ -653,8 +826,10 @@ var Story = {
       }
     });
     if(newly.length){
+      var packs=this.srSyncPacks(p);   // a mid-match achievement may cross a Pack milestone
       this.save();
       newly.forEach(function(a,i){ setTimeout(function(){ self.achievementToast(a); }, i*500); });
+      packs.forEach(function(pk,i){ var pa=self.ACH.find(function(x){ return x.id===pk.ach; }); if(pa) setTimeout(function(){ self.achievementToast(pa); }, (newly.length+i)*500); });
     }
   },
 
@@ -709,6 +884,13 @@ var Story = {
     var earned = (this._matchEarned || []).slice();
     var sctx = Object.assign({beaten:beatenAfter}, (this.lastMatch&&this.lastMatch.stats)||{});
     this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test && a.test(p,sctx)){ p.achievements[a.id]=Date.now(); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
+    // Session 41: SR Board unlocks — beating a crafter unlocks THEIR favorite SR;
+    // beating Hank unlocks Everyone's Welcome. Then sync achievement-milestone Packs
+    // (counts the achievements just credited above; excludes pack-unlock awards).
+    this.srEnsure(p);
+    if(c==='hank' || (this.isBoss && this.isBoss(c))){ this.srUnlock(p, this.SR_BOARD.hankReward); }
+    else { var favSR=this.faveSR(c); if(favSR) this.srUnlock(p, favSR.id); }
+    this.srSyncPacks(p);
     lm.earned=earned;
     this.save();
   },
