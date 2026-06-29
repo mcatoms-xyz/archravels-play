@@ -6727,6 +6727,32 @@ html { overflow-x: hidden; }
 #story-root .ach-card.locked .ach-stars{color:var(--tan-d)}
 #story-root .ach-pts{font-size:.72rem;color:var(--walnut-soft);font-weight:700;margin-top:2px;white-space:nowrap}
 
+/* ===== Session 41: Special Request Board ===== */
+#story-root .srb-hero{text-align:center;background:linear-gradient(165deg,var(--cream) 0%,var(--cream-2) 100%);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px 18px;margin:6px auto 12px;max-width:520px}
+#story-root .srb-hero-num{font-size:2.4rem;font-weight:800;color:var(--walnut);line-height:1}
+#story-root .srb-hero-num span{font-size:1.2rem;color:var(--walnut-soft);font-weight:600}
+#story-root .srb-hero-lbl{font-size:.92rem;color:var(--walnut-soft);margin-top:4px}
+#story-root .srb-disclaimer{max-width:680px;margin:0 auto 18px;font-size:.86rem;line-height:1.4;color:var(--walnut-soft);background:var(--cream);border:1px dashed var(--line);border-radius:12px;padding:10px 14px;text-align:center}
+#story-root .srb-disclaimer b{color:var(--walnut)}
+#story-root .srb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:880px;margin:0 auto}
+@media (max-width:760px){ #story-root .srb-grid{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:480px){ #story-root .srb-grid{grid-template-columns:repeat(2,1fr);gap:9px} }
+#story-root .srb-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:10px 9px;box-shadow:var(--shadow-sm);min-height:150px;justify-content:space-between}
+#story-root .srb-cell.unlocked{cursor:pointer}
+#story-root .srb-cell.unlocked.on{background:linear-gradient(165deg,#fff7e3 0%,#fbecc6 100%);border-color:var(--gold)}
+#story-root .srb-cell.off{opacity:.8}
+#story-root .srb-art{width:100%;aspect-ratio:1/1;object-fit:contain;border-radius:9px}
+#story-root .srb-art.dim{opacity:.4;filter:grayscale(.5)}
+#story-root .srb-name{font-size:.78rem;font-weight:700;color:var(--walnut);text-align:center;line-height:1.15}
+#story-root .srb-toggle{font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;border-radius:20px;padding:4px 10px;border:1.5px solid var(--line);background:var(--cream-2);color:var(--walnut-soft);transition:background .15s,border-color .15s,color .15s}
+#story-root .srb-toggle.on{background:var(--gold);border-color:var(--gold-d);color:#3a2a08}
+#story-root .srb-cell.locked{align-items:center;justify-content:center;border-style:dashed;background:var(--cream-2);opacity:.92}
+#story-root .srb-q{font-size:2.2rem;font-weight:800;color:var(--tan-d);line-height:1}
+#story-root .srb-hint{font-size:.72rem;color:var(--walnut-soft);text-align:center;line-height:1.2;margin-top:4px}
+#story-root .srb-cell.coming{cursor:pointer}
+#story-root .srb-ribbon{font-size:.7rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#7a5a12;background:#f3e2b8;border:1px solid var(--gold-d);border-radius:20px;padding:3px 9px}
+.ach-toast.floor .ach-toast-badge{animation:none}
+
 /* ===== Session 40: Player strip collapse — active card + "+N" dropdown ===== */
 .player-strip-more-wrap { position: relative; flex-shrink: 0; display: flex; align-items: center; }
 .player-strip-more {
