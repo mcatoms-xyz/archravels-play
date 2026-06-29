@@ -7360,3 +7360,14 @@ body.cap-native .nav-menu-item {
     font-size: 16px;
     border-bottom: 1px solid rgba(255,255,255,0.06);
 }
+
+/* Session 41: mobile SR detail/craft sheet. */
+.sr-detail-content { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.sr-detail-img { width: 62%; max-width: 220px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+.sr-detail-name { font-size: 20px; font-weight: 700; color: var(--text); }
+.sr-detail-pts { font-size: 15px; color: var(--gold); font-weight: 700; }
+.sr-detail-dots { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin: 4px 0; }
+.sr-detail-req { font-size: 14px; color: var(--text-muted); font-style: italic; }
+.sr-detail-note { font-size: 13px; color: var(--text-muted); margin: 8px 0; text-align: center; }
+.sr-detail-craft { margin-top: 8px; min-width: 160px; }
+.sr-detail-close { margin-top: 2px; }
