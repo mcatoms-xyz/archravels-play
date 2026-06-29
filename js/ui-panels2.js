@@ -752,10 +752,6 @@ Object.assign(UI, {
         var tEl = document.getElementById('navTimer');
         var timer = (tEl && tEl.style.display !== 'none' && tEl.textContent) ? tEl.textContent : '';
         var icon = function(p) { var ic = UI._typeIcons[p.characterType]; return ic ? '<img class="mn-ic" src="' + ic + '" alt="">' : ''; };
-        var items = st.players.map(function(p, i) {
-            return '<button class="mn-item" type="button" onclick="UI.closeMergedNav();UI.showOpponentPanel(' + i + ')">' +
-                icon(p) + '<span>' + p.name + (i === activeIdx ? ' (you)' : '') + '</span></button>';
-        }).join('');
         host.innerHTML =
             '<button class="mn-main" type="button" onclick="UI.toggleMergedNav(event)" aria-haspopup="true" aria-label="Round ' + round + ', ' + (active ? active.name : '') + ' — view player boards">' +
                 '<span class="mn-round">Round ' + round + '</span>' +
@@ -764,17 +760,33 @@ Object.assign(UI, {
                 '<span class="mn-name">' + (active ? active.name : '') + '</span>' +
                 '<span class="mn-caret">▾</span>' +
             '</button>' +
-            '<div class="mn-menu" id="mergedNavMenu" style="display:none">' +
-                '<div class="mn-menu-head">Player boards · tap to view</div>' + items +
+            '<div class="mn-drawer" id="mergedNavMenu" style="display:none">' +
+                '<div class="mn-drawer-head">Players · tap a card to open their board</div>' +
+                '<div class="mn-drawer-cards" id="mergedNavCards"></div>' +
             '</div>';
+        // Fill the drawer with the REAL player preview cards (the ones that used to
+        // live in the top bar). Tapping a card opens that player's board drawer
+        // (the card's own showOpponentPanel handler) and closes this menu.
+        var cardHost = document.getElementById('mergedNavCards');
+        if (cardHost) {
+            st.players.forEach(function(p, i) {
+                var c = UI._buildPlayerStripCard(i, i === activeIdx);
+                c.classList.add('in-merged');
+                c.addEventListener('click', function() { UI.closeMergedNav(); });
+                cardHost.appendChild(c);
+            });
+        }
     },
     toggleMergedNav: function(e) {
         if (e) e.stopPropagation();
         var m = document.getElementById('mergedNavMenu');
         if (!m) return;
-        var open = m.style.display !== 'none';
-        m.style.display = open ? 'none' : 'block';
-        if (!open) setTimeout(function() { document.addEventListener('click', function h() { UI.closeMergedNav(); document.removeEventListener('click', h); }); }, 0);
+        if (m.style.display !== 'none') { m.style.display = 'none'; return; }
+        // Anchor the slide-down drawer just below the nav bar (handles the notch height).
+        var nav = document.getElementById('navBar');
+        if (nav) m.style.top = nav.getBoundingClientRect().bottom + 'px';
+        m.style.display = 'block';
+        setTimeout(function() { document.addEventListener('click', function h() { UI.closeMergedNav(); document.removeEventListener('click', h); }); }, 0);
     },
     closeMergedNav: function() {
         var m = document.getElementById('mergedNavMenu');
