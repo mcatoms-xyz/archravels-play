@@ -450,6 +450,15 @@ Object.assign(UI, {
             this.els.craftColorTitle.style.display = '';
         }
 
+        // Show the SR / item being crafted so it's clear what you're making.
+        var ccImgWrap = ccContent.querySelector('.craft-color-img-wrap');
+        if (!ccImgWrap) {
+            ccImgWrap = document.createElement('div');
+            ccImgWrap.className = 'craft-color-img-wrap';
+            ccContent.insertBefore(ccImgWrap, ccContent.firstChild);
+        }
+        ccImgWrap.innerHTML = itemDef.img ? '<img class="craft-color-img" src="' + itemDef.img + '" alt="' + (itemDef.name || '') + '">' : '';
+
         this.els.craftColorModal.style.display = 'flex';
     },
 
@@ -842,6 +851,16 @@ Object.assign(UI, {
 
             tooltip.appendChild(info);
             card.appendChild(tooltip);
+
+            // Mobile (cap-native): tapping the card goes STRAIGHT to the craft module
+            // for this SR (the hover tooltip is hidden in the app via CSS). onSRCraftClick
+            // self-guards on craft availability, so it's safe to wire unconditionally.
+            (function(srData) {
+                card.addEventListener('click', function() {
+                    if (document.body.classList.contains('cap-native')) UI.onSRCraftClick(srData);
+                });
+            })(sr);
+
             el.appendChild(card);
         });
     },
