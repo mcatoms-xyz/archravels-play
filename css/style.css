@@ -7111,7 +7111,7 @@ body.cap-native .action-bar-wrapper {
 /* Session 41 (cap-native, cont.): action bar spans full width + compact;
    buttons share the row evenly so they stay ~1 row (wrap to 2 max), never tall. */
 body.cap-native .action-bar-wrapper {
-    padding: 6px 6px calc(2px + var(--sab));
+    padding: 6px 6px max(6px, calc(var(--sab) - 14px));
 }
 body.cap-native .action-bar-wrapper > * {
     max-width: 100%;
@@ -7319,3 +7319,6 @@ body.cap-native .sr-hover-preview {
 /* Session 41 (cap-native): slide-in board/history drawer headers clear the notch. */
 body.cap-native .opponent-panel-header,
 body.cap-native .history-panel-header { padding-top: calc(14px + var(--sat)); }
+
+/* Session 41 (cap-native): drop the "Yarn Bazaar · N cards left" header to reclaim the top margin. */
+body.cap-native .bazaar-label { display: none; }
