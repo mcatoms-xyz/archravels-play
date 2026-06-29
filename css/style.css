@@ -7306,8 +7306,7 @@ body.cap-native { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-ins
 
 /* Session 41 (cap-native): force card previews to float dead-center on top, escaping
    the board's overflow:hidden + any stacking trap. Covers both project + SR previews. */
-body.cap-native .project-hover-preview.preview-visible,
-body.cap-native .sr-hover-preview {
+body.cap-native .project-hover-preview.preview-visible {
     position: fixed !important;
     top: 50% !important; left: 50% !important; right: auto !important; bottom: auto !important;
     transform: translate(-50%, -50%) !important;
@@ -7322,3 +7321,10 @@ body.cap-native .history-panel-header { padding-top: calc(14px + var(--sat)); }
 
 /* Session 41 (cap-native): drop the "Yarn Bazaar · N cards left" header to reclaim the top margin. */
 body.cap-native .bazaar-label { display: none; }
+
+/* Session 41 (cap-native): SR hover tooltip is replaced by a direct tap → craft module. */
+body.cap-native .sr-hover-preview { display: none !important; }
+
+/* Session 41: show the SR/item image in the craft color picker (universal). */
+.craft-color-img-wrap { text-align: center; margin: 0 0 10px; }
+.craft-color-img { width: 116px; max-width: 42%; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.35); }
