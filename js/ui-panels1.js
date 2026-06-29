@@ -1126,10 +1126,21 @@ Object.assign(UI, {
         var isOpen = drawer.classList.contains('open');
         var shouldOpen = (forceState !== undefined) ? forceState : !isOpen;
         try{ if(window.Sound) Sound.play(shouldOpen?'drawer-open':'drawer-close'); }catch(e){}
+        // Tap-outside backdrop — guarantees a way to close the (full-screen on mobile) drawer.
+        var bd = document.getElementById('foDrawerBackdrop');
+        if (!bd) {
+            bd = document.createElement('div');
+            bd.id = 'foDrawerBackdrop';
+            bd.className = 'fo-drawer-backdrop';
+            bd.addEventListener('click', function() { UI.toggleFinishedDrawer(false); });
+            document.body.appendChild(bd);
+        }
         if (shouldOpen) {
             drawer.classList.add('open');
+            bd.classList.add('open');
         } else {
             drawer.classList.remove('open');
+            bd.classList.remove('open');
         }
     },
 
