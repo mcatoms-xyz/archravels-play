@@ -642,9 +642,10 @@ var Story = {
   srEnsure: function(p){
     p = p || this.profile; if(!p) return null;
     if(!p.srBoard || !p.srBoard.unlocked || !p.srBoard.enabled){
-      p.srBoard = { unlocked: this.SR_BOARD.starters.slice(), enabled: this.SR_BOARD.starters.slice() };
+      p.srBoard = { unlocked: this.SR_BOARD.starters.slice(), enabled: this.SR_BOARD.starters.slice(), unlockedAt: {} };
     }
     var b=p.srBoard;
+    if(!b.unlockedAt) b.unlockedAt={};
     this.SR_BOARD.starters.forEach(function(id){
       if(b.unlocked.indexOf(id)===-1) b.unlocked.push(id);
       if(b.enabled.indexOf(id)===-1)  b.enabled.push(id);
@@ -658,6 +659,7 @@ var Story = {
     if(b.unlocked.indexOf(id)!==-1) return false;
     b.unlocked.push(id);
     if(b.enabled.indexOf(id)===-1) b.enabled.push(id);
+    b.unlockedAt[id]=Date.now();
     return true;
   },
   // Achievements that count toward Pack milestones — excludes the pack-unlock awards
@@ -726,6 +728,9 @@ var Story = {
       b.enabled.push(id);
     }
     this.save();
+    // keep an open detail panel's switch in sync without a rebuild flash
+    var sw=document.querySelector('#srDetail .srb-switch');
+    if(sw){ var nowOn=b.enabled.indexOf(id)!==-1; sw.classList.toggle('on', nowOn); sw.setAttribute('aria-checked', nowOn?'true':'false'); }
     this.goSRBoard();
   },
   srFloorNudge: function(){
@@ -739,17 +744,51 @@ var Story = {
     requestAnimationFrame(function(){ el.classList.add('show'); });
     setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },420); },2600);
   },
-  // Open the SR art in the shared lightbox (works for unlocked + coming-soon tease).
-  srPreview: function(id){
-    var sr=CARDS.getSpecialRequest(id); if(!sr) return;
-    var lb=document.getElementById('srlightbox');
-    if(!lb){ lb=document.createElement('div'); lb.id='srlightbox'; lb.onclick=function(){ lb.classList.remove('open'); };
-      lb.innerHTML='<div class="lb-inner"><img id="srlbImg"><div class="lb-name" id="srlbName"></div><div class="lb-close">Tap anywhere to close</div></div>';
-      document.body.appendChild(lb); }
-    document.getElementById('srlbImg').src=sr.img;
-    document.getElementById('srlbName').textContent=sr.name;
-    lb.classList.add('open');
+  // Human "how + when it was unlocked" line for the detail panel.
+  srHowText: function(id, info, isUnlocked){
+    if(!isUnlocked) return info.hint || 'Locked';
+    var b=this.srEnsure(this.profile), ts=(b.unlockedAt&&b.unlockedAt[id])||0;
+    var when = ts ? new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '';
+    var how;
+    switch(info.kind){
+      case 'favorite': how=(info.hint||'').replace(/^Beat /,'Unlocked by beating '); break;
+      case 'hank':     how='Unlocked by beating Hank'; break;
+      case 'pack':     how='Unlocked via the '+((info.hint||'').split(' · ')[0]||'a Pack'); break;
+      case 'starter':  how='A starter Special Request'; break;
+      default:         how='Unlocked';
+    }
+    return when ? (how+' · '+when) : how;
   },
+  // Detail panel: tap/click a card → big preview + name + how/when unlocked + on/off toggle.
+  srDetail: function(id){
+    var sr=CARDS.getSpecialRequest(id); if(!sr) return;
+    var p=this.profile||{}, b=this.srEnsure(p), self=this;
+    var isUnlocked=b.unlocked.indexOf(id)!==-1, info=this.srSource(id);
+    var showArt = isUnlocked || info.kind==='comingSoon';
+    var body;
+    if(isUnlocked){
+      var on=b.enabled.indexOf(id)!==-1;
+      body='<div class="srd-meta">'+this.srHowText(id,info,true)+'</div>'+
+        '<div class="srd-toggle-row"><span class="srd-toggle-lbl">Show in your Story games</span>'+
+        '<button class="srb-switch'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="Toggle '+sr.name+'" onclick="Story.srToggle(\''+id+'\')"><span class="srb-knob"></span></button></div>';
+    } else if(info.kind==='comingSoon'){
+      body='<div class="srd-lockmsg">⏳ Coming soon — already playable in Quick Play; it joins the Story board in a later update.</div>';
+    } else {
+      body='<div class="srd-lockmsg">🔒 '+(info.hint||'Locked')+'</div>';
+    }
+    var old=document.getElementById('srDetail'); if(old) old.parentNode.removeChild(old);
+    var ov=document.createElement('div'); ov.id='srDetail'; ov.className='srd-overlay';
+    ov.onclick=function(e){ if(e.target===ov) self.srDetailClose(); };
+    ov.innerHTML='<div class="srd-panel">'+
+      '<button class="srd-x" onclick="Story.srDetailClose()" aria-label="Close">✕</button>'+
+      (showArt ? '<img class="srd-img" src="'+sr.img+'" alt="'+sr.name+'">' : '<div class="srd-qbig">?</div>')+
+      '<div class="srd-name">'+(showArt?sr.name:'Locked Special Request')+'</div>'+
+      body+
+    '</div>';
+    (this.root||document.body).appendChild(ov);
+    requestAnimationFrame(function(){ ov.classList.add('open'); });
+  },
+  srDetailClose: function(){ var o=document.getElementById('srDetail'); if(o){ o.classList.remove('open'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },200); } },
   goSRBoard: async function(){
     await this.ensureProfile();
     var p=this.profile||{}, b=this.srEnsure(p), self=this;
@@ -762,21 +801,18 @@ var Story = {
       var info=self.srSource(id), isUnlocked=b.unlocked.indexOf(id)!==-1;
       if(isUnlocked){
         var on=b.enabled.indexOf(id)!==-1;
-        return '<div class="srb-cell unlocked'+(on?' on':' off')+'" onclick="Story.srPreview(\''+id+'\')">'+
+        return '<div class="srb-cell unlocked'+(on?' on':' off')+'" onclick="Story.srDetail(\''+id+'\')" title="'+sr.name+'">'+
           '<img class="srb-art" src="'+sr.img+'" alt="'+sr.name+'">'+
-          '<div class="srb-name">'+sr.name+'</div>'+
-          '<button class="srb-switch'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="Show '+sr.name+' in Story games" onclick="event.stopPropagation();Story.srToggle(\''+id+'\')"><span class="srb-knob"></span></button>'+
         '</div>';
       }
       if(info.kind==='comingSoon'){
-        return '<div class="srb-cell coming" onclick="Story.srPreview(\''+id+'\')">'+
+        return '<div class="srb-cell coming" onclick="Story.srDetail(\''+id+'\')" title="Coming soon">'+
           '<img class="srb-art dim" src="'+sr.img+'" alt="'+sr.name+'">'+
-          '<div class="srb-ribbon">Coming soon</div>'+
+          '<div class="srb-ribbon">Soon</div>'+
         '</div>';
       }
-      return '<div class="srb-cell locked" title="'+(info.hint||'Locked')+'">'+
+      return '<div class="srb-cell locked" onclick="Story.srDetail(\''+id+'\')" title="'+(info.hint||'Locked')+'">'+
         '<div class="srb-q">?</div>'+
-        '<div class="srb-hint">'+(info.hint||'Locked')+'</div>'+
       '</div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Special Request Board</div>'+
