@@ -42,8 +42,115 @@ Object.assign(UI, {
         // Guard: only allow during playerActions phase
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;
+
+        // Playtest 6/29: end-turn guardrail. If the player still has a DOABLE
+        // shop or craft action, warn before leaving the actions phase. Only
+        // counts actions that are actually possible right now (cards in the
+        // bazaar to shop / at least one affordable craft) so we never nag when
+        // there's genuinely nothing left to do.
+        // Mandatory shop (hard block): shopping is required and exact, so you
+        // can't end your turn with an unfinished shop when cards are available.
+        if (Game.state.shopLimit > 0 && !Game.state.turn.shopDone && Game.shopRequiredCount() > 0) {
+            this._showMustShopWarning(Game.shopRequiredCount());
+            return;
+        }
+        if (!this._endActionsConfirmed) {
+            var pending = this._pendingEndActions();
+            if (pending.length > 0) {
+                this._showEndActionsWarning(pending);
+                return;
+            }
+        }
+        this._endActionsConfirmed = false;
         Game.endPlayerActions();
         // Game.endPlayerActions already triggers UI re-renders
+    },
+
+    /** Returns a list of still-doable actions (for the end-turn warning).
+     * Each item carries a count string mirroring the action bar's chips
+     * (Shop: selected/limit, Craft: used/limit). */
+    _pendingEndActions: function() {
+        var actions = Game.getAvailableActions();
+        var pending = [];
+        // Shop is NOT listed here — it's mandatory and handled by a hard block
+        // in onEndActions. This soft warning only covers optional craft actions.
+        if (actions.canCraft) {
+            var opts = Game.getCraftOptions() || [];
+            var canMakeSomething = opts.some(function(o) { return o.canAfford; });
+            if (canMakeSomething) {
+                pending.push({ icon: '🧶', label: 'Craft', count: actions.craftUsed + '/' + actions.craftLimit });
+            }
+        }
+        return pending;
+    },
+
+    _showEndActionsWarning: function(pending) {
+        this._dismissEndActionsWarning();
+        var chips = pending.map(function(p) {
+            return '<span class="end-warn-chip">' + p.icon + ' ' + p.label + ': ' + p.count + '</span>';
+        }).join('');
+
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'endActionsWarnModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.style.display = 'flex';
+        overlay.innerHTML =
+            '<div class="modal-content" style="max-width:400px;text-align:center">' +
+                '<div class="modal-title">Hold on — you can still craft!</div>' +
+                '<div class="end-warn-body">' +
+                    'You still have a craft action available:' +
+                    '<div class="end-warn-chips">' + chips + '</div>' +
+                    'End your turn anyway?' +
+                '</div>' +
+                '<div class="modal-actions end-warn-actions">' +
+                    '<button class="btn btn-secondary" onclick="UI._confirmEndActions()">End Turn →</button>' +
+                    '<button class="btn btn-cta" onclick="UI._dismissEndActionsWarning()">Keep Playing!</button>' +
+                '</div>' +
+            '</div>';
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) UI._dismissEndActionsWarning();
+        });
+        document.body.appendChild(overlay);
+    },
+
+    _dismissEndActionsWarning: function() {
+        var m = document.getElementById('endActionsWarnModal');
+        if (m) m.parentNode.removeChild(m);
+    },
+
+    _confirmEndActions: function() {
+        this._dismissEndActionsWarning();
+        this._endActionsConfirmed = true;
+        this.onEndActions();
+    },
+
+    /** Hard block: shopping is mandatory + exact, so you can't end the turn
+     * with an unfinished shop. No "end anyway" — just send them back. */
+    _showMustShopWarning: function(n) {
+        this._dismissEndActionsWarning();
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'endActionsWarnModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.style.display = 'flex';
+        overlay.innerHTML =
+            '<div class="modal-content" style="max-width:400px;text-align:center">' +
+                '<div class="modal-title">Shopping is required!</div>' +
+                '<div class="end-warn-body">' +
+                    'You must take ' + '<span class="end-warn-chip">🛍️ ' + n + ' card' + (n !== 1 ? 's' : '') + '</span>' +
+                    ' from the bazaar this turn before you can end it.' +
+                '</div>' +
+                '<div class="modal-actions end-warn-actions">' +
+                    '<button class="btn btn-cta" onclick="UI._dismissEndActionsWarning()">Got it — let me shop</button>' +
+                '</div>' +
+            '</div>';
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) UI._dismissEndActionsWarning();
+        });
+        document.body.appendChild(overlay);
     },
 
 
@@ -66,7 +173,9 @@ Object.assign(UI, {
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.turn.shopDone) return;
         var sel = Array.from(Game.state.selectedSlots);
-        if (sel.length === 0) return;
+        // Core rule: shopping is exact — must take the full required number.
+        var shopReq = Game.shopRequiredCount();
+        if (shopReq === 0 || sel.length !== shopReq) return;
 
         // Separate normal and wild cards
         var normalCards = [];
