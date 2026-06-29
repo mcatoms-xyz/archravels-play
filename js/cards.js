@@ -9,7 +9,7 @@
  *     Removed all single-color Yarn 1 cards (gave 1 yarn).
  *     Breakdown: 36 single-color-2 + 12 existing dual + 18 new dual + 8 triple + 6 wild = 80
  *   - Event cards (12 total) — resolve immediately during Restock
- *   - Special Requests (26 base + 4 promos + 13 expansion = 43 total) — shuffled into top half of deck during setup
+ *   - Special Requests (26 base + 3 promos + 13 expansion = 42 total; S41 removed the duplicate promo "Everyone's Welcome") — shuffled into top half of deck during setup
  *
  * Card types in the Project Deck (separate):
  *   - Project cards (16 total) — completed by turning in Item tokens
@@ -422,7 +422,10 @@ const CARDS = {
         { id: 'diceTower',       name: 'The Dice Tower',      favoriteOf: null, colorRule: 'specific',  yarn: { blue: 5, red: 1 },                                                 points: 10,   img: 'Square Cards PNG/XYZ_AR_SR_DTPROMO_The-Dice-Tower.png' },
         { id: 'shinyMathRocks',  name: 'Shiny Math Rocks',    favoriteOf: null, colorRule: 'sameColor', yarnCount: 6,                                                              points: 13,   img: 'Square Cards PNG/XYZ_AR_SR_DTPROMO_Math-Rocks.png' },
         { id: 'tomsHat',         name: "Tom's Hat",           favoriteOf: null, colorRule: 'specific',  yarn: { red: 4, orange: 1 },                                               points: 9,    img: "Square Cards PNG/XYZ_AR_SR_DTPROMO_Tom's-Hat.png" },
-        { id: 'everyonesWelcome',name: "Everyone's Welcome",  favoriteOf: null, colorRule: 'specific',  yarn: { red: 2, blue: 2, green: 2, yellow: 2, orange: 2, purple: 2 },     points: 15,   img: "Square Cards PNG/XYZ_AR_SR_DTPROMO_Everyone's-Welcome.png" },
+        /* Session 41: the promo "Everyone's Welcome" (DTPROMO) was a DUPLICATE of the
+           product version (everyonesWelcomeExp, in the Magic Socks block below). Removed
+           from the digital game per Adam — we keep the real product version, which is the
+           Story Mode reward for beating Hank. */
 
         /* --- Session 13: Magic Socks expansion — New character favorites --- */
         { id: 'catnipMouse',      name: 'Catnip Mouse',       favoriteOf: 'jo',     colorRule: 'specific',         yarn: { blue: 3, yellow: 1 },                                   points: 7,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0009_Catnip-Mouse.png' },
@@ -455,13 +458,23 @@ const CARDS = {
      * For single-player: 1 favorite + 1 random = 2 total.
      * Returns an array of SR card objects ready to shuffle into the deck.
      */
-    buildSpecialRequestsForSetup: function(characterId, numPlayers) {
+    buildSpecialRequestsForSetup: function(characterId, numPlayers, enabledIds) {
         numPlayers = numPlayers || 1;
         var allSRs = this.specialRequests;
 
         // Separate this character's favorite
         var favorite = allSRs.find(function(sr) { return sr.favoriteOf === characterId; });
         var others = allSRs.filter(function(sr) { return sr.favoriteOf !== characterId; });
+
+        // Session 41 (Story SR Board): if an enabled-set is supplied, the non-favorite
+        // pool is limited to the player's enabled SRs. The character's favorite is always
+        // guaranteed regardless. Quick Play passes nothing → full pool (unchanged).
+        // Safety: if filtering leaves nothing, fall back to the full pool so a game is
+        // never starved of SRs.
+        if (enabledIds && enabledIds.length) {
+            var filtered = others.filter(function(sr) { return enabledIds.indexOf(sr.id) !== -1; });
+            if (filtered.length) others = filtered;
+        }
 
         // Shuffle the remaining pool
         var pool = others.slice();
@@ -508,7 +521,7 @@ const CARDS = {
      * @param {string[]} characterIds — array of character IDs in play
      * @returns {Array} SR card objects ready to shuffle into the deck
      */
-    buildSpecialRequestsForMultiplayer: function(characterIds) {
+    buildSpecialRequestsForMultiplayer: function(characterIds, enabledIds) {
         var allSRs = this.specialRequests;
         var numPlayers = characterIds.length;
 
@@ -522,6 +535,15 @@ const CARDS = {
                 nonFavorites.push(sr);
             }
         });
+
+        // Session 41 (Story SR Board): limit the non-favorite pool to the player's
+        // enabled SRs when supplied (Story Mode). Every participating character's
+        // favorite is still guaranteed. Quick Play passes nothing → full pool.
+        // Safety fallback to the full pool if the filter empties it.
+        if (enabledIds && enabledIds.length) {
+            var filtered = nonFavorites.filter(function(sr) { return enabledIds.indexOf(sr.id) !== -1; });
+            if (filtered.length) nonFavorites = filtered;
+        }
 
         // Shuffle non-favorites
         var pool = nonFavorites.slice();
