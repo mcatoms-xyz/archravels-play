@@ -39,7 +39,7 @@ Object.assign(UI, {
             var canClick = opt.canAfford && craftEnabled;
 
             var slot = document.createElement('div');
-            slot.className = 'craft-slot sr-craft-slot ' + (canClick ? 'can-afford' : 'cannot-afford');
+            slot.className = 'craft-slot sr-craft-slot ' + (canClick ? 'can-afford craft-slot-pulse' : 'cannot-afford');
             slot.setAttribute('tabindex', '0');
             slot.setAttribute('aria-label', sr.name + ' — ' + sr.points + ' points' +
                 (sr.isFavorite ? ' (Favorite!)' : '') +
