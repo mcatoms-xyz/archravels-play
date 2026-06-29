@@ -7185,7 +7185,17 @@ body.cap-native .project-pts-overlay { display: none; }
 
 /* Session 41 (cap-native) batch: drawer width, Blanket dots, Shopper green. App-only. */
 /* Finished Objects drawer ~full player-board width on phone. */
-body.cap-native .fo-drawer { width: 90%; right: 2%; height: auto; max-height: 92%; overflow-y: auto; }
+body.cap-native .fo-drawer {
+    position: fixed;
+    top: calc(48px + var(--sat) + 6px);
+    left: 0; right: 0; bottom: 0;
+    width: 100%; max-width: 100%;
+    height: auto; max-height: none;
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+    padding-bottom: calc(var(--sab) + 16px);
+    z-index: 650;
+}
 /* Blanket's 5 on-board craft-cost dots were squishing at phone width — shrink them. */
 body.cap-native .craft-board-overlay .craft-slot:last-child .craft-slot-cost .craft-cost-dot {
     width: 9px;
