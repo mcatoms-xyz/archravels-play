@@ -7090,13 +7090,13 @@ html { overflow-x: hidden; }
      (--ab-h, set from JS) so nothing hides behind it.
    ================================================================= */
 body.cap-native .nav-bar {
-    height: calc(60px + var(--sat));
+    height: calc(48px + var(--sat));
     padding-top: var(--sat);
     box-sizing: border-box;
 }
 body.cap-native .game-layout {
-    padding-top: calc(64px + var(--sat));
-    padding-bottom: calc(var(--ab-h, 132px) + 8px);
+    padding-top: calc(52px + var(--sat));
+    padding-bottom: calc(var(--ab-h, 132px) + 4px);
 }
 body.cap-native .action-bar-wrapper {
     position: fixed;
@@ -7111,7 +7111,7 @@ body.cap-native .action-bar-wrapper {
 /* Session 41 (cap-native, cont.): action bar spans full width + compact;
    buttons share the row evenly so they stay ~1 row (wrap to 2 max), never tall. */
 body.cap-native .action-bar-wrapper {
-    padding: 8px 6px calc(8px + var(--sab));
+    padding: 6px 6px calc(2px + var(--sab));
 }
 body.cap-native .action-bar-wrapper > * {
     max-width: 100%;
@@ -7252,9 +7252,9 @@ body.cap-native .landing-credit {
    ================================================================= */
 /* Move the turn-history FEED between the bazaar and the player board,
    near-full width with even margins. (game-layout children reordered.) */
-body.cap-native .game-layout { display: flex; flex-direction: column; gap: 6px; }
+body.cap-native .game-layout { display: flex; flex-direction: column; gap: 3px; }
 body.cap-native .board-section { order: 1; }
-body.cap-native .action-feed  { order: 2; margin: 4px auto 0; max-width: calc(100% - 16px); width: auto; }
+body.cap-native .action-feed  { order: 2; margin: 1px auto 0; max-width: calc(100% - 14px); width: auto; }
 body.cap-native .player-area  { order: 3; }
 
 /* Action box: round/action label + the Shop/Craft pills on ONE row
@@ -7315,3 +7315,7 @@ body.cap-native .sr-hover-preview {
     width: min(86vw, 340px) !important;
     max-height: 84vh; overflow-y: auto;
 }
+
+/* Session 41 (cap-native): slide-in board/history drawer headers clear the notch. */
+body.cap-native .opponent-panel-header,
+body.cap-native .history-panel-header { padding-top: calc(14px + var(--sat)); }
