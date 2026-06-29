@@ -7197,3 +7197,25 @@ body.cap-native {
     --accent: #4c6a2e;
     --accent-dark: #3a521f;
 }
+
+/* =================================================================
+   SESSION 41 — MOBILE-NATIVE SHEETS (cap-native, app-only).
+   Existing .modal-overlay modals (take/confirm, must-shop, color
+   picker, friendly clerk, etc.) become bottom sheets that scroll
+   INTERNALLY (no margin-clip) and sit ABOVE the pinned action bar
+   (z-index 480) so you never see a duplicate action button behind
+   them. Web is unaffected.
+   ================================================================= */
+body.cap-native .modal-overlay {
+    align-items: flex-end;
+    z-index: 600;
+}
+body.cap-native .modal-content {
+    max-width: 100%;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 18px 18px 0 0;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+}
