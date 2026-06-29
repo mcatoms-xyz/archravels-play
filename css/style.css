@@ -7080,3 +7080,30 @@ html { overflow-x: hidden; }
     gap: 28px;
     margin-top: 10px;
 }
+
+/* =================================================================
+   SESSION 41 — NATIVE (CAPACITOR) APP-SHELL.  APP-ONLY: every rule is
+   scoped to body.cap-native, so the web build is completely unaffected.
+   - Top nav bar extends UP behind the notch (safe-area inset).
+   - Bottom action bar becomes a fixed, pinned control panel (stops it
+     drifting as it grows). Page content is padded by the live bar height
+     (--ab-h, set from JS) so nothing hides behind it.
+   ================================================================= */
+body.cap-native .nav-bar {
+    height: calc(60px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+    box-sizing: border-box;
+}
+body.cap-native .game-layout {
+    padding-top: calc(64px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--ab-h, 132px) + 8px);
+}
+body.cap-native .action-bar-wrapper {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 480;
+    max-height: 46vh;
+    overflow-y: auto;
+}
