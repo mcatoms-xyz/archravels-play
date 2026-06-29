@@ -578,7 +578,7 @@ var UI = {
         } else {
             this.els.passDeviceTitle.textContent = player.name + '\'s Turn';
             this.els.passDeviceMsg.textContent =
-                'Pass the device to ' + player.name + '. (Turn ' + turnNum + ')';
+                'Pass the device to ' + player.name + '. (Round ' + Game.currentRound() + ')';
         }
         this.els.passDeviceModal.style.display = 'flex';
     },
@@ -685,7 +685,7 @@ var UI = {
         };
         var phaseText = phaseMap[Game.state.phase] || Game.state.phase || '';
         if (Game.state.phase !== 'gameOver') {
-            phaseText = 'Turn ' + Game.state.turn.number + ' — ' + phaseText;
+            phaseText = 'Round ' + Game.currentRound() + ' — ' + phaseText;
         }
         if (navPhase) navPhase.textContent = phaseText;
 
@@ -949,7 +949,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">🧶</span>' +
-                '<span class="ab-phase-label">Turn ' + turnNum + '</span>' +
+                '<span class="ab-phase-label">Round ' + Game.currentRound() + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' +
@@ -1001,7 +1001,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">📍</span>' +
-                '<span class="ab-phase-label">Turn ' + turnNum + '</span>' +
+                '<span class="ab-phase-label">Round ' + Game.currentRound() + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' + middleHtml + '</div>';
@@ -1098,6 +1098,17 @@ var UI = {
         var character = Game.getCharacter();
         if (character && character.type) {
             overlay.classList.add('action-type-' + character.type);
+            // Playtest 6/29: expose the active character's core (type accent)
+            // color as --char-rgb so the pulse hints glow in that character's
+            // color instead of a fixed hue.
+            var _acc = this._typeAccentColors[character.type];
+            if (_acc) {
+                var _h = _acc.replace('#', '');
+                document.documentElement.style.setProperty('--char-rgb',
+                    parseInt(_h.substring(0, 2), 16) + ',' +
+                    parseInt(_h.substring(2, 4), 16) + ',' +
+                    parseInt(_h.substring(4, 6), 16));
+            }
         }
 
         var currentSpace = Game.state.turn.currentSpace;
@@ -1136,6 +1147,9 @@ var UI = {
                     btn.classList.add('action-grid-unavailable');
                     btn.disabled = true;
                 } else {
+                    // Playtest 6/29: pulse available spaces so it's clear a
+                    // selection is needed during the chooseSpace phase.
+                    btn.classList.add('action-grid-pulse');
                     (function(idx) {
                         btn.addEventListener('click', function() { UI.onChooseSpace(idx); });
                     })(space.index);
@@ -1168,10 +1182,11 @@ var UI = {
         // --- Build chips (inline in middle) ---
         var chipsHtml = '';
 
+        var shopReq = Game.shopRequiredCount();
         if (actions.shopLimit > 0) {
             if (actions.canShop) {
                 chipsHtml += '<span class="action-chip shop-chip">🛍️ Shop: ' +
-                    selCount + '/' + actions.shopLimit + '</span>';
+                    selCount + '/' + (shopReq || actions.shopLimit) + '</span>';
             } else {
                 chipsHtml += '<span class="action-chip done-chip">🛍️ Shop ✓</span>';
             }
@@ -1205,8 +1220,18 @@ var UI = {
 
         // --- Build buttons (right side) ---
         var buttonsHtml = '';
-        if (actions.canShop && selCount > 0) {
-            buttonsHtml += '<button class="btn btn-primary" onclick="UI.onTakeYarn()">Take Yarn</button>';
+        // Shopping is exact: "Take Yarn" only enables once the full required
+        // number of cards is selected (core rule — can't take fewer).
+        if (actions.canShop && shopReq > 0) {
+            if (selCount === shopReq) {
+                buttonsHtml += '<button class="btn btn-primary" onclick="UI.onTakeYarn()">Take Yarn</button>';
+            } else {
+                var moreNeeded = shopReq - selCount;
+                buttonsHtml += '<button class="btn btn-primary" disabled ' +
+                    'style="opacity:.5;cursor:not-allowed" ' +
+                    'title="You must take all ' + shopReq + ' cards">Take ' + shopReq +
+                    ' (pick ' + moreNeeded + ' more)</button>';
+            }
         }
         if (actions.canExchange) {
             buttonsHtml += '<button class="btn btn-primary" onclick="UI.showExchangeModal()">Exchange Yarn</button>';
@@ -1222,7 +1247,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">⚡</span>' +
-                '<span class="ab-phase-label">Turn ' + turnNum + ' — ' + spaceLabel + '</span>' +
+                '<span class="ab-phase-label">Round ' + Game.currentRound() + ' — ' + spaceLabel + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' + chipsHtml + '</div>' +
@@ -1238,6 +1263,10 @@ var UI = {
     _renderRestockBar: function(bar) {
         var emptyCount = 6 - Game.bazaarCardCount();
         var deckLeft = Game.state.deck.length;
+        // Cards available to restock = deck + discard (discard reshuffles into
+        // the deck via Game.drawCard when the deck empties). SRs never enter
+        // the discard, so they're already excluded.
+        var cardsAvailable = deckLeft + Game.state.discard.length;
 
         // Status text in middle
         var statusText = this._restockDone
@@ -1277,9 +1306,15 @@ var UI = {
         if (this._restockDone) {
             mainButtonHtml =
                 '<button class="btn btn-cta" onclick="UI.onEndRestockTurn()">End Turn →</button>';
-        } else if (emptyCount === 0 || deckLeft === 0) {
+        } else if (emptyCount === 0 || cardsAvailable === 0) {
+            // Bazaar full → "Full Bazaar"; otherwise the only way here is zero
+            // cards left anywhere (deck + discard both empty), a rare late-game
+            // edge where empty slots simply can't be refilled.
+            var noRestockLabel = (emptyCount === 0)
+                ? 'Full Bazaar! Go to Restock Actions →'
+                : 'No Cards Left — Restock Actions →';
             mainButtonHtml =
-                '<button class="btn btn-cta" onclick="UI.onSkipRestock()">Skip Restock →</button>';
+                '<button class="btn btn-cta" onclick="UI.onSkipRestock()">' + noRestockLabel + '</button>';
         } else {
             mainButtonHtml =
                 '<button class="btn btn-cta" onclick="UI.onRestock()">Restock Bazaar</button>';
@@ -1302,7 +1337,7 @@ var UI = {
      */
     _renderGameOverBar: function(bar) {
         var turnNum = Game.state.turn.number;
-        var summaryText = 'Finished after ' + turnNum + ' turns';
+        var summaryText = 'Finished after ' + Game.currentRound() + ' rounds';
 
         if (Game.state.playerCount > 1) {
             var bestScore = -999;
