@@ -144,6 +144,9 @@ var Game = {
         config = config || { players: [{ characterId: 'rebecca', name: 'Rebecca' }] };
         var playerConfigs = config.players;
         var numPlayers = playerConfigs.length;
+        // Session 41 (Story SR Board): optional enabled-SR filter. Story Mode passes the
+        // player's enabled set; Quick Play / pass-and-play leave it null (full SR pool).
+        var srEnabledIds = config.srEnabledIds || null;
 
         // --- Build player objects ---
         var players = [];
@@ -192,9 +195,9 @@ var Game = {
         // --- Special Requests setup ---
         var srCards;
         if (numPlayers === 1) {
-            srCards = CARDS.buildSpecialRequestsForSetup(characterIds[0], 1);
+            srCards = CARDS.buildSpecialRequestsForSetup(characterIds[0], 1, srEnabledIds);
         } else {
-            srCards = CARDS.buildSpecialRequestsForMultiplayer(characterIds);
+            srCards = CARDS.buildSpecialRequestsForMultiplayer(characterIds, srEnabledIds);
         }
 
         // Session 40: Seed Special Requests toward the FRONT of the deck so they
