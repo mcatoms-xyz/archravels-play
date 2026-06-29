@@ -7254,8 +7254,8 @@ body.cap-native .landing-credit {
    near-full width with even margins. (game-layout children reordered.) */
 body.cap-native .game-layout { display: flex; flex-direction: column; gap: 3px; }
 body.cap-native .board-section { order: 1; }
-body.cap-native .action-feed  { order: 2; margin: 1px auto 0; max-width: calc(100% - 14px); width: auto; }
-body.cap-native .player-area  { order: 3; }
+body.cap-native .action-feed  { order: 3; margin: 1px auto 0; max-width: calc(100% - 14px); width: auto; }
+body.cap-native .player-area  { order: 2; }
 
 /* Action box: round/action label + the Shop/Craft pills on ONE row
    (the buttons already wrap to their own row beneath). */
@@ -7328,3 +7328,25 @@ body.cap-native .sr-hover-preview { display: none !important; }
 /* Session 41: show the SR/item image in the craft color picker (universal). */
 .craft-color-img-wrap { text-align: center; margin: 0 0 10px; }
 .craft-color-img { width: 116px; max-width: 42%; border-radius: 10px; box-shadow: 0 3px 12px rgba(0,0,0,0.35); }
+
+/* Session 41 (cap-native): the ☰ menu becomes a proper left-side DRAWER with big
+   touch targets (the cramped little dropdown was tight + unnecessary on a phone). */
+body.cap-native .nav-menu-dropdown {
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: auto;
+    width: 80vw; max-width: 330px;
+    min-width: 0;
+    border-radius: 0 18px 18px 0;
+    padding-top: calc(var(--sat) + 10px);
+    padding-bottom: calc(var(--sab) + 14px);
+    overflow-y: auto;
+    box-shadow: 10px 0 40px rgba(0,0,0,0.5);
+    z-index: 730;
+    animation: nav-menu-slidein .2s ease;
+}
+@keyframes nav-menu-slidein { from { transform: translateX(-100%); } to { transform: none; } }
+body.cap-native .nav-menu-item {
+    padding: 15px 22px;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
