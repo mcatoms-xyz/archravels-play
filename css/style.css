@@ -7371,3 +7371,10 @@ body.cap-native .nav-menu-item {
 .sr-detail-note { font-size: 13px; color: var(--text-muted); margin: 8px 0; text-align: center; }
 .sr-detail-craft { margin-top: 8px; min-width: 160px; }
 .sr-detail-close { margin-top: 2px; }
+
+/* Session 41 (cap-native): Craft Circle picker — fit all 5 tiles in one row. */
+body.cap-native .craft-circle-grid { flex-wrap: nowrap; gap: 5px; }
+body.cap-native .craft-circle-grid .craft-slot { flex: 1 1 0; min-width: 0; padding: 6px 3px; }
+body.cap-native .craft-circle-grid .craft-slot-img { height: clamp(32px, 11vw, 52px); }
+body.cap-native .craft-circle-grid .craft-slot-name { font-size: 10px; }
+body.cap-native .craft-circle-grid .craft-cost-dot { width: 8px; height: 8px; border-width: 1px; }
