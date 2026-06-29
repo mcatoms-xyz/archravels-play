@@ -7262,7 +7262,7 @@ body.cap-native .landing-credit {
    ================================================================= */
 /* Move the turn-history FEED between the bazaar and the player board,
    near-full width with even margins. (game-layout children reordered.) */
-body.cap-native .game-layout { display: flex; flex-direction: column; gap: 3px; }
+body.cap-native .game-layout { display: flex; flex-direction: column; gap: 9px; }
 body.cap-native .board-section { order: 1; }
 body.cap-native .action-feed  { order: 3; margin: 1px auto 0; max-width: calc(100% - 14px); width: auto; }
 body.cap-native .player-area  { order: 2; }
