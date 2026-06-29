@@ -857,12 +857,47 @@ Object.assign(UI, {
             // self-guards on craft availability, so it's safe to wire unconditionally.
             (function(srData) {
                 card.addEventListener('click', function() {
-                    if (document.body.classList.contains('cap-native')) UI.onSRCraftClick(srData);
+                    if (document.body.classList.contains('cap-native')) UI.showSRDetailModal(srData);
                 });
             })(sr);
 
             el.appendChild(card);
         });
+    },
+
+    // Mobile: a clean detail/craft sheet for a Special Request — always shows the
+    // image, points and yarn requirement; offers Craft when the craft action is live
+    // and you can afford it, otherwise tells you what's needed.
+    _srDetailSr: null,
+    showSRDetailModal: function(sr) {
+        this._srDetailSr = sr;
+        var matchOpt = null;
+        Game.getSRCraftOptions().forEach(function(o) { if (o.sr.uid === sr.uid) matchOpt = o; });
+        var phase = Game.state.phase;
+        var craftEnabled = (phase === 'playerActions' || phase === 'finalCraft') && Game.getAvailableActions().canCraft;
+        var canCraft = !!(craftEnabled && matchOpt && matchOpt.canAfford);
+        var dots = (UI._renderSRYarnDots ? UI._renderSRYarnDots(sr) : '');
+        var reqText = (UI._describeSRYarn ? UI._describeSRYarn(sr) : '');
+        var actionHtml = craftEnabled
+            ? '<button class="btn btn-cta sr-detail-craft"' + (canCraft ? '' : ' disabled') + ' onclick="UI.closeSRDetailModal();UI.onSRCraftClick(UI._srDetailSr)">' + (canCraft ? 'Craft this' : 'Not enough yarn') + '</button>'
+            : '<div class="sr-detail-note">Choose the <b>Craft</b> action first to make this.</div>';
+        var old = document.getElementById('srDetailOverlay'); if (old) old.parentNode.removeChild(old);
+        var ov = document.createElement('div');
+        ov.className = 'modal-overlay'; ov.id = 'srDetailOverlay'; ov.style.display = 'flex';
+        ov.onclick = function(e) { if (e.target === ov) UI.closeSRDetailModal(); };
+        ov.innerHTML = '<div class="modal-content sr-detail-content">' +
+            '<img class="sr-detail-img" src="' + sr.img + '" alt="' + sr.name + '">' +
+            '<div class="sr-detail-name">' + sr.name + (sr.isFavorite ? ' <span style="color:#ff6b6b">♥</span>' : '') + '</div>' +
+            '<div class="sr-detail-pts">' + sr.points + ' pts' + (sr.isFavorite ? ' · +5 bonus' : '') + '</div>' +
+            '<div class="sr-detail-cost">' + (dots ? '<div class="sr-detail-dots">' + dots + '</div>' : '') + (reqText ? '<div class="sr-detail-req">' + reqText + '</div>' : '') + '</div>' +
+            actionHtml +
+            '<button class="btn btn-ghost sr-detail-close" onclick="UI.closeSRDetailModal()">Close</button>' +
+        '</div>';
+        document.body.appendChild(ov);
+    },
+    closeSRDetailModal: function() {
+        var o = document.getElementById('srDetailOverlay');
+        if (o) o.parentNode.removeChild(o);
     },
 
 
