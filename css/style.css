@@ -634,7 +634,7 @@ body {
    Z-index stacking: wood-bg(1) → board-image(2) → overlays(3). */
 .player-board-wrapper {
     flex: 1;
-    border-radius: 12px;
+    border-radius: 16px;        /* Playtest 6/29: softer, standardized card/board radius */
     overflow: visible;          /* Session 15b: allow craft cost dots to hang below board */
     position: relative;
     box-shadow: 0 6px 24px var(--shadow-deep);
@@ -658,7 +658,7 @@ body {
     height: auto;
     position: relative;
     z-index: 2;
-    border-radius: 10px;       /* Session 15b: self-clip since wrapper is overflow:visible */
+    border-radius: 14px;       /* Playtest 6/29: 2px inside the 16px wrapper so curves stay concentric */
     /* Transparent margins trimmed from PNGs — image is now 2119×1359,
        fills wrapper cleanly at 100% with no negative margins needed.
        Aspect ratio: 1359/2119 = 64.13%  (height as % of width) */
@@ -810,8 +810,8 @@ body {
 }
 
 .craft-board-overlay .craft-cost-dot {
-    width: 14px;
-    height: 14px;
+    width: 13px;                /* Playtest 6/29: nudged 14→13 so 5 Blanket dots clear the tile */
+    height: 13px;
 }
 
 /* Can-afford highlight in board overlay context */
@@ -853,6 +853,8 @@ body {
     display: flex;
     justify-content: center;
     flex-shrink: 0;
+    flex-wrap: nowrap;          /* Playtest 6/29: keep Blanket's 5 dots on one row */
+    gap: 2px;                   /* tighter than base 4px so 5 dots fit the tile width */
     position: absolute;
     bottom: -34px;              /* Session 19: pushed further below board edge for clear visibility */
     left: 0; right: 0;
@@ -3233,13 +3235,13 @@ body {
 
 .finished-project-wrap {
     border: 2px solid #6c5ce7;
-    border-radius: 6px;
+    border-radius: 16px;        /* Playtest 6/29: standardized card radius */
     padding: 2px;
     background: rgba(108, 92, 231, 0.08);
 }
 
 .finished-project-card {
-    border-radius: 4px;
+    border-radius: 14px;        /* Playtest 6/29: inner image, concentric with 16px wrap */
 }
 
 
@@ -3476,7 +3478,7 @@ body {
     gap: 6px;
     background: var(--panel);
     border: 2px solid var(--panel-border);
-    border-radius: 12px;
+    border-radius: 16px;        /* Playtest 6/29: standardized card radius */
     padding: 10px 12px;
     min-width: 120px;
     max-width: 180px;
@@ -3497,7 +3499,7 @@ body {
 
 .project-card-img {
     width: clamp(80px, 11vw, 140px);
-    border-radius: 8px;
+    border-radius: 12px;        /* Playtest 6/29: softened to sit in the 16px card family */
     box-shadow: 0 4px 12px var(--shadow);
     border: 1.5px solid var(--panel-border);
 }
@@ -5942,8 +5944,8 @@ body {
     height: 16px;
 }
 .colorblind-mode .craft-board-overlay .craft-cost-dot {
-    width: 14px;
-    height: 14px;
+    width: 13px;                /* Playtest 6/29: match non-CB board dot so 5 fit one row */
+    height: 13px;
 }
 .colorblind-mode .gm-yarn-dot {
     width: 20px;
@@ -6937,4 +6939,89 @@ html { overflow-x: hidden; }
     .ach-toast { transition: opacity .2s ease; transform: none; }
     .ach-toast.show { transform: none; }
     .ach-toast-badge { animation: none; }
+}
+
+/* =================================================================
+   END-TURN GUARDRAIL WARNING (Playtest 6/29)
+   Warns when the player ends actions with shop/craft still doable.
+   ================================================================= */
+.end-warn-body {
+    padding: 6px 4px 16px;
+    color: var(--text-light);
+    font-size: 14px;
+    line-height: 1.55;
+}
+.end-warn-chips {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+}
+.end-warn-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 16px;
+    background: rgba(201, 168, 76, 0.16);
+    border: 1.5px solid var(--gold);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* =================================================================
+   "WHAT DO I DO NEXT" PULSE HINTS (Playtest 6/29)
+   Restrained, two-moment only:
+   - .action-grid-pulse  → available action spaces during chooseSpace
+   - .craft-slot-pulse   → craftable items once a craft action is active
+   Both respect prefers-reduced-motion.
+   ================================================================= */
+@keyframes hint-pulse-space {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--char-rgb, 90,160,210), 0); transform: scale(1); }
+    50%      { box-shadow: 0 0 14px 3px rgba(var(--char-rgb, 90,160,210), 0.75); transform: scale(1.04); }
+}
+@keyframes hint-pulse-craft {
+    0%, 100% { box-shadow: 0 0 4px 1px rgba(var(--char-rgb, 90,160,210), 0.25); transform: scale(1); }
+    50%      { box-shadow: 0 0 20px 6px rgba(var(--char-rgb, 90,160,210), 0.95); transform: scale(1.05); }
+}
+.action-grid-btn.action-grid-pulse {
+    animation: hint-pulse-space 1.8s ease-in-out infinite;
+}
+.craft-slot.craft-slot-pulse {
+    animation: hint-pulse-craft 1.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    .action-grid-btn.action-grid-pulse,
+    .craft-slot.craft-slot-pulse {
+        animation: none;
+    }
+}
+
+/* =================================================================
+   COLORBLIND KEY ICON ON BOWL TOKENS (Playtest 6/29)
+   A small shape+color+pattern+letter chip (reusing .craft-cost-dot's
+   CB treatment) beside each yarn token in the bowl column. Shown only
+   in colorblind mode; positioned absolutely so the token stays put.
+   ================================================================= */
+.yarn-bowl-overlay .yarn-cb-key {
+    display: none;
+}
+.colorblind-mode .yarn-bowl-overlay .yarn-cb-key {
+    display: inline-flex;
+    position: absolute;
+    left: calc(100% + 3px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+}
+
+/* End-turn modal button row — clear separation between End Turn / Keep Playing (Playtest 6/29) */
+.end-warn-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 28px;
+    margin-top: 10px;
 }
