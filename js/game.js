@@ -495,6 +495,34 @@ var Game = {
     },
 
     /**
+     * The current ROUND number. A round = one turn per player, so this also
+     * equals how many turns the current player has taken. Display-facing:
+     * internal turn.number still counts every individual player turn (used by
+     * history, stats, achievements). Solo play: round === turn number.
+     */
+    currentRound: function() {
+        var pc = this.state.playerCount || 1;
+        return Math.ceil((this.state.turn.number || 1) / pc);
+    },
+
+    /**
+     * How many bazaar cards the player MUST take to complete a Shop action.
+     * Core rule: shopping is exact — you take the full number listed on the
+     * space (unlike crafting, which is "up to"). If fewer slots are selectable
+     * than the listed number, you take as many as are available.
+     *   - Solo: only face-up cards are selectable → min(shopLimit, cards in bazaar)
+     *   - Multiplayer: empty slots are selectable too (count as wild) → all 6 slots
+     * Returns 0 when there's no shop on this space or nothing to take.
+     */
+    shopRequiredCount: function() {
+        if (!this.state.shopLimit || this.state.shopLimit <= 0) return 0;
+        var selectable = (this.state.playerCount <= 1)
+            ? this.bazaarCardCount()
+            : this.state.bazaar.length;
+        return Math.min(this.state.shopLimit, selectable);
+    },
+
+    /**
      * End the player actions phase and move to restock.
      */
     endPlayerActions: function() {
