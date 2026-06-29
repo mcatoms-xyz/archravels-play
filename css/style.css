@@ -7188,8 +7188,8 @@ body.cap-native .project-pts-overlay { display: none; }
 body.cap-native .fo-drawer {
     position: fixed;
     top: calc(48px + var(--sat) + 6px);
-    left: 0; right: 0; bottom: 0;
-    width: 100%; max-width: 100%;
+    left: auto; right: 0; bottom: 0;
+    width: 98%; max-width: 98%;
     height: auto; max-height: none;
     border-radius: 16px 16px 0 0;
     overflow-y: auto;
@@ -7389,3 +7389,14 @@ body.cap-native .craft-circle-grid .craft-cost-dot { width: 8px; height: 8px; bo
 .gm-yarn-dot[data-cb-color="blue"]::after   { content:"B"; }
 .gm-yarn-dot[data-cb-color="purple"]::after { content:"P"; }
 .gm-yarn-dot[data-cb-color="yellow"]::after { content:"Y"; color:#3a2a1d; }
+
+/* Session 41 (cap-native): Finished Objects drawer — tap-outside backdrop (so it can
+   always be closed) + a bigger close button. Web keeps its small side panel (no backdrop). */
+.fo-drawer-backdrop { display: none; }
+body.cap-native .fo-drawer-backdrop {
+    display: block; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 649;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+body.cap-native .fo-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+body.cap-native .fo-drawer-close { font-size: 22px; padding: 6px 13px; }
