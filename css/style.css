@@ -7219,3 +7219,18 @@ body.cap-native .modal-content {
     border-radius: 18px 18px 0 0;
     padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
 }
+
+/* Session 41 (cap-native): card previews never clip at the screen edge — center them
+   on-screen and lift them above the pinned action bar. App-only. */
+body.cap-native .project-hover-preview.preview-visible {
+    position: fixed;
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(82vw, 320px);
+    max-height: 84vh;
+    overflow-y: auto;
+    z-index: 600;
+}
+body.cap-native .sr-hover-preview { z-index: 600; }
