@@ -700,7 +700,8 @@ var Story = {
     this.LADDER_ORDER.forEach(function(cid){ var f=self.faveSR(cid); if(f) ids.push(f.id); });
     B.packs.forEach(function(pk){ ids=ids.concat(pk.srs); });
     ids.push(B.hankReward);
-    ids=ids.concat(B.comingSoon);
+    // Session 41: the 8 Magic Socks "coming soon" SRs are OFF the board for now (still
+    // playable in Quick Play); they'll be added back later. So comingSoon is NOT included.
     var seen={}, out=[];
     ids.forEach(function(id){ if(!seen[id] && CARDS.getSpecialRequest(id)){ seen[id]=1; out.push(id); } });
     return out;
@@ -768,7 +769,12 @@ var Story = {
     var body;
     if(isUnlocked){
       var on=b.enabled.indexOf(id)!==-1;
+      var reqText=(window.UI&&UI._describeSRYarn)?UI._describeSRYarn(sr):'';
+      var reqDots=(window.UI&&UI._renderSRYarnDots)?UI._renderSRYarnDots(sr):'';
       body='<div class="srd-meta">'+this.srHowText(id,info,true)+'</div>'+
+        '<div class="srd-req">'+(reqDots?'<div class="srd-req-dots">'+reqDots+'</div>':'')+
+          '<div class="srd-req-text">'+reqText+'</div>'+
+          '<div class="srd-pts">Worth '+sr.points+' pts</div></div>'+
         '<div class="srd-toggle-row"><span class="srd-toggle-lbl">Show in your Story games</span>'+
         '<button class="srb-switch'+(on?' on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" aria-label="Toggle '+sr.name+'" onclick="Story.srToggle(\''+id+'\')"><span class="srb-knob"></span></button></div>';
     } else if(info.kind==='comingSoon'){
@@ -813,6 +819,7 @@ var Story = {
       }
       return '<div class="srb-cell locked" onclick="Story.srDetail(\''+id+'\')" title="'+(info.hint||'Locked')+'">'+
         '<div class="srb-q">?</div>'+
+        '<div class="srb-lockover">'+(info.hint||'Locked')+'</div>'+
       '</div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Special Request Board</div>'+
