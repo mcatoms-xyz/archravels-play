@@ -81,7 +81,17 @@
   var nativeOn = true;
   // Force the in-app (Capacitor) styling onto the booted game so the gallery shows
   // the ACTUAL iOS app UI — not the web layout — at phone size. Re-applied on every boot.
-  function applyNative(){ try{ var b = D() && D().body; if(b) b.classList.toggle('cap-native', nativeOn); }catch(e){} }
+  function applyNative(){ try{
+      var b = D() && D().body; if(!b) return;
+      b.classList.toggle('cap-native', nativeOn);
+      // Simulate the device's real safe-area insets so cap-native env() rules (now --sat/--sab)
+      // render like the sim — content sits BELOW the notch instead of splitting on it.
+      var d = (typeof DEVICES !== 'undefined' && DEVICES[currentDev]) || {};
+      var t = (nativeOn && !d.fill) ? (d.top || 0) : 0;
+      var bo = (nativeOn && !d.fill) ? (d.bottom || 0) : 0;
+      b.style.setProperty('--sat', t + 'px');
+      b.style.setProperty('--sab', bo + 'px');
+    }catch(e){} }
 
   function log(msg, isErr){ logEl.innerHTML = '<b>' + new Date().toLocaleTimeString() + '</b> · ' + (isErr ? '<span class="err">'+msg+'</span>' : msg); }
   function W(){ return iframe.contentWindow; }
@@ -243,6 +253,7 @@
     paintSafe(d);
     sizeread.textContent = d.label + (safeOn && !d.fill && (d.top||d.bottom) ? '  ·  safe areas shown' : '');
     if(btn) btn.classList.add('active');
+    applyNative();   // re-apply cap-native + simulated safe-area insets for the new device
   }
   Array.prototype.forEach.call(document.querySelectorAll('.vp-group .ctl'), function(b){
     if(b.id==='reboot'){ b.onclick=function(){ ready=false; iframe.src='index.html'; log('Rebooting…'); }; return; }
