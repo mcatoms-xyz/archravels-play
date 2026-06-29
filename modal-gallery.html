@@ -53,6 +53,7 @@
       <button class="ctl" data-dev="web">🖥️ Web</button>
       <button class="ctl" data-dev="fill">↔ Fill</button>
       <button class="ctl" id="safeToggle">🛡 Safe areas: on</button>
+      <button class="ctl" id="nativeToggle">📱 App UI (cap-native): on</button>
       <button class="ctl" id="reboot">⟳ Reboot</button>
     </div>
   </div>
@@ -77,6 +78,10 @@
   var sizeread = document.getElementById('sizeread');
   var logEl = document.getElementById('log');
   var ready = false;
+  var nativeOn = true;
+  // Force the in-app (Capacitor) styling onto the booted game so the gallery shows
+  // the ACTUAL iOS app UI — not the web layout — at phone size. Re-applied on every boot.
+  function applyNative(){ try{ var b = D() && D().body; if(b) b.classList.toggle('cap-native', nativeOn); }catch(e){} }
 
   function log(msg, isErr){ logEl.innerHTML = '<b>' + new Date().toLocaleTimeString() + '</b> · ' + (isErr ? '<span class="err">'+msg+'</span>' : msg); }
   function W(){ return iframe.contentWindow; }
@@ -97,6 +102,7 @@
       var ls = D().getElementById('landingScreen'); if(ls) ls.style.display='none';
       UI.renderAll();
       ready = true;
+      applyNative();
       log('Game booted — ' + n + ' players (' + ids.join(', ') + '). Pick a modal →');
       return true;
     }catch(e){ log('Boot failed: ' + e.message, true); return false; }
@@ -243,6 +249,9 @@
     if(b.id==='safeToggle'){ b.onclick=function(){
       safeOn=!safeOn; b.textContent='🛡 Safe areas: '+(safeOn?'on':'off'); b.classList.toggle('active', safeOn);
       applyDevice(currentDev, document.querySelector('.vp-group .ctl[data-dev="'+currentDev+'"]'));
+    }; b.classList.add('active'); return; }
+    if(b.id==='nativeToggle'){ b.onclick=function(){
+      nativeOn=!nativeOn; b.textContent='📱 App UI (cap-native): '+(nativeOn?'on':'off'); b.classList.toggle('active', nativeOn); applyNative();
     }; b.classList.add('active'); return; }
     b.onclick=function(){ applyDevice(b.dataset.dev, b); };
   });
