@@ -3493,8 +3493,8 @@ body {
 }
 
 @keyframes pulse-gold {
-    0%, 100% { box-shadow: 0 0 8px rgba(201, 168, 76, 0.2); }
-    50%       { box-shadow: 0 0 18px rgba(201, 168, 76, 0.5); }
+    0%, 100% { box-shadow: 0 0 0 1px var(--gold), 0 0 6px 1px rgba(201, 168, 76, 0.35); }
+    50%      { box-shadow: 0 0 0 2px var(--gold), 0 0 22px 6px rgba(201, 168, 76, 0.9); }
 }
 
 .project-card-img {
