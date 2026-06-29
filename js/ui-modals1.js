@@ -98,7 +98,7 @@ Object.assign(UI, {
         overlay.style.display = 'flex';
         overlay.innerHTML =
             '<div class="modal-content" style="max-width:400px;text-align:center">' +
-                '<div class="modal-title">Hold on — you can still craft!</div>' +
+                '<div class="modal-title">Forget Something?</div>' +
                 '<div class="end-warn-body">' +
                     'You still have a craft action available:' +
                     '<div class="end-warn-chips">' + chips + '</div>' +
@@ -138,13 +138,13 @@ Object.assign(UI, {
         overlay.style.display = 'flex';
         overlay.innerHTML =
             '<div class="modal-content" style="max-width:400px;text-align:center">' +
-                '<div class="modal-title">Shopping is required!</div>' +
+                '<div class="modal-title">Forget Something?</div>' +
                 '<div class="end-warn-body">' +
                     'You must take ' + '<span class="end-warn-chip">🛍️ ' + n + ' card' + (n !== 1 ? 's' : '') + '</span>' +
                     ' from the bazaar this turn before you can end it.' +
                 '</div>' +
                 '<div class="modal-actions end-warn-actions">' +
-                    '<button class="btn btn-cta" onclick="UI._dismissEndActionsWarning()">Got it — let me shop</button>' +
+                    '<button class="btn btn-cta" onclick="UI._dismissEndActionsWarning()">Back to the Bazaar!</button>' +
                 '</div>' +
             '</div>';
         overlay.addEventListener('click', function(e) {
