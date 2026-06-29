@@ -7378,3 +7378,14 @@ body.cap-native .craft-circle-grid .craft-slot { flex: 1 1 0; min-width: 0; padd
 body.cap-native .craft-circle-grid .craft-slot-img { height: clamp(32px, 11vw, 52px); }
 body.cap-native .craft-circle-grid .craft-slot-name { font-size: 10px; }
 body.cap-native .craft-circle-grid .craft-cost-dot { width: 8px; height: 8px; border-width: 1px; }
+
+/* Give the SR-preview / game-moment yarn dots (.gm-yarn-dot) the same always-on
+   colorblind letter treatment as .craft-cost-dot / .otc-dot. */
+.gm-yarn-dot { display:inline-flex; align-items:center; justify-content:center; }
+.gm-yarn-dot::after { font-weight:800; line-height:1; color:#fff; font-size:8px; pointer-events:none; }
+.gm-yarn-dot[data-cb-color="red"]::after    { content:"R"; }
+.gm-yarn-dot[data-cb-color="orange"]::after { content:"O"; }
+.gm-yarn-dot[data-cb-color="green"]::after  { content:"G"; }
+.gm-yarn-dot[data-cb-color="blue"]::after   { content:"B"; }
+.gm-yarn-dot[data-cb-color="purple"]::after { content:"P"; }
+.gm-yarn-dot[data-cb-color="yellow"]::after { content:"Y"; color:#3a2a1d; }
