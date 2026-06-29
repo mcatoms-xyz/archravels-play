@@ -1247,7 +1247,7 @@ var UI = {
         bar.innerHTML =
             '<div class="ab-phase">' +
                 '<span class="ab-phase-icon">⚡</span>' +
-                '<span class="ab-phase-label">Round ' + Game.currentRound() + ' — ' + spaceLabel + '</span>' +
+                '<span class="ab-phase-label">Round ' + Game.currentRound() + (document.body.classList.contains('cap-native') ? '' : ' — ' + spaceLabel) + '</span>' +
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' + chipsHtml + '</div>' +
