@@ -7530,10 +7530,10 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 .opponent-panel-header.has-banner .opp-banner-img,
 .opponent-panel-title img.opp-banner-img {
     display: block;
-    width: 100%;
-    max-width: 100%;
+    width: 112%;
+    max-width: 112%;
     height: auto;
-    margin: 0;
+    margin: 0 0 -14px -12%;   /* shift left to overhang the edge; pull body up to ride the line */
     padding: 0;
     border-radius: 0;
     background: none;
@@ -7550,3 +7550,8 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 .opponent-panel-header.has-banner .opponent-panel-title { display: block; width: 100%; gap: 0; }
 /* App: push the banner down clear of the notch/status bar (safe-area + breathing room). */
 body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 26px) 0 0; }
+/* App: stop the panel clipping horizontally so the ribbon's left end hangs over the edge.
+   Header is pinned (flex:0 0 auto) so it can't collapse; the body scrolls instead. */
+body.cap-native .opponent-panel { overflow: visible; display: flex; flex-direction: column; }
+body.cap-native .opponent-panel-header { flex: 0 0 auto; }
+body.cap-native .opponent-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
