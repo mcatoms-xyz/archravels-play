@@ -784,21 +784,31 @@ Object.assign(UI, {
                 cardHost.appendChild(c);
             });
         }
+        // Re-open the drawer after a rebuild if the user had it open (keeps it up during AI turns).
+        if (UI._mergedNavOpen) {
+            var openMenu = document.getElementById('mergedNavMenu');
+            if (openMenu) {
+                if (nav) openMenu.style.top = nav.getBoundingClientRect().bottom + 'px';
+                openMenu.style.display = 'block';
+            }
+        }
     },
     toggleMergedNav: function(e) {
         if (e) e.stopPropagation();
         var m = document.getElementById('mergedNavMenu');
         if (!m) return;
-        if (m.style.display !== 'none') { m.style.display = 'none'; return; }
+        if (m.style.display !== 'none') { m.style.display = 'none'; UI._mergedNavOpen = false; return; }
         // Anchor the slide-down drawer just below the nav bar (handles the notch height).
         var nav = document.getElementById('navBar');
         if (nav) m.style.top = nav.getBoundingClientRect().bottom + 'px';
         m.style.display = 'block';
-        setTimeout(function() { document.addEventListener('click', function h() { UI.closeMergedNav(); document.removeEventListener('click', h); }); }, 0);
+        // Stays open across game re-renders (AI turns etc.) until toggled or a card is picked.
+        UI._mergedNavOpen = true;
     },
     closeMergedNav: function() {
         var m = document.getElementById('mergedNavMenu');
         if (m) m.style.display = 'none';
+        UI._mergedNavOpen = false;
     },
 
     // Build one player card (used inline and inside the collapse menu). Clicking it
