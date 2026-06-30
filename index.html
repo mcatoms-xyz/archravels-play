@@ -8,7 +8,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=62">
+    <link rel="stylesheet" href="css/style.css?v=63">
 </head>
 
 <body>
@@ -75,6 +75,7 @@
                 <button class="nav-menu-item" id="navNextTrack">⏭ Next track</button>
                 <button class="nav-menu-item" id="navMuteBtn">🔊 Sound: On</button>
                 <button class="nav-menu-item" onclick="UI.onNavMenuToggle();document.getElementById('infoModal').style.display='flex'">ℹ️ Info &amp; Credits</button>
+                <button class="nav-menu-item" onclick="UI.onNavMenuToggle();window.toggleSizes&&toggleSizes()">📐 Sizes (debug)</button>
                 <button class="nav-menu-item" onclick="UI.onNewGame()">New Game</button>
             </div>
         </div>
@@ -622,18 +623,18 @@
          GAME SCRIPTS
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
-    <script src="js/cards.js?v=62"></script>
-    <script src="js/game.js?v=62"></script>
-    <script src="js/audio.js?v=62"></script>
-    <script src="js/ai.js?v=62"></script>
+    <script src="js/cards.js?v=63"></script>
+    <script src="js/game.js?v=63"></script>
+    <script src="js/audio.js?v=63"></script>
+    <script src="js/ai.js?v=63"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=62"></script>
-    <script src="js/ui-modals1.js?v=62"></script>
-    <script src="js/ui-modals2.js?v=62"></script>
-    <script src="js/ui-panels1.js?v=62"></script>
-    <script src="js/ui-panels2.js?v=62"></script>
-    <script src="js/ui-extra.js?v=62"></script>
+    <script src="js/ui-core.js?v=63"></script>
+    <script src="js/ui-modals1.js?v=63"></script>
+    <script src="js/ui-modals2.js?v=63"></script>
+    <script src="js/ui-panels1.js?v=63"></script>
+    <script src="js/ui-panels2.js?v=63"></script>
+    <script src="js/ui-extra.js?v=63"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
          The live game is solo + pass-and-play, with zero dependency on this layer
@@ -641,13 +642,13 @@
          online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
          here. Re-add to revive online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=62"></script>
-    <script src="js/online-bridge.js?v=62"></script>
+    <script src="js/network.js?v=63"></script>
+    <script src="js/online-bridge.js?v=63"></script>
     -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=62"></script>
+    <script src="js/story.js?v=63"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
@@ -659,6 +660,45 @@
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build;
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stamp); else stamp();
+    })();
+    </script>
+
+    <!-- 📐 TEMP layout-size diagnostic — toggled from the ☰ menu. Reports section heights +
+         total vs viewport so we can see exactly where/how much the play area overflows. -->
+    <script>
+    (function () {
+        var on = false, el = null, iv = null;
+        function h(sel) {
+            var n = document.querySelector(sel);
+            if (!n || getComputedStyle(n).display === 'none') return 0;
+            return Math.round(n.getBoundingClientRect().height);
+        }
+        function tick() {
+            if (!el) return;
+            var vp = Math.round(window.innerHeight);
+            var nav = h('.nav-bar'), feed = h('.action-feed'), bazaar = h('.board-section'),
+                board = h('.player-area'), sr = h('.sr-strip'), bar = h('.action-bar-wrapper');
+            var sum = nav + feed + bazaar + board + sr + bar, over = sum - vp;
+            el.innerHTML =
+                'VP ' + vp + '<br>nav ' + nav + '<br>feed ' + feed + '<br>bazaar ' + bazaar +
+                '<br>board ' + board + '<br>sr ' + sr + '<br>bar ' + bar +
+                '<br><b>sum ' + sum + '</b><br><b style="color:' + (over > 0 ? '#ff6b6b' : '#7CFC00') +
+                '">over ' + over + '</b>';
+        }
+        window.toggleSizes = function () {
+            on = !on;
+            if (on) {
+                el = document.createElement('div');
+                el.id = 'sizesDbg';
+                el.style.cssText = 'position:fixed;top:96px;left:6px;z-index:99999;background:rgba(0,0,0,.82);color:#fff;font:11px/1.35 ui-monospace,monospace;padding:8px 10px;border-radius:8px;pointer-events:none;white-space:nowrap';
+                document.body.appendChild(el);
+                tick(); iv = setInterval(tick, 350);
+            } else {
+                if (iv) clearInterval(iv);
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+                el = null;
+            }
+        };
     })();
     </script>
 
