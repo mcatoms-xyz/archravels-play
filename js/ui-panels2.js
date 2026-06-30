@@ -370,7 +370,7 @@ Object.assign(UI, {
             var h = '<span class="xc-chip-wrap">';
             h += '<button class="xc-chip' + (cur > 0 ? ' active' : '') + '" ' + (disabled ? 'disabled' : '') +
                  ' onclick="' + opts.addFn + '(\'' + color + '\')" data-cb-color="' + color + '" aria-label="' + cn + '">';
-            h += '<span class="xc-dot" style="background:' + hex + '" data-cb-color="' + color + '"></span>';
+            h += '<img class="xc-yarn" src="Wood Yarn Tokens PNG/' + color + '.png" alt="" data-cb-color="' + color + '">';
             h += '<span class="xc-name">' + cn + '</span>';
             if (sub != null) h += '<span class="xc-sub">' + sub + '</span>';
             h += '</button>';
