@@ -1262,6 +1262,42 @@ var UI = {
      */
     _restockDone: false,
 
+    /* ---- Pause ---- */
+    _paused: false,
+    _pauseStart: 0,
+    pauseGame: function() {
+        if (this._paused || !Game.state || !Game.state.gameStartTime) return;
+        this._paused = true;
+        this._pauseStart = Date.now();
+        // Stop the clock while paused.
+        if (Game.state._timerInterval) { clearInterval(Game.state._timerInterval); Game.state._timerInterval = null; }
+        var ov = document.createElement('div');
+        ov.id = 'pauseOverlay';
+        ov.className = 'pause-overlay';
+        ov.innerHTML = '<div class="pause-card">' +
+            '<div class="pause-title">⏸ Paused</div>' +
+            '<div class="pause-sub">The clock is stopped. Take your time.</div>' +
+            '<button class="btn btn-cta pause-resume" onclick="UI.resumeGame()">Resume →</button>' +
+        '</div>';
+        document.body.appendChild(ov);
+        requestAnimationFrame(function() { ov.classList.add('open'); });
+    },
+    resumeGame: function() {
+        if (!this._paused) return;
+        this._paused = false;
+        var pausedMs = Date.now() - (this._pauseStart || Date.now());
+        // Shift the timers forward so the paused time isn't counted against anyone.
+        if (Game.state.gameStartTime) Game.state.gameStartTime += pausedMs;
+        if (Game.state.turnStartTime) Game.state.turnStartTime += pausedMs;
+        this._pauseStart = 0;
+        // Restart the clock.
+        if (!Game.state._timerInterval && Game.state.gameStartTime) {
+            Game.state._timerInterval = setInterval(function() { try { Game.render.navTimer(); } catch (e) {} }, 1000);
+        }
+        var ov = document.getElementById('pauseOverlay');
+        if (ov) { ov.classList.remove('open'); setTimeout(function() { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 220); }
+    },
+
     _renderRestockBar: function(bar) {
         var emptyCount = 6 - Game.bazaarCardCount();
         var deckLeft = Game.state.deck.length;
