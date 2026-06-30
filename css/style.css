@@ -7527,10 +7527,10 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 .opponent-panel-header.has-banner .opp-banner-img,
 .opponent-panel-title img.opp-banner-img {
     display: block;
-    width: 112%;
-    max-width: 112%;
+    width: 100%;
+    max-width: 100%;
     height: auto;
-    margin: 0 0 -14px -12%;   /* shift left to overhang the edge; pull body up to ride the line */
+    margin: 0 0 -18px 0;   /* flush to edges; negative bottom pulls the body up to ride the line */
     padding: 0;
     border-radius: 0;
     background: none;
@@ -7549,9 +7549,11 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 26px) 0 0; }
 /* App: stop the panel clipping horizontally so the ribbon's left end hangs over the edge.
    Header is pinned (flex:0 0 auto) so it can't collapse; the body scrolls instead. */
-body.cap-native .opponent-panel { overflow: visible; display: flex; flex-direction: column; }
-body.cap-native .opponent-panel-header { flex: 0 0 auto; }
-body.cap-native .opponent-panel-body { flex: 1 1 0; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* Reliable scroll: the panel is the scroll container (overflow-y auto clips horizontally,
+   so the banner sits flush to the edges rather than past them — past-edge overhang fights
+   iOS scroll containment). The sticky banner header keeps the close button reachable. */
+body.cap-native .opponent-panel { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+body.cap-native .opponent-panel-header { position: sticky; top: 0; }
 
 /* Character ribbon banner as the Finished Objects drawer header — DARK header strip, ribbon
    overhangs the left edge, "Finished Objects" tag restored below it. */
