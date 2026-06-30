@@ -7481,3 +7481,10 @@ body.cap-native .fo-drawer-title { left: 12px; }
 /* Craft confirm: keep the "yarn to spend" tags on one row on phones (e.g. Scarf's 4). */
 body.cap-native .craft-confirm-cost { gap: 4px; }
 body.cap-native .confirm-yarn-tag { font-size: 11px; padding: 3px 8px; }
+
+/* Feed: left color block = the last actor's color (replaces the FEED label). */
+.feed-color-block { display: inline-block; width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(255,255,255,0.3); }
+/* Restock bonus actions get their own row; the 3 buttons share the width. */
+.ab-restock-actions { display: flex; gap: 6px; }
+body.cap-native .ab-restock-actions { width: 100%; }
+body.cap-native .ab-restock-actions .btn { flex: 1 1 0; min-width: 0; font-size: 12px; padding: 8px 4px; white-space: normal; line-height: 1.12; }
