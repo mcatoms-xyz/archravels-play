@@ -7594,8 +7594,10 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
     margin: 0 0 -18px -10%;            /* slightly smaller + less left; dip below the dark strip */
     filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
 }
-/* "Finished Objects" tag — hangs at the BOTTOM-LEFT, overlapping the wood (mirrors the points tag). */
-.fo-drawer-title.fo-title-onfabric {
+/* "Finished Objects" tag — hangs at the BOTTOM-LEFT, overlapping the wood (mirrors the points
+   tag). High specificity (body.cap-native … .fo-title-onfabric) to beat the static-position
+   header rule above. */
+body.cap-native .fo-drawer-title.fo-title-onfabric {
     display: inline-block;
     position: absolute;
     left: 8px;
@@ -7656,3 +7658,33 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
 
 /* App: no page footer — the Info & Credits screen (in the ☰ menu) carries it. */
 body.cap-native .game-footer { display: none; }
+
+/* =================================================================
+   APP: FIXED-HEIGHT SCREEN (cap-native). The footer now lives in the
+   Info screen, so the action bar no longer needs to float. Body is a
+   100dvh flex column — nav (top) / play area (flexible middle, scrolls
+   only if a state ever overflows) / action bar (in-flow bottom). No
+   page scroll. Web layout is untouched.
+   ================================================================= */
+body.cap-native {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+body.cap-native .nav-bar { position: relative; top: auto; flex: 0 0 auto; }
+body.cap-native .game-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+body.cap-native .action-bar-wrapper {
+    position: relative;
+    left: auto; right: auto; bottom: auto;
+    flex: 0 0 auto;
+    max-height: none;
+}
