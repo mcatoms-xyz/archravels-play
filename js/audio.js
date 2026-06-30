@@ -20,14 +20,40 @@
     }catch(e){}
   }
   var music=(function(){
-    var el=null, idx=-1, started=false;
-    function loadRandom(){ var n; do{ n=Math.floor(Math.random()*MAP['music-game'].length); }while(MAP['music-game'].length>1&&n===idx); idx=n; el.src=url(MAP['music-game'][idx]); el.loop=true; el.play().catch(function(){}); }
+    /* iOS WKWebView IGNORES HTMLMediaElement.volume (it always reports/uses 1), so the
+       slider + mute did nothing there. Route music through a Web Audio GainNode — gain
+       DOES attenuate on iOS — and additionally pause() the element on mute / game-pause. */
+    var el=null, idx=-1, started=false, pausedByGame=false;
+    var ctx=null, gain=null, srcNode=null, graphTried=false;
+    function buildGraph(){
+      if(graphTried) return; graphTried=true;
+      try{
+        var AC=window.AudioContext||window.webkitAudioContext;
+        if(!AC||!el) return;
+        ctx=new AC();
+        srcNode=ctx.createMediaElementSource(el);
+        gain=ctx.createGain();
+        gain.gain.value=muted?0:MUSIC_VOL;
+        srcNode.connect(gain); gain.connect(ctx.destination);
+      }catch(e){ ctx=null; gain=null; }
+    }
+    function ensureEl(){ if(!el){ el=new Audio(); el.loop=true; } buildGraph(); }
+    function applyVol(){
+      var target=muted?0:MUSIC_VOL;
+      if(gain){ try{ gain.gain.value=target; }catch(e){} }
+      try{ if(el) el.volume=target; }catch(e){}   /* desktop fallback; ignored on iOS */
+    }
+    function resumeCtx(){ try{ if(ctx&&ctx.state==='suspended') ctx.resume(); }catch(e){} }
+    function loadRandom(){ var n; do{ n=Math.floor(Math.random()*MAP['music-game'].length); }while(MAP['music-game'].length>1&&n===idx); idx=n; el.src=url(MAP['music-game'][idx]); el.loop=true; resumeCtx(); el.play().catch(function(){}); }
     return {
-      start:function(){ if(started)return; started=true; el=new Audio(); el.loop=true; el.volume=muted?0:MUSIC_VOL; loadRandom(); },
-      next:function(){ if(started) loadRandom(); },
-      startTheme:function(id){ var t=(typeof CHAR_THEME!=="undefined")&&CHAR_THEME[id]; if(!t){ this.start(); return; } started=true; if(!el) el=new Audio(); el.loop=true; el.volume=muted?0:MUSIC_VOL; el.src=url(t); el.play().catch(function(){}); },
-      setVol:function(){ if(el) el.volume=muted?0:MUSIC_VOL; },
-      setMuted:function(m){ if(el) el.volume=m?0:MUSIC_VOL; }
+      start:function(){ if(started)return; started=true; ensureEl(); applyVol(); loadRandom(); },
+      next:function(){ if(started){ ensureEl(); loadRandom(); } },
+      startTheme:function(id){ var t=(typeof CHAR_THEME!=="undefined")&&CHAR_THEME[id]; if(!t){ this.start(); return; } started=true; ensureEl(); applyVol(); el.src=url(t); el.loop=true; resumeCtx(); el.play().catch(function(){}); },
+      setVol:function(){ applyVol(); },
+      setMuted:function(m){ muted=m; applyVol(); if(el){ if(m){ try{ el.pause(); }catch(e){} } else if(started && !pausedByGame){ resumeCtx(); el.play().catch(function(){}); } } },
+      pause:function(){ pausedByGame=true; if(el){ try{ el.pause(); }catch(e){} } },
+      resume:function(){ pausedByGame=false; if(el && started && !muted){ resumeCtx(); el.play().catch(function(){}); } },
+      resumeCtx:resumeCtx
     };
   })();
   var Sound={
@@ -62,6 +88,7 @@
   var _lastTick=0;
   var AB_MAP=[['onTakeYarn','ab-take-yarn'],['showExchangeModal','ab-exchange'],['showLearnPatternModal','ab-learn'],['showFrogItModal','ab-frog'],['showFinishProjectModal','ab-finish'],['onEndActions','ab-end-actions'],['onEndRestockTurn','ab-end-turn'],['onSkipRestock','ab-skip-restock'],['onRestock','ab-restock'],['onEndFinalCraft','ab-done']];
   document.addEventListener('pointerdown',function(e){
+    try{ if(music&&music.resumeCtx) music.resumeCtx(); }catch(_e){}
     if(muted) return;
     var t=e.target.closest && e.target.closest(INTERACTIVE);
     if(!t) return;
