@@ -7096,7 +7096,7 @@ body.cap-native .nav-bar {
 }
 body.cap-native .game-layout {
     padding-top: calc(52px + var(--sat));
-    padding-bottom: calc(var(--ab-h, 132px) + 4px);
+    padding-bottom: calc(var(--ab-h, 132px) + 16px);
 }
 body.cap-native .action-bar-wrapper {
     position: fixed;
