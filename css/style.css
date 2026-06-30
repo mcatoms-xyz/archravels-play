@@ -7516,13 +7516,23 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 .pause-sub { font-size: .95rem; color: rgba(240,230,210,0.78); margin: 8px 0 22px; }
 .pause-resume { font-size: 1.05rem; padding: 12px 30px; }
 
-/* Character ribbon banner as the opponent-panel header (name/subtitle/badge baked into the art). */
+/* Character ribbon banner draped over the top of the opponent panel (name/subtitle/badge
+   baked into the art). Oversized + centered so the ribbon ends hang over BOTH side edges. */
 .opponent-panel-header.has-banner {
     display: block;
-    padding: 6px 0 0;
+    padding: 8px 0 0;
     background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
+    position: relative;
+    overflow: visible;
 }
-.opp-banner-img { width: 100%; height: auto; display: block; }
+.opp-banner-img {
+    display: block;
+    width: 108%;
+    max-width: 108%;
+    height: auto;
+    margin: 0 0 -6px -4%;
+    filter: drop-shadow(0 5px 8px rgba(0,0,0,0.4));
+}
 .opponent-panel-header.has-banner .opponent-panel-close {
     position: absolute;
     top: calc(var(--sat, 0px) + 8px);
@@ -7532,4 +7542,4 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
     border-color: rgba(255,255,255,0.25);
 }
 /* App: let the banner header clear the notch (beats the generic cap-native header padding). */
-body.cap-native .opponent-panel-header.has-banner { padding: var(--sat) 0 0; }
+body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 8px) 0 0; }
