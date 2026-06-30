@@ -494,6 +494,16 @@ Object.assign(UI, {
 
         entriesEl.innerHTML = html;
 
+        // Left color block = the color of whoever last took an action.
+        var blockEl = document.getElementById('feedColorBlock');
+        if (blockEl) {
+            var lastColor = '';
+            for (var k = feed.length - 1; k >= 0; k--) {
+                if (feed[k].characterType) { lastColor = UI._typeAccentColors[feed[k].characterType] || ''; break; }
+            }
+            blockEl.style.background = lastColor || 'rgba(255,255,255,0.25)';
+        }
+
         // Auto-scroll to show newest (rightmost) entry
         entriesEl.scrollLeft = entriesEl.scrollWidth;
     },
