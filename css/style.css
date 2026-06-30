@@ -7488,3 +7488,14 @@ body.cap-native .confirm-yarn-tag { font-size: 11px; padding: 3px 8px; }
 .ab-restock-actions { display: flex; gap: 6px; }
 body.cap-native .ab-restock-actions { width: 100%; }
 body.cap-native .ab-restock-actions .btn { flex: 1 1 0; min-width: 0; font-size: 12px; padding: 8px 4px; white-space: normal; line-height: 1.12; }
+
+/* FO drawer: drop the multiply-blended texture in the app so it's clean bright cream (no dim). */
+body.cap-native .fo-drawer { background-image: none; background-color: #f6efe2; }
+
+/* Pause overlay */
+.pause-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; background: rgba(20,14,8,0.74); opacity: 0; transition: opacity .2s; }
+.pause-overlay.open { opacity: 1; }
+.pause-card { text-align: center; padding: 24px; }
+.pause-title { font-size: 2.1rem; font-weight: 800; color: #f0e6d2; }
+.pause-sub { font-size: .95rem; color: rgba(240,230,210,0.78); margin: 8px 0 22px; }
+.pause-resume { font-size: 1.05rem; padding: 12px 30px; }
