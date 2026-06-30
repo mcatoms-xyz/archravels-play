@@ -80,7 +80,7 @@ var Story = {
       '<div class="story-topbar">' +
         '<button class="story-menu" id="storyMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>' +
         '<button class="story-back" id="storyBackBtn" onclick="Story.navBack()" aria-label="Back">‹</button>' +
-        '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="story-edition">Digital Edition</span></div>' +
+        '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"></div>' +
         '<button class="player-chip" title="Account" onclick="Story.openIdentity()">' +
           '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
           '<div class="pc-meta"><span class="pc-name" id="pcName">Sign In</span><span class="pc-note" id="pcNote" style="display:none"></span></div>' +
@@ -252,7 +252,7 @@ var Story = {
   /* ============================ screens ============================ */
   backBar: function(onclick, label){ this._back = onclick; return '<div class="backbar"><button class="btn btn-ghost" onclick="'+onclick+'">'+(label||'← Back')+'</button></div>'; },
   navBack: function(){ if(this._back){ try{ (new Function(this._back))(); }catch(e){ this.hide(); } } else { this.hide(); } },
-  avatarStyle: function(){ var av=(this.profile&&this.profile.avatar)||null; if(av&&av.t==='char') return {img:this.portrait(av.id)}; if(av&&av.t==='yarn') return {color:av.c}; return {emoji:'\U0001F9F6'}; },
+  avatarStyle: function(){ var av=(this.profile&&this.profile.avatar)||null; if(av&&av.t==='char') return {img:this.portrait(av.id)}; if(av&&av.t==='yarn') return {color:av.c}; return {emoji:'🧶'}; },
   avatarInner: function(){ var a=this.avatarStyle(); if(a.img) return '<img class="av-img" src="'+a.img+'" alt="">'; if(a.color) return '<span class="av-yarn" style="background:radial-gradient(circle at 35% 32%, rgba(255,255,255,.55), '+a.color+')"></span>'; return a.emoji; },
   AV_YARNS: [['Red','#c0341a'],['Orange','#cf7a1a'],['Yellow','#cfa81a'],['Green','#4a8b3a'],['Blue','#2b5fa0'],['Purple','#7a4fb0']],
   openAvatarPicker: function(){
@@ -385,7 +385,7 @@ var Story = {
       '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
     var body;
     if(champ){
-      body='<div class="cc-champ"><div class="cc-crown">\U0001F3C6</div>'+
+      body='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
         '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
         '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
         '<button class="cc-go" onclick="Story.goStats()">View your stats →</button></div>';
@@ -393,7 +393,7 @@ var Story = {
       var c=this.currentOpp(), ch=this.char(c), boss=(c==='hank'), dlg=this.DIALOG[c]||{};
       var role=boss?'Final Boss':this.meta(c).name;
       var taunt=dlg.intro?'<div class="cc-taunt">“'+dlg.intro+'”</div>':'';
-      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">\U0001F451</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
+      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">👑</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
       var btn='<button class="cc-go" onclick="Story.goPreMatch()">'+(boss?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
       var hero='<div class="cc-herowrap"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
         '<div class="cc-hero'+(boss?' boss':'')+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
