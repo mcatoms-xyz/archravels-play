@@ -7503,7 +7503,19 @@ body.cap-native .ab-restock-actions { width: 100%; }
 body.cap-native .ab-restock-actions .btn { flex: 1 1 0; min-width: 0; font-size: 12px; padding: 8px 4px; white-space: normal; line-height: 1.12; }
 
 /* FO drawer: drop the multiply-blended texture in the app so it's clean bright cream (no dim). */
-body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mode: normal !important; }
+/* FO drawer = the player-board "finished objects" panel: fabric matching the character's
+   board color (set per-type via --fo-fabric) under a left+bottom wood frame overlay. */
+body.cap-native .fo-drawer {
+    background-image: url('../Other Assets/fo/border-leftbottom.png'), var(--fo-fabric, url('../Other Assets/fo/fabric-hank.jpg')) !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-size: 100% 100%, cover !important;
+    background-position: center center, center center !important;
+    background-blend-mode: normal !important;
+    background-color: #dfe3c8 !important;
+    padding-left: 26px;
+    padding-bottom: calc(var(--sab) + 72px);   /* clear the bottom wood plank */
+}
+body.cap-native .fo-drawer .finished-objects-grid { padding: 0 6px; }
 
 /* Pause overlay */
 .pause-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; background: rgba(20,14,8,0.74); opacity: 0; transition: opacity .2s; }
@@ -7563,7 +7575,7 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
 .fo-drawer-header.has-banner {
     display: block;
     position: relative;
-    margin: -12px -14px 0 -18px;       /* break out of the drawer padding (full width + top) */
+    margin: -12px -14px 0 -26px;       /* break out of the drawer padding (full width + top) */
     padding: 0 0 10px;
     background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
     border-radius: 16px 16px 0 0;
