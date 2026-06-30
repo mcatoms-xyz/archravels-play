@@ -976,8 +976,7 @@ var UI = {
                 '<img class="tangled-cat-banner-img" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="Tangled Cat">' +
                 '<span class="tangled-cat-banner-text">' +
                     '<strong>Tangled Cat!</strong> ' + (player.name || 'Player') + ' can\'t Craft this turn.' +
-                '</span>' +
-                '<img class="tangled-cat-banner-img" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="">';
+                '</span>';
             banner.style.display = '';
         } else {
             banner.style.display = 'none';
