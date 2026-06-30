@@ -177,7 +177,7 @@ Object.assign(UI, {
             html += '<div class="learn-tile-row" onclick="UI._onLearnPatternClick(\'' + tile.id + '\')">';
             html += '<div class="learn-tile-imgs">';
             html += '<img class="learn-tile-img" src="' + tile.img + '" alt="' + itemName + ' pattern (exact)">';
-            html += '<span class="learn-tile-arrow">→</span>';
+            html += '<img class="learn-tile-arrow-img" src="Other Assets/flip-arrow.svg" alt="becomes">';
             html += '<img class="learn-tile-img" src="' + tile.backImg + '" alt="' + itemName + ' (general)">';
             html += '</div>';
             html += '<div class="learn-tile-info">';
