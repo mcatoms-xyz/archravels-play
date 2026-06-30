@@ -7250,7 +7250,7 @@ body.cap-native .sr-hover-preview { z-index: 600; }
 body.cap-native .landing-screen {
     justify-content: safe center;
     padding-top: calc(var(--sat) + 20px);
-    padding-bottom: calc(var(--sab) + 20px);
+    padding-bottom: 20px;
 }
 body.cap-native .landing-credit {
     font-size: 11px;
