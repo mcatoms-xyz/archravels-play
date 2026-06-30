@@ -252,12 +252,12 @@ var Story = {
   /* ============================ screens ============================ */
   backBar: function(onclick, label){ this._back = onclick; return '<div class="backbar"><button class="btn btn-ghost" onclick="'+onclick+'">'+(label||'← Back')+'</button></div>'; },
   navBack: function(){ if(this._back){ try{ (new Function(this._back))(); }catch(e){ this.hide(); } } else { this.hide(); } },
-  avatarStyle: function(){ var av=(this.profile&&this.profile.avatar)||null; if(av&&av.t==='char') return {img:this.portrait(av.id)}; if(av&&av.t==='yarn') return {color:av.c}; return {emoji:'🧶'}; },
-  avatarInner: function(){ var a=this.avatarStyle(); if(a.img) return '<img class="av-img" src="'+a.img+'" alt="">'; if(a.color) return '<span class="av-yarn" style="background:radial-gradient(circle at 35% 32%, rgba(255,255,255,.55), '+a.color+')"></span>'; return a.emoji; },
-  AV_YARNS: [['Red','#c0341a'],['Orange','#cf7a1a'],['Yellow','#cfa81a'],['Green','#4a8b3a'],['Blue','#2b5fa0'],['Purple','#7a4fb0']],
+  avatarStyle: function(){ var av=(this.profile&&this.profile.avatar)||null; if(av&&av.t==='char') return {img:this.portrait(av.id)}; if(av&&av.t==='yarn') return {img:'story-assets/yarn/'+av.c+'.jpg', yarn:true}; return {emoji:'🧶'}; },
+  avatarInner: function(){ var a=this.avatarStyle(); if(a.img) return '<img class="av-img" src="'+a.img+'" alt="">'; return a.emoji; },
+  AV_YARNS: [['Red','red'],['Orange','orange'],['Yellow','yellow'],['Green','green'],['Blue','blue'],['Purple','purple']],
   openAvatarPicker: function(){
     var cur=(this.profile&&this.profile.avatar)||{};
-    var yarns=this.AV_YARNS.map(function(y){ var sel=(cur.t==='yarn'&&cur.c===y[1])?' sel':''; return '<span class="av-yarn-opt'+sel+'" title="'+y[0]+'" style="background:radial-gradient(circle at 35% 32%, rgba(255,255,255,.55), '+y[1]+')" onclick="Story.pickAvatar(\'yarn\',\''+y[1]+'\')"></span>'; }).join('');
+    var yarns=this.AV_YARNS.map(function(y){ var sel=(cur.t==='yarn'&&cur.c===y[1])?' sel':''; return '<div class="av-yarn-opt'+sel+'" title="'+y[0]+'" onclick="Story.pickAvatar(\'yarn\',\''+y[1]+'\')"><img src="story-assets/yarn/'+y[1]+'.jpg" alt=""></div>'; }).join('');
     var chars=Object.keys(CARDS.characters).map(function(id){ var sel=(cur.t==='char'&&cur.id===id)?' sel':''; return '<div class="av-char-opt'+sel+'" title="'+Story.char(id).name+'" onclick="Story.pickAvatar(\'char\',\''+id+'\')"><img src="'+Story.portrait(id)+'" alt=""></div>'; }).join('');
     var html='<div class="av-sheet"><h3>Choose your avatar</h3><div class="av-ph">Pick a yarn color or a crafter — more coming later.</div>'+
       '<div class="av-grp">Yarn ball</div><div class="av-yarns">'+yarns+'</div>'+
@@ -330,6 +330,7 @@ var Story = {
     this.picked=charId;
     this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==charId; }).concat(['hank']);
     this.beaten = this._storedBeaten(charId);   // resume where this crafter left off
+    this._climbView = this.beaten;
     this.renderLadder();
   },
   // How many rivals this crafter has already beaten, from the saved profile.
@@ -385,30 +386,41 @@ var Story = {
       '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
     var body;
     if(champ){
-      body='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
+      body='<div class="cc-champ"><div class="cc-crown">\U0001F3C6</div>'+
         '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
         '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
         '<button class="cc-go" onclick="Story.goStats()">View your stats →</button></div>';
     } else {
-      var c=this.currentOpp(), ch=this.char(c), boss=(c==='hank'), dlg=this.DIALOG[c]||{};
+      var view=(typeof this._climbView==='number')?Math.max(0,Math.min(this._climbView,total-1)):this.beaten;
+      var c=this.ladder[view], ch=this.char(c), boss=(c==='hank'), dlg=this.DIALOG[c]||{};
+      var isNext=(view===this.beaten), isBeaten=(view<this.beaten);
       var role=boss?'Final Boss':this.meta(c).name;
       var taunt=dlg.intro?'<div class="cc-taunt">“'+dlg.intro+'”</div>':'';
-      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">👑</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
-      var btn='<button class="cc-go" onclick="Story.goPreMatch()">'+(boss?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
-      var hero='<div class="cc-herowrap"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
-        '<div class="cc-hero'+(boss?' boss':'')+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
+      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">\U0001F451</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
+      var btn;
+      if(isNext) btn='<button class="cc-go" onclick="Story.goPreMatch()">'+(boss?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
+      else if(isBeaten) btn='<button class="cc-go beat" disabled>✓ Already defeated</button>';
+      else btn='<button class="cc-go lock" disabled>\U0001F512 Beat '+this.char(this.currentOpp()).name+' first</button>';
+      var label=isNext?'⚔ Next Challenger':(isBeaten?'✓ Already Defeated':'\U0001F512 Locked — Preview');
+      var hero='<div class="cc-herowrap" id="ccHero"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
+        '<div class="cc-hero'+(boss?' boss':'')+(isNext?'':' dim')+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-pos">'+(view+1)+' / '+total+'</span><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
         '<div class="cc-info">'+fav+taunt+btn+'</div></div>'+
         '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
-      var ahead=this.ladder.slice(this.beaten+1), scout='';
-      if(ahead.length){
-        var minis=ahead.map(function(o,i){ var b=(o==='hank'); return '<div class="cc-mini'+(b?' boss':'')+'"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml">'+(b?'Final Boss':(i===0?'Up next':'Locked'))+'</div></div>'; }).join('');
-        scout='<div class="cc-scout"><div class="cc-scout-h"><span>Scout ahead</span><span class="cc-togo">'+ahead.length+' to go</span></div><div class="cc-scout-row">'+minis+'</div></div>';
-      }
-      body='<div class="cc-nextlabel">⚔ Next Challenger</div>'+hero+scout;
+      var self=this;
+      var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml">'+(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked')))+'</div></div>'; }).join('');
+      var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">swipe or tap ↕</span></div><div class="cc-scout-row">'+minis+'</div></div>';
+      body='<div class="cc-nextlabel">'+label+'</div>'+hero+scout;
     }
     this.screen('<div class="crumb">Your Craft Circle</div>'+top+body+
       this.backBar('Story.goTypes()','↺ Change crafter'));
+    var hw=document.getElementById('ccHero');
+    if(hw){ var sy=null;
+      hw.addEventListener('touchstart',function(e){ sy=e.touches[0].clientY; },{passive:true});
+      hw.addEventListener('touchend',function(e){ if(sy===null)return; var dy=e.changedTouches[0].clientY-sy; sy=null; if(dy<-35) Story.climbStep(1); else if(dy>35) Story.climbStep(-1); });
+    }
   },
+  climbStep: function(d){ var total=this.ladder.length; var v=(typeof this._climbView==='number')?this._climbView:this.beaten; this._climbView=Math.max(0,Math.min(v+d,total-1)); this.renderLadder(); },
+  climbView: function(i){ this._climbView=i; this.renderLadder(); },
   youNodeHTML: function(){
     var c=this.picked, ch=this.char(c), total=this.ladder.length;
     return '<div class="pcard you-node" style="--tc:#d9a521"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="you-badge">YOU</div><div class="pc-name">'+ch.name+'</div></div>'+
