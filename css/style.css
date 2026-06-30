@@ -7715,3 +7715,90 @@ body.cap-native .tangled-cat-banner-img { width: 22px; height: 22px; flex-shrink
 
 /* Player dropdown rows: show the pts · items · yarn line (hidden elsewhere in the app). */
 body.cap-native .mn-drawer-cards .player-strip-detail { display: block; font-size: 11px; color: #c9b89a; margin-top: 1px; }
+
+
+/* =====================================================================
+   SESSION 42 — Redesigned ☰ drawer (grouped + footer + exit warnings).
+   Namespaced .nm-* + scoped to #navMenuDropdown so nothing leaks into
+   the game UI. Works in both the web dropdown and the cap-native drawer.
+   ===================================================================== */
+#navMenuDropdown{
+    background: linear-gradient(180deg,#f6eed9,#f1e4c6);
+    display:flex; flex-direction:column; padding:0; overflow:hidden;
+    width:300px; max-width:92vw; max-height:calc(100vh - 56px);
+    color:#3a2e1f;
+}
+body.cap-native #navMenuDropdown{ width:80vw; max-width:330px; max-height:none; padding:0; }
+#navMenuDropdown .nm-scroll{ flex:1 1 auto; overflow-y:auto; padding:8px 14px 6px; }
+body.cap-native #navMenuDropdown .nm-scroll{ padding-top: calc(var(--sat) + 10px); }
+
+#navMenuDropdown .nm-seclabel{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#9a8a6c; font-weight:800; margin:15px 6px 7px; }
+#navMenuDropdown .nm-scroll > .nm-seclabel:first-child{ margin-top:4px; }
+
+#navMenuDropdown .nm-row{ display:flex; align-items:center; gap:12px; width:100%; border:0; background:transparent; cursor:pointer; padding:11px 8px; border-radius:12px; font-size:15.5px; color:#3a2e1f; text-align:left; font-weight:600; font-family:inherit; }
+#navMenuDropdown .nm-row:hover{ background:rgba(58,46,31,.06); }
+#navMenuDropdown .nm-row > svg{ width:21px; height:21px; flex:none; stroke:#3a2e1f; stroke-width:1.7; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+#navMenuDropdown .nm-card{ background:#fbf4e3; border:1px solid rgba(58,46,31,.14); border-radius:16px; padding:12px 13px; margin:2px 4px; }
+#navMenuDropdown .nm-slider{ display:flex; align-items:center; gap:11px; margin:7px 2px; }
+#navMenuDropdown .nm-slider svg{ width:19px; height:19px; flex:none; stroke:#6b5a42; stroke-width:1.7; fill:none; }
+#navMenuDropdown .nm-slider input[type=range]{ flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:3px; background:#d9cba8; }
+#navMenuDropdown .nm-slider input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:17px; height:17px; border-radius:50%; background:#fff; border:2px solid #3769BE; box-shadow:0 1px 3px rgba(0,0,0,.25); cursor:pointer; }
+#navMenuDropdown .nm-slider input[type=range]::-moz-range-thumb{ width:15px; height:15px; border-radius:50%; background:#fff; border:2px solid #3769BE; cursor:pointer; }
+#navMenuDropdown .nm-audio-actions{ display:flex; gap:8px; margin-top:10px; }
+#navMenuDropdown .nm-pill{ flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:9px; border-radius:11px; border:1px solid rgba(58,46,31,.14); background:#fffdf6; font-size:13px; font-weight:700; color:#3a2e1f; cursor:pointer; font-family:inherit; }
+#navMenuDropdown .nm-pill svg{ width:16px; height:16px; stroke:#3a2e1f; stroke-width:1.8; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+#navMenuDropdown #navMuteBtn:not(.nm-muted){ color:#3769BE; border-color:rgba(55,105,190,.4); background:rgba(55,105,190,.07); }
+#navMenuDropdown #navMuteBtn:not(.nm-muted) svg{ stroke:#3769BE; }
+#navMenuDropdown #navMuteBtn.nm-muted{ opacity:.85; }
+
+#navMenuDropdown .nm-toggle-row{ display:flex; align-items:center; gap:12px; width:100%; border:0; background:transparent; cursor:pointer; padding:11px 8px; border-radius:12px; text-align:left; font-family:inherit; }
+#navMenuDropdown .nm-toggle-row:hover{ background:rgba(58,46,31,.06); }
+#navMenuDropdown .nm-toggle-row .nm-lead{ width:21px; height:21px; flex:none; stroke:#3a2e1f; stroke-width:1.7; fill:none; }
+#navMenuDropdown .nm-toggle-text{ display:flex; flex-direction:column; }
+#navMenuDropdown .nm-tlabel{ font-size:15.5px; font-weight:600; color:#3a2e1f; }
+#navMenuDropdown .nm-sub{ font-size:11px; color:#9a8a6c; font-weight:500; margin-top:1px; }
+#navMenuDropdown .cb-indicator{ display:none; }
+#navMenuDropdown .nm-switch{ margin-left:auto; width:46px; height:27px; border-radius:20px; background:#d6c8a6; position:relative; transition:.18s; flex:none; }
+#navMenuDropdown .nm-knob{ position:absolute; top:3px; left:3px; width:21px; height:21px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:.18s; }
+#navMenuDropdown #navColorblindBtn[aria-pressed="true"] .nm-switch{ background:#3769BE; }
+#navMenuDropdown #navColorblindBtn[aria-pressed="true"] .nm-knob{ left:22px; }
+
+#navMenuDropdown .nm-divider{ height:1px; background:rgba(58,46,31,.14); margin:12px 6px; }
+#navMenuDropdown .nm-exit-head{ display:flex; align-items:center; gap:6px; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#a8895f; font-weight:800; margin:2px 6px 7px; }
+#navMenuDropdown .nm-exit-head svg{ width:13px; height:13px; stroke:#a8895f; stroke-width:2.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+#navMenuDropdown .nm-leave:hover{ background:rgba(181,72,46,.08); }
+
+#navMenuDropdown .nm-buy{ margin:12px 4px 6px; display:flex; align-items:center; justify-content:center; gap:9px; background:linear-gradient(180deg,#3769BE,#2b5499); color:#fff; border:0; border-radius:14px; padding:13px; font-size:14.5px; font-weight:800; width:calc(100% - 8px); cursor:pointer; font-family:inherit; box-shadow:0 4px 12px rgba(43,84,153,.3); }
+#navMenuDropdown .nm-buy svg{ width:17px; height:17px; stroke:#fff; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+#navMenuDropdown .nm-buy .nm-go{ width:15px; height:15px; }
+
+#navMenuDropdown .nm-footer-top{ padding:14px 18px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; border-top:1px solid rgba(58,46,31,.14); }
+#navMenuDropdown .nm-ar-line{ display:flex; align-items:center; gap:11px; }
+#navMenuDropdown .nm-ar-line img{ height:40px; width:auto; }
+#navMenuDropdown .nm-name{ font-size:15px; font-weight:300; text-transform:uppercase; letter-spacing:4px; color:#3a2e1f; padding-left:2px; }
+#navMenuDropdown .nm-beta{ display:inline-block; background:#3769BE; color:#fff; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:6px; margin-left:8px; vertical-align:middle; }
+#navMenuDropdown .nm-credits{ font-size:11.5px; line-height:1.55; color:#6b5a42; font-weight:500; }
+#navMenuDropdown .nm-credits b{ font-weight:700; color:#3a2e1f; }
+#navMenuDropdown .nm-ver{ font-size:10.5px; color:#9a8a6c; font-weight:600; letter-spacing:.02em; }
+#navMenuDropdown .nm-legal{ display:flex; gap:7px; align-items:center; font-size:11px; font-weight:700; margin-top:1px; }
+#navMenuDropdown .nm-legal a{ color:#2b5499; text-decoration:none; cursor:pointer; }
+#navMenuDropdown .nm-legal span{ color:#c3b48f; }
+
+#navMenuDropdown a.nm-footer-bar{ display:flex; align-items:center; gap:11px; background:#243b63; padding:11px 16px; text-decoration:none; cursor:pointer; flex:none; }
+#navMenuDropdown a.nm-footer-bar:hover{ background:#2a4570; }
+#navMenuDropdown a.nm-footer-bar img{ height:26px; width:auto; opacity:.95; flex:none; }
+#navMenuDropdown a.nm-footer-bar .nm-cpy{ font-size:10.5px; color:rgba(255,255,255,.8); font-weight:600; line-height:1.35; white-space:nowrap; }
+#navMenuDropdown a.nm-footer-bar .nm-go{ margin-left:auto; width:14px; height:14px; stroke:#fff; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; opacity:.65; }
+body.cap-native #navMenuDropdown a.nm-footer-bar{ padding-bottom: calc(11px + var(--sab)); }
+
+/* Leave-game confirm modal */
+.nm-exit-overlay{ position:fixed; inset:0; background:rgba(30,22,12,.55); z-index:9000; display:flex; align-items:center; justify-content:center; padding:26px; }
+.nm-exit-modal{ background:#f4ead2; border-radius:20px; padding:22px 20px 18px; max-width:300px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,.4); text-align:center; }
+.nm-exit-ic{ width:46px; height:46px; border-radius:50%; background:rgba(181,72,46,.12); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; }
+.nm-exit-ic svg{ width:24px; height:24px; stroke:#b5482e; stroke-width:1.9; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.nm-exit-modal h3{ margin:0 0 6px; font-size:18px; color:#3a2e1f; }
+.nm-exit-modal p{ margin:0 0 18px; font-size:13.5px; line-height:1.45; color:#6b5a42; }
+.nm-exit-btns{ display:flex; flex-direction:column; gap:9px; }
+.nm-exit-leave{ background:#b5482e; color:#fff; border:0; border-radius:12px; padding:12px; font-size:14.5px; font-weight:800; cursor:pointer; font-family:inherit; }
+.nm-exit-stay{ background:transparent; color:#3a2e1f; border:1px solid rgba(58,46,31,.18); border-radius:12px; padding:12px; font-size:14.5px; font-weight:700; cursor:pointer; font-family:inherit; }
