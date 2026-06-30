@@ -2370,8 +2370,9 @@ body {
     padding: 28px 36px 24px;
     box-shadow: 0 16px 60px rgba(0,0,0,0.5), 0 0 40px rgba(196, 164, 105, 0.15);
     text-align: center;
-    max-width: 380px;
-    min-width: 280px;
+    max-width: min(360px, calc(100vw - 40px));   /* never wider than the screen — keeps the corner badge on-screen even mid-reflow */
+    min-width: 0;
+    box-sizing: border-box;
     position: relative;
     overflow: visible;
     animation: momentAppear 0.35s ease-out;
@@ -7592,15 +7593,18 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
     margin: 0 0 -2px -14%;             /* shift left to overhang; hug the fabric below */
     filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
 }
-/* "Finished Objects" tag — moved ONTO the fabric, centered just under the banner. */
+/* "Finished Objects" tag — hangs at the BOTTOM-LEFT, overlapping the wood (mirrors the points tag). */
 .fo-drawer-title.fo-title-onfabric {
-    display: block;
-    position: static;
-    left: auto; top: auto; right: auto;
+    display: inline-block;
+    position: absolute;
+    left: 8px;
+    bottom: 14px;
+    top: auto; right: auto;
     opacity: 1;
     width: max-content;
-    max-width: 84%;
-    margin: 8px auto 12px;
+    max-width: 60%;
+    margin: 0;
+    transform: rotate(-4deg);
     z-index: 6;
 }
 .fo-drawer-header.has-banner .fo-drawer-close {
@@ -7609,7 +7613,7 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
     border-radius: 6px; padding: 1px 9px; line-height: 1;
 }
 .fo-drawer-header.has-banner ~ .finished-objects-total.has-points {
-    top: auto; bottom: 14px; right: -22px;
+    top: auto; bottom: 5px; right: -18px;
 }
 
 /* Player-board key art (portrait) showcased at the top of the player drawer. */
