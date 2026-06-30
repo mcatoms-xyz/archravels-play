@@ -64,22 +64,26 @@ Object.assign(UI, {
 
         // 3. Yarn Bowl
         var yarnSection = this._oppSection('Yarn Bowl');
+        var bowl = document.createElement('div');
+        bowl.className = 'opp-yarn-bowl';
         var yarnGrid = document.createElement('div');
         yarnGrid.className = 'opp-yarn-grid';
         var yarnTotal = 0;
-        CARDS.COLORS.forEach(function(color) {
+        var yarnOrder = UI._yarnBowlOrder || CARDS.COLORS;   // ROYGBP → two rows of 3
+        yarnOrder.forEach(function(color) {
             var count = (p.yarnBowl && p.yarnBowl[color]) || 0;
             yarnTotal += count;
-            var chip = document.createElement('div');
-            chip.className = 'opp-yarn-chip';
-            chip.style.backgroundColor = CARDS.COLOR_HEX[color];
-            chip.setAttribute('data-cb-color', color);
-            chip.textContent = count;
-            chip.title = color.charAt(0).toUpperCase() + color.slice(1) + ': ' + count;
-            chip.setAttribute('aria-label', color.charAt(0).toUpperCase() + color.slice(1) + ': ' + count + ' yarn');
-            yarnGrid.appendChild(chip);
+            var cell = document.createElement('div');
+            cell.className = 'opp-yarn-cell';
+            cell.title = color.charAt(0).toUpperCase() + color.slice(1) + ': ' + count;
+            cell.setAttribute('aria-label', color.charAt(0).toUpperCase() + color.slice(1) + ': ' + count + ' yarn');
+            cell.innerHTML =
+                '<img class="opp-yarn-img" src="Wood Yarn Tokens PNG/' + color + '.png" alt="' + color + ' yarn">' +
+                '<span class="opp-yarn-num">' + count + '</span>';
+            yarnGrid.appendChild(cell);
         });
-        yarnSection.content.appendChild(yarnGrid);
+        bowl.appendChild(yarnGrid);
+        yarnSection.content.appendChild(bowl);
         var totalDiv = document.createElement('div');
         totalDiv.className = 'opp-yarn-total';
         totalDiv.textContent = 'Total: ' + yarnTotal + ' yarn';
@@ -162,7 +166,7 @@ Object.assign(UI, {
             projRow.className = 'opp-item-row';
             p.projects.forEach(function(proj) {
                 var card = document.createElement('div');
-                card.className = 'opp-item-card';
+                card.className = 'opp-item-card opp-proj';
                 var img = document.createElement('img');
                 img.src = proj.img;
                 img.alt = proj.name;
