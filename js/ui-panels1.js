@@ -1138,9 +1138,11 @@ Object.assign(UI, {
         if (shouldOpen) {
             drawer.classList.add('open');
             bd.classList.add('open');
+            document.body.classList.add('fo-drawer-active');
         } else {
             drawer.classList.remove('open');
             bd.classList.remove('open');
+            document.body.classList.remove('fo-drawer-active');
         }
     },
 
