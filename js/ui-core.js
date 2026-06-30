@@ -725,7 +725,7 @@ var UI = {
         // Close on outside click
         if (!isOpen) {
             var closeHandler = function(e) {
-                if (!dd.contains(e.target) && e.target.id !== 'navMenuBtn') {
+                if (!dd.contains(e.target) && !(e.target.closest && e.target.closest('#navMenuBtn,#storyMenuBtn'))) {
                     dd.style.display = 'none';
                     document.removeEventListener('click', closeHandler);
                 }
@@ -1797,6 +1797,8 @@ var UI = {
         if (window.Story) { Story.storyGame = false; Story.active = false; }
         // 3) Close the nav menu + any open modals / dropdowns
         var dd = document.getElementById('navMenuDropdown'); if (dd) dd.style.display = 'none';
+        var sr = document.getElementById('story-root'); if (sr) sr.style.display = 'none';
+        document.body.classList.remove('story-open');
         ['setupModal','gameOverModal','eventModal','srModal','passDeviceModal'].forEach(function(k){
             var el = UI.els[k]; if (el) el.style.display = 'none';
         });
