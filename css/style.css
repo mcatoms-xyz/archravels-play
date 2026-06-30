@@ -7997,4 +7997,4 @@ body.phone-web .action-bar-wrapper{ position:fixed; left:0; right:0; bottom:0; t
 body.phone-web #story-root{ padding-top:58px; }
 
 /* Session 42k: phone-web feed clearance (margin:auto from the locked layout collapsed it into the board dots) */
-body.phone-web .action-feed{ margin:26px auto 4px; }
+body.phone-web .action-feed{ margin:40px auto 4px; }
