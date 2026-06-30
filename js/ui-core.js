@@ -1822,3 +1822,32 @@ var UI = {
      * Only allowed if no actions have been taken yet.
      */
 };
+
+/* Long-press the player-board art → open that player's board drawer (the opponent panel
+   we showcase the banner + key art in). Cancels on drag; ignores interactive overlays. */
+(function () {
+    var timer = null, sx = 0, sy = 0;
+    function clear() { if (timer) { clearTimeout(timer); timer = null; } }
+    document.addEventListener('pointerdown', function (e) {
+        var onBoard = e.target.closest && e.target.closest('.player-board-image, .bowl-wood-bg, .player-board-wrapper');
+        if (!onBoard) return;
+        if (e.target.closest('.yarn-bowl-overlay, .craft-board-overlay, .fo-drawer, .fo-drawer-tab, button, a, [onclick], [class*="slot"]')) return;
+        sx = e.clientX; sy = e.clientY;
+        clear();
+        timer = setTimeout(function () {
+            timer = null;
+            try {
+                var idx = (Game.state && Game.state.players) ? Game.state.players.indexOf(Game.state.player) : -1;
+                if (idx >= 0 && UI.showOpponentPanel) {
+                    UI.showOpponentPanel(idx);
+                    if (window.Sound) Sound.play('drawer-open');
+                }
+            } catch (err) {}
+        }, 480);
+    }, true);
+    document.addEventListener('pointermove', function (e) {
+        if (timer && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) clear();
+    }, true);
+    document.addEventListener('pointerup', clear, true);
+    document.addEventListener('pointercancel', clear, true);
+})();
