@@ -383,12 +383,15 @@ Object.assign(UI, {
         } else {
             // Process the queue of revealed Events/SRs, then return to restock bar
             UI._processRestockQueue(revealed, 0, function() {
-                // Re-render so player can finish projects / learn patterns before ending turn
-                UI.renderBazaar();
-                UI.renderCraftGrid();
-                UI.renderSpecialRequests();
-                UI.renderFinishedObjects();
-                UI.renderProjectStrip();
+                // Re-render so player can finish projects / learn patterns before ending turn.
+                try {
+                    UI.renderBazaar();
+                    UI.renderCraftGrid();
+                    UI.renderSpecialRequests();
+                    UI.renderFinishedObjects();
+                    UI.renderProjectStrip();
+                } catch (e) {}
+                // Always advance the action bar to "End Turn", even if a render above hiccups.
                 UI.renderActionBar();
             });
         }
