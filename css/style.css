@@ -7470,3 +7470,8 @@ body.cap-native .yarn-bowl-overlay {
 .otc-pattern-grid .otc-need-card-dots { gap: 1.5px; justify-content: center; }
 .otc-pattern-grid .otc-dot { width: 11px; height: 11px; }
 .otc-pattern-grid .otc-dot::after { font-size: 6.5px; }
+
+/* Session 41 (cap-native): FO drawer — fully opaque (kill the backdrop bleed-through "dimming")
+   + bring the title pill inside so the scroll-overflow stops clipping it. */
+body.cap-native .fo-drawer { background-color: #f5eee1; }
+body.cap-native .fo-drawer-title { left: 12px; }
