@@ -7474,7 +7474,13 @@ body.cap-native .yarn-bowl-overlay {
 /* Session 41 (cap-native): FO drawer — fully opaque (kill the backdrop bleed-through "dimming")
    + bring the title pill inside so the scroll-overflow stops clipping it. */
 body.cap-native .fo-drawer { background-color: #f5eee1; }
-body.cap-native .fo-drawer-title { left: 12px; }
+/* App: lay the header out inline so the green pill sits at the far left and the
+   character name sits beside it — no absolute overlap, no overflow clipping. */
+body.cap-native .fo-drawer-header { position: relative; align-items: center; padding-right: 34px; min-height: 0; }
+body.cap-native .fo-drawer-title { position: static; left: auto; top: auto; opacity: 1; margin-right: 8px; flex-shrink: 0; }
+body.cap-native .fo-drawer.open .fo-drawer-title { opacity: 1; }
+body.cap-native .fo-drawer-charname { flex: 1 1 auto; padding: 0; min-width: 0; }
+body.cap-native .fo-drawer-close { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); }
 
 /* Learned patterns: neutral (gray) dots in the off-turn context (no specific color needed). */
 .otc-dot.otc-dot-neutral { background: #8a7a68; }
@@ -7490,7 +7496,7 @@ body.cap-native .ab-restock-actions { width: 100%; }
 body.cap-native .ab-restock-actions .btn { flex: 1 1 0; min-width: 0; font-size: 12px; padding: 8px 4px; white-space: normal; line-height: 1.12; }
 
 /* FO drawer: drop the multiply-blended texture in the app so it's clean bright cream (no dim). */
-body.cap-native .fo-drawer { background-image: none; background-color: #f6efe2; }
+body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mode: normal !important; }
 
 /* Pause overlay */
 .pause-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; background: rgba(20,14,8,0.74); opacity: 0; transition: opacity .2s; }
