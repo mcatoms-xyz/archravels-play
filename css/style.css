@@ -7958,3 +7958,24 @@ body.story-open #navMenuDropdown .nm-grp-game{ display:none; }
 #story-root .cc-mini.next .cc-ml{ color:var(--gold-d); font-weight:800; }
 #story-root .cc-mini.locked{ opacity:.6; }
 #story-root .cc-mini.boss .cc-ml{ color:#7e5bc0; font-weight:800; }
+
+
+/* === Session 42g: fixed-height Craft Circle (only the carousel area is live), taller hero === */
+#story-root.cc-mode{ overflow:hidden; display:flex; flex-direction:column; }
+#story-root.cc-mode #story-screen{ flex:1; min-height:0; display:flex; flex-direction:column; }
+#story-root.cc-mode #story-screen > .crumb,
+#story-root.cc-mode #story-screen > .cc-top,
+#story-root.cc-mode #story-screen > .cc-nextlabel,
+#story-root.cc-mode #story-screen > .cc-scout,
+#story-root.cc-mode #story-screen > .backbar{ flex:none; }
+#story-root.cc-mode #story-screen > .cc-top{ margin-bottom:9px; }
+#story-root.cc-mode #story-screen > .cc-nextlabel{ margin:2px 0 6px; }
+#story-root.cc-mode .cc-herowrap{ flex:1; min-height:0; display:flex; flex-direction:column; margin:4px 0; }
+#story-root.cc-mode .cc-hero{ flex:1; min-height:0; display:flex; flex-direction:column; }
+#story-root.cc-mode .cc-art{ flex:1; min-height:120px; height:auto; }
+#story-root.cc-mode .cc-info{ flex:none; }
+#story-root.cc-mode .cc-taunt{ margin-bottom:10px; }
+#story-root.cc-mode .cc-scout{ margin-top:10px; }
+#story-root.cc-mode .backbar{ margin-top:10px; margin-bottom:0; }
+/* scout header: readable, no emoji */
+#story-root .cc-togo{ color:var(--walnut-soft); text-transform:none; letter-spacing:0; font-weight:600; }
