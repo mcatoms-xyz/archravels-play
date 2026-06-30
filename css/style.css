@@ -7527,19 +7527,22 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 }
 .opp-banner-img {
     display: block;
-    width: 108%;
-    max-width: 108%;
+    width: 112%;
+    max-width: 112%;
     height: auto;
-    margin: 0 0 -6px -4%;
-    filter: drop-shadow(0 5px 8px rgba(0,0,0,0.4));
+    margin: 0 0 -8px -6%;
+    filter: drop-shadow(0 5px 9px rgba(0,0,0,0.45));
 }
 .opponent-panel-header.has-banner .opponent-panel-close {
     position: absolute;
     top: calc(var(--sat, 0px) + 8px);
     right: 8px;
-    z-index: 3;
+    z-index: 4;
     background: rgba(0,0,0,0.4);
     border-color: rgba(255,255,255,0.25);
 }
-/* App: let the banner header clear the notch (beats the generic cap-native header padding). */
-body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 8px) 0 0; }
+/* App: banner bleeds UP to the top edge (hangs over the drawer top), and the panel stops
+   clipping horizontally so the ribbon ends hang past the side edges. Body scrolls instead. */
+body.cap-native .opponent-panel-header.has-banner { padding: 0; }
+body.cap-native .opponent-panel { overflow: visible; display: flex; flex-direction: column; }
+body.cap-native .opponent-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
