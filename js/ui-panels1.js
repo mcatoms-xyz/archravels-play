@@ -931,6 +931,26 @@ Object.assign(UI, {
             var charDef = CARDS.getCharacter(charId);
             charNameEl.textContent = charDef ? charDef.name : '';
         }
+        // Character ribbon banner as the drawer header (matches the opponent panel).
+        var foCharDef = charId ? CARDS.getCharacter(charId) : null;
+        var foHeaderEl = titleEl ? titleEl.parentNode : null;
+        if (foHeaderEl) {
+            var foBanner = document.getElementById('foDrawerBanner');
+            if (foCharDef && foCharDef.banner) {
+                foHeaderEl.classList.add('has-banner');
+                if (!foBanner) {
+                    foBanner = document.createElement('img');
+                    foBanner.id = 'foDrawerBanner';
+                    foBanner.className = 'fo-banner-img';
+                    foHeaderEl.insertBefore(foBanner, foHeaderEl.firstChild);
+                }
+                foBanner.src = foCharDef.banner;
+                foBanner.alt = foCharDef.name;
+            } else {
+                foHeaderEl.classList.remove('has-banner');
+                if (foBanner) foBanner.parentNode.removeChild(foBanner);
+            }
+        }
 
         grid.innerHTML = '';
 
