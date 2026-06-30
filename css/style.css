@@ -7443,3 +7443,17 @@ body.cap-native.fo-drawer-active { overflow: hidden; }
 .opp-pattern-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .opp-pattern-tile { width: auto; }
 .opp-pattern-tile img { width: 100%; height: auto; object-fit: contain; }
+
+/* Session 41 (cap-native): the SETUP modal specifically — force it to fit the safe
+   viewport + scroll (the generic .modal-content rule was being out-specified), and
+   shrink the big logo so it fits without scrolling at all on most phones. */
+body.cap-native #setupModal { align-items: center; }
+body.cap-native #setupModal > .modal-content {
+    max-height: calc(100dvh - var(--sat) - var(--sab) - 24px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+}
+body.cap-native .setup-logo-img { max-height: 92px; width: auto; }
+body.cap-native .setup-logo { margin-bottom: 2px; }
+body.cap-native .setup-players { margin-top: 10px; }
