@@ -1271,6 +1271,8 @@ var UI = {
         this._pauseStart = Date.now();
         // Stop the clock while paused.
         if (Game.state._timerInterval) { clearInterval(Game.state._timerInterval); Game.state._timerInterval = null; }
+        // Stop the background music while paused.
+        try { if (window.Sound && Sound.music && Sound.music.pause) Sound.music.pause(); } catch (e) {}
         var ov = document.createElement('div');
         ov.id = 'pauseOverlay';
         ov.className = 'pause-overlay';
@@ -1294,6 +1296,8 @@ var UI = {
         if (!Game.state._timerInterval && Game.state.gameStartTime) {
             Game.state._timerInterval = setInterval(function() { try { Game.render.navTimer(); } catch (e) {} }, 1000);
         }
+        // Resume the background music.
+        try { if (window.Sound && Sound.music && Sound.music.resume) Sound.music.resume(); } catch (e) {}
         var ov = document.getElementById('pauseOverlay');
         if (ov) { ov.classList.remove('open'); setTimeout(function() { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 220); }
     },
