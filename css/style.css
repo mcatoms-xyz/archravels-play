@@ -7098,8 +7098,9 @@ html { overflow-x: hidden; }
      (--ab-h, set from JS) so nothing hides behind it.
    ================================================================= */
 body.cap-native .nav-bar {
-    height: calc(48px + var(--sat));
-    padding-top: var(--sat);
+    height: auto;
+    padding-top: calc(var(--sat) - 6px);   /* sit closer under the notch — reclaim the dead band */
+    padding-bottom: 3px;
     box-sizing: border-box;
 }
 body.cap-native .game-layout {
@@ -7119,7 +7120,7 @@ body.cap-native .action-bar-wrapper {
 /* Session 41 (cap-native, cont.): action bar spans full width + compact;
    buttons share the row evenly so they stay ~1 row (wrap to 2 max), never tall. */
 body.cap-native .action-bar-wrapper {
-    padding: 6px 6px max(6px, calc(var(--sab) - 14px));
+    padding: 4px 6px max(4px, calc(var(--sab) - 20px));
 }
 body.cap-native .action-bar-wrapper > * {
     max-width: 100%;
@@ -7270,9 +7271,13 @@ body.cap-native .landing-credit {
    ================================================================= */
 /* Move the turn-history FEED between the bazaar and the player board,
    near-full width with even margins. (game-layout children reordered.) */
-body.cap-native .game-layout { display: flex; flex-direction: column; gap: 9px; }
+body.cap-native .game-layout { display: flex; flex-direction: column; gap: 6px; }
+/* CRITICAL: the board sections must NEVER shrink (they're width-locked aspect art with
+   overlaid % cards — shrinking them misaligns everything). Hold natural size; if the stack
+   ever overflows, the game-layout scrolls instead. */
+body.cap-native .game-layout > * { flex-shrink: 0; }
 body.cap-native .board-section { order: 1; }
-body.cap-native .action-feed  { order: 3; margin: 28px auto 0; max-width: calc(100% - 14px); width: auto; }
+body.cap-native .action-feed  { order: 3; margin: 6px auto 0; max-width: calc(100% - 14px); width: auto; }
 body.cap-native .player-area  { order: 2; }
 
 /* Action box: round/action label + the Shop/Craft pills on ONE row
