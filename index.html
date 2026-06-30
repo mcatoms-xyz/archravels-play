@@ -8,7 +8,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=81">
+    <link rel="stylesheet" href="css/style.css?v=82">
 </head>
 
 <body>
@@ -605,18 +605,18 @@
          GAME SCRIPTS
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
-    <script src="js/cards.js?v=81"></script>
-    <script src="js/game.js?v=81"></script>
-    <script src="js/audio.js?v=81"></script>
-    <script src="js/ai.js?v=81"></script>
+    <script src="js/cards.js?v=82"></script>
+    <script src="js/game.js?v=82"></script>
+    <script src="js/audio.js?v=82"></script>
+    <script src="js/ai.js?v=82"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=81"></script>
-    <script src="js/ui-modals1.js?v=81"></script>
-    <script src="js/ui-modals2.js?v=81"></script>
-    <script src="js/ui-panels1.js?v=81"></script>
-    <script src="js/ui-panels2.js?v=81"></script>
-    <script src="js/ui-extra.js?v=81"></script>
+    <script src="js/ui-core.js?v=82"></script>
+    <script src="js/ui-modals1.js?v=82"></script>
+    <script src="js/ui-modals2.js?v=82"></script>
+    <script src="js/ui-panels1.js?v=82"></script>
+    <script src="js/ui-panels2.js?v=82"></script>
+    <script src="js/ui-extra.js?v=82"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
          The live game is solo + pass-and-play, with zero dependency on this layer
@@ -624,13 +624,13 @@
          online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
          here. Re-add to revive online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=81"></script>
-    <script src="js/online-bridge.js?v=81"></script>
+    <script src="js/network.js?v=82"></script>
+    <script src="js/online-bridge.js?v=82"></script>
     -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=81"></script>
+    <script src="js/story.js?v=82"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
@@ -676,8 +676,24 @@
             var native = !!(cap && (typeof cap.isNativePlatform === 'function'
                 ? cap.isNativePlatform()
                 : (cap.platform && cap.platform !== 'web')));
-            if (!native) return;
-            if (document.body) document.body.classList.add('cap-native');
+            // PHONE-WEB (Gen Con booth players on their own phones): opt-in test via ?phoneui —
+            // applies the app's in-match layout to a narrow touch browser. To ship to ALL phone
+            // browsers, drop the "?phoneui" gate in phoneWeb() below.
+            var mq = window.matchMedia ? window.matchMedia('(max-width:768px)') : null;
+            function phoneWeb(){ return !native && /[?&]phoneui/i.test(location.search) && (!mq || mq.matches); }
+            function apply(){
+                if (!document.body) return;
+                var on = native || phoneWeb();
+                document.body.classList.toggle('cap-native', on);
+                document.body.classList.toggle('phone-web', !native && on);
+            }
+            apply();
+            if (!native && !phoneWeb()) {
+                // still wire resize so toggling orientation / the gate can flip it on later
+                if (mq && mq.addEventListener) mq.addEventListener('change', apply);
+                window.addEventListener('orientationchange', apply);
+                return;
+            }
             function syncAB() {
                 var ab = document.getElementById('actionBarWrapper');
                 var gl = document.querySelector('.game-layout');
@@ -685,8 +701,9 @@
             }
             var ab = document.getElementById('actionBarWrapper');
             if (window.ResizeObserver && ab) new ResizeObserver(syncAB).observe(ab);
-            window.addEventListener('resize', syncAB);
-            window.addEventListener('orientationchange', syncAB);
+            window.addEventListener('resize', function(){ apply(); syncAB(); });
+            window.addEventListener('orientationchange', function(){ apply(); syncAB(); });
+            if (mq && mq.addEventListener) mq.addEventListener('change', apply);
             setTimeout(syncAB, 300); setInterval(syncAB, 1500);
         } catch (e) {}
     })();
