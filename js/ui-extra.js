@@ -50,8 +50,8 @@ Object.assign(UI, {
         var body = document.getElementById('opponentPanelBody');
         body.innerHTML = '';
 
-        // 1. Character info
-        var charSection = this._oppSection('Character');
+        // 1. Character info — no label (the banner already names the character).
+        var charSection = this._oppSection('');
         var charInfo = document.createElement('div');
         charInfo.className = 'opp-last-space';
         charInfo.innerHTML = '<strong>' + character.name + '</strong> — ' +
@@ -327,10 +327,12 @@ Object.assign(UI, {
     _oppSection: function(label) {
         var section = document.createElement('div');
         section.className = 'opp-section';
-        var labelEl = document.createElement('div');
-        labelEl.className = 'opp-section-label';
-        labelEl.textContent = label;
-        section.appendChild(labelEl);
+        if (label) {
+            var labelEl = document.createElement('div');
+            labelEl.className = 'opp-section-label';
+            labelEl.textContent = label;
+            section.appendChild(labelEl);
+        }
         var content = document.createElement('div');
         section.appendChild(content);
         return { section: section, content: content };
