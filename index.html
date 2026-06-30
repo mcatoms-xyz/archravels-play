@@ -8,7 +8,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=61">
+    <link rel="stylesheet" href="css/style.css?v=62">
 </head>
 
 <body>
@@ -74,6 +74,7 @@
                 </div>
                 <button class="nav-menu-item" id="navNextTrack">⏭ Next track</button>
                 <button class="nav-menu-item" id="navMuteBtn">🔊 Sound: On</button>
+                <button class="nav-menu-item" onclick="UI.onNavMenuToggle();document.getElementById('infoModal').style.display='flex'">ℹ️ Info &amp; Credits</button>
                 <button class="nav-menu-item" onclick="UI.onNewGame()">New Game</button>
             </div>
         </div>
@@ -573,6 +574,24 @@
     </div>
 
     <!-- Footer -->
+    <!-- ===== INFO & CREDITS screen (replaces the page footer in the app) ===== -->
+    <div class="modal-overlay info-modal-overlay" id="infoModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+        <div class="modal-content info-modal-content">
+            <button class="info-modal-close" onclick="document.getElementById('infoModal').style.display='none'" aria-label="Close">&times;</button>
+            <img class="info-ar-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels">
+            <div class="info-edition">Digital Edition <span class="landing-beta">Beta</span></div>
+            <div class="info-tagline">A fiber arts strategy game</div>
+            <div class="info-version" id="infoVersion">v0.9 Beta · Build 41</div>
+            <div class="info-credits">Design <strong>Adam McCrimmon</strong> &bull; Art <strong>Rochelle Steder</strong></div>
+            <a class="info-shop-link" href="https://shop.xyzgamelabs.com" target="_blank" rel="noopener">Get the physical game ↗</a>
+            <div class="info-publisher">
+                <img class="info-xyz-logo" src="Other Images Textures Details/XYZ biz assets/XYZ Logo/XYZ_logo.png" alt="XYZ Game Labs">
+                <div class="info-copyright">&copy; 2026 XYZ Game Labs &middot; All rights reserved</div>
+                <div class="info-tree">🌲 One tree planted per game sold</div>
+            </div>
+        </div>
+    </div>
+
     <footer class="game-footer">
         <div class="footer-left">
             <img class="footer-publisher-logo" src="Other Images Textures Details/XYZ biz assets/XYZ Logo/XYZ_logo.png" alt="XYZ Game Labs">
@@ -603,18 +622,18 @@
          GAME SCRIPTS
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
-    <script src="js/cards.js?v=61"></script>
-    <script src="js/game.js?v=61"></script>
-    <script src="js/audio.js?v=61"></script>
-    <script src="js/ai.js?v=61"></script>
+    <script src="js/cards.js?v=62"></script>
+    <script src="js/game.js?v=62"></script>
+    <script src="js/audio.js?v=62"></script>
+    <script src="js/ai.js?v=62"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=61"></script>
-    <script src="js/ui-modals1.js?v=61"></script>
-    <script src="js/ui-modals2.js?v=61"></script>
-    <script src="js/ui-panels1.js?v=61"></script>
-    <script src="js/ui-panels2.js?v=61"></script>
-    <script src="js/ui-extra.js?v=61"></script>
+    <script src="js/ui-core.js?v=62"></script>
+    <script src="js/ui-modals1.js?v=62"></script>
+    <script src="js/ui-modals2.js?v=62"></script>
+    <script src="js/ui-panels1.js?v=62"></script>
+    <script src="js/ui-panels2.js?v=62"></script>
+    <script src="js/ui-extra.js?v=62"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
          The live game is solo + pass-and-play, with zero dependency on this layer
@@ -622,13 +641,13 @@
          online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
          here. Re-add to revive online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=61"></script>
-    <script src="js/online-bridge.js?v=61"></script>
+    <script src="js/network.js?v=62"></script>
+    <script src="js/online-bridge.js?v=62"></script>
     -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=61"></script>
+    <script src="js/story.js?v=62"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
@@ -638,7 +657,7 @@
         var AR_VERSION = { v: '0.9', channel: 'Beta', build: 41 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build;
-        function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; }
+        function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stamp); else stamp();
     })();
     </script>
