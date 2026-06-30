@@ -7623,9 +7623,9 @@ body.cap-native .fo-drawer-title.fo-title-onfabric {
 .opp-portrait {
     display: block;
     width: 100%;
-    height: 230px;
+    height: 300px;                     /* taller box so taller character art doesn't crop heads */
     object-fit: cover;
-    object-position: center 18%;
+    object-position: center 8%;        /* bias toward the top so heads stay in frame */
     border-radius: 12px;
     margin: 2px 0 14px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.25);
