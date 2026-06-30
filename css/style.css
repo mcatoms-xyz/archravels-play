@@ -7442,8 +7442,8 @@ body.cap-native.fo-drawer-active { overflow: hidden; }
 .opp-yarn-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45)); }
 .opp-yarn-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-weight: 800; font-size: 15px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.85); pointer-events: none; }
 /* Projects: American Mini portrait ratio, not square */
-.opp-item-card.opp-proj { width: 58px; }
-.opp-item-card.opp-proj img { width: 54px; height: auto; aspect-ratio: 41 / 63; border-radius: 5px; }
+.opp-item-card.opp-proj { width: 86px; }
+.opp-item-card.opp-proj img { width: 82px; height: auto; aspect-ratio: 755 / 530; object-fit: contain; border-radius: 5px; }
 /* Crafted items / SRs / projects: always a single row */
 .opp-item-row { flex-wrap: nowrap; overflow-x: auto; }
 /* Pattern tiles: always exactly 3 — fill the width */
@@ -7551,27 +7551,60 @@ body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 2
    Header is pinned (flex:0 0 auto) so it can't collapse; the body scrolls instead. */
 body.cap-native .opponent-panel { overflow: visible; display: flex; flex-direction: column; }
 body.cap-native .opponent-panel-header { flex: 0 0 auto; }
-body.cap-native .opponent-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+body.cap-native .opponent-panel-body { flex: 1 1 0; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* Character ribbon banner as the Finished Objects drawer header (matches the opponent panel). */
-.fo-drawer-header.has-banner { display: block; position: relative; padding: 0; min-height: 0; }
-.fo-drawer-header.has-banner .fo-drawer-title,
+/* Character ribbon banner as the Finished Objects drawer header — DARK header strip, ribbon
+   overhangs the left edge, "Finished Objects" tag restored below it. */
+body.cap-native .fo-drawer { overflow: visible; }              /* let the ribbon overhang; the grid scrolls itself */
+body.cap-native .fo-drawer-header { flex: 0 0 auto; }
+body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
+.fo-drawer-header.has-banner {
+    display: block;
+    position: relative;
+    margin: -12px -14px 0 -18px;       /* break out of the drawer padding (full width + top) */
+    padding: 0 0 10px;
+    background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
+    border-radius: 16px 16px 0 0;
+    text-align: center;
+    min-height: 0;
+    overflow: visible;
+}
 .fo-drawer-header.has-banner .fo-drawer-charname { display: none; }
 .fo-banner-img {
     display: block;
-    width: calc(100% + 32px);
-    max-width: none;
+    width: 116%;
+    max-width: 116%;
     height: auto;
-    margin: -12px -14px -2px -18px;   /* bleed over the drawer padding to the edges + top */
+    margin: 0 0 4px -14%;              /* shift left to overhang the left edge */
     filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
-    border-radius: 14px 14px 0 0;
+}
+/* "Finished Objects" tag — pill centered below the banner on the dark strip. */
+.fo-drawer-header.has-banner .fo-drawer-title {
+    display: inline-block;
+    position: static;
+    left: auto; top: auto; right: auto;
+    opacity: 1;
+    margin: 0 auto;
 }
 .fo-drawer-header.has-banner .fo-drawer-close {
-    position: absolute; top: 8px; right: 6px; z-index: 5;
+    position: absolute; top: 8px; right: 8px; z-index: 5;
     background: rgba(0,0,0,0.4); color: #f0e6d2;
     border-radius: 6px; padding: 1px 9px; line-height: 1;
 }
-/* Keep the points tag clear of the banner (drop it to the drawer's bottom-right). */
 .fo-drawer-header.has-banner ~ .finished-objects-total.has-points {
     top: auto; bottom: 14px; right: -22px;
 }
+
+/* Player-board key art (portrait) showcased at the top of the player drawer. */
+.opp-portrait {
+    display: block;
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    object-position: center 18%;
+    border-radius: 12px;
+    margin: 2px 0 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+/* Long-press target: suppress the iOS image callout / text selection on the board art. */
+.player-board-image, .player-board-wrapper { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
