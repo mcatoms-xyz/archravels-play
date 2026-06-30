@@ -7475,3 +7475,9 @@ body.cap-native .yarn-bowl-overlay {
    + bring the title pill inside so the scroll-overflow stops clipping it. */
 body.cap-native .fo-drawer { background-color: #f5eee1; }
 body.cap-native .fo-drawer-title { left: 12px; }
+
+/* Learned patterns: neutral (gray) dots in the off-turn context (no specific color needed). */
+.otc-dot.otc-dot-neutral { background: #8a7a68; }
+/* Craft confirm: keep the "yarn to spend" tags on one row on phones (e.g. Scarf's 4). */
+body.cap-native .craft-confirm-cost { gap: 4px; }
+body.cap-native .confirm-yarn-tag { font-size: 11px; padding: 3px 8px; }
