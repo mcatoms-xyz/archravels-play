@@ -7195,7 +7195,7 @@ body.cap-native .project-pts-overlay { display: none; }
 body.cap-native .fo-drawer {
     position: fixed;
     top: calc(48px + var(--sat) + 6px);
-    left: auto; right: 0; bottom: 0;
+    left: auto; right: 0; bottom: calc(var(--ab-h, 132px) + 6px);   /* sit ABOVE the action bar */
     width: 90%; max-width: 90%;
     height: auto; max-height: none;
     border-radius: 16px 16px 0 0;
@@ -7576,7 +7576,7 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
     display: block;
     position: relative;
     margin: -12px -14px 0 -26px;       /* break out of the drawer padding (full width + top) */
-    padding: 0 0 10px;
+    padding: 0;
     background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
     border-radius: 16px 16px 0 0;
     text-align: center;
@@ -7589,16 +7589,19 @@ body.cap-native .fo-drawer .finished-objects-grid { min-height: 0; }
     width: 116%;
     max-width: 116%;
     height: auto;
-    margin: 0 0 4px -14%;              /* shift left to overhang the left edge */
+    margin: 0 0 -2px -14%;             /* shift left to overhang; hug the fabric below */
     filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
 }
-/* "Finished Objects" tag — pill centered below the banner on the dark strip. */
-.fo-drawer-header.has-banner .fo-drawer-title {
-    display: inline-block;
+/* "Finished Objects" tag — moved ONTO the fabric, centered just under the banner. */
+.fo-drawer-title.fo-title-onfabric {
+    display: block;
     position: static;
     left: auto; top: auto; right: auto;
     opacity: 1;
-    margin: 0 auto;
+    width: max-content;
+    max-width: 84%;
+    margin: 8px auto 12px;
+    z-index: 6;
 }
 .fo-drawer-header.has-banner .fo-drawer-close {
     position: absolute; top: 8px; right: 8px; z-index: 5;
