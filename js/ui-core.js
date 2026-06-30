@@ -1184,21 +1184,23 @@ var UI = {
         // --- Build chips (inline in middle) ---
         var chipsHtml = '';
 
+        // App: compact chips (icon + number only); web keeps the full labels.
+        var compact = document.body.classList.contains('cap-native');
         var shopReq = Game.shopRequiredCount();
         if (actions.shopLimit > 0) {
             if (actions.canShop) {
-                chipsHtml += '<span class="action-chip shop-chip">🛍️ Shop: ' +
+                chipsHtml += '<span class="action-chip shop-chip">🛍️ ' + (compact ? '' : 'Shop: ') +
                     selCount + '/' + (shopReq || actions.shopLimit) + '</span>';
             } else {
-                chipsHtml += '<span class="action-chip done-chip">🛍️ Shop ✓</span>';
+                chipsHtml += '<span class="action-chip done-chip">🛍️ ' + (compact ? '✓' : 'Shop ✓') + '</span>';
             }
         }
         if (actions.craftLimit > 0) {
             if (actions.canCraft) {
-                chipsHtml += '<span class="action-chip craft-chip">🧶 Craft: ' +
+                chipsHtml += '<span class="action-chip craft-chip">🧶 ' + (compact ? '' : 'Craft: ') +
                     actions.craftUsed + '/' + actions.craftLimit + '</span>';
             } else {
-                chipsHtml += '<span class="action-chip done-chip">🧶 Craft ✓</span>';
+                chipsHtml += '<span class="action-chip done-chip">🧶 ' + (compact ? '✓' : 'Craft ✓') + '</span>';
             }
         }
         if (Game.state.hasExchange) {
@@ -1216,7 +1218,7 @@ var UI = {
         }
         var srCount = Game.state.player.specialRequests.length;
         if (srCount > 0) {
-            chipsHtml += '<span class="action-chip sr-chip">📋 ' + srCount + ' Request' + (srCount !== 1 ? 's' : '') + '</span>';
+            chipsHtml += '<span class="action-chip sr-chip">📋 ' + srCount + (compact ? '' : ' Request' + (srCount !== 1 ? 's' : '')) + '</span>';
         }
         // Session 18: Tangled Cat warning moved to persistent banner above action bar
 
