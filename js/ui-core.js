@@ -1278,28 +1278,22 @@ var UI = {
         // Middle content: status text + bonus action buttons (inline)
         var middleHtml = '<span class="ab-status-text">' + statusText + '</span>';
 
+        // Bonus restock actions get their OWN row; status stays on the top line.
+        // Finish Project = gold (btn-accent); Learn + Frog = green/white (btn-primary, like Take Yarn).
+        var bonusHtml = '';
         if (this._restockDone) {
             var completable = Game.getCompletableProjects();
             var learnable   = Game.getLearnablePatterns();
             var frogable    = Game.getFrogItItems();
 
             if (completable.length > 0) {
-                middleHtml +=
-                    '<button class="btn btn-accent" onclick="UI.showFinishProjectModal()" style="font-size:12px;padding:4px 10px">' +
-                        '🏆 Finish Project (' + completable.length + ')' +
-                    '</button>';
+                bonusHtml += '<button class="btn btn-accent" onclick="UI.showFinishProjectModal()">🏆 Finish Project (' + completable.length + ')</button>';
             }
             if (learnable.length > 0) {
-                middleHtml +=
-                    '<button class="btn btn-accent" onclick="UI.showLearnPatternModal()" style="font-size:12px;padding:4px 10px">' +
-                        '📖 Learn Pattern (' + learnable.length + ')' +
-                    '</button>';
+                bonusHtml += '<button class="btn btn-primary" onclick="UI.showLearnPatternModal()">📖 Learn Pattern (' + learnable.length + ')</button>';
             }
             if (frogable.length > 0) {
-                middleHtml +=
-                    '<button class="btn btn-warn" onclick="UI.showFrogItModal()" style="font-size:12px;padding:4px 10px">' +
-                        '🐸 Frog It (' + frogable.length + ')' +
-                    '</button>';
+                bonusHtml += '<button class="btn btn-primary" onclick="UI.showFrogItModal()">🐸 Frog It (' + frogable.length + ')</button>';
             }
         }
 
@@ -1329,6 +1323,7 @@ var UI = {
             '</div>' +
             '<div class="ab-divider"></div>' +
             '<div class="ab-middle">' + middleHtml + '</div>' +
+            (bonusHtml ? '<div class="ab-restock-actions">' + bonusHtml + '</div>' : '') +
             '<div class="ab-buttons">' + mainButtonHtml + '</div>';
     },
 
