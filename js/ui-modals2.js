@@ -749,7 +749,9 @@ Object.assign(UI, {
                 // Unlearned pattern: show exact color dots with have/short treatment
                 var exact = opt.tile.exact;
                 var bowl = Game.state.player ? Game.state.player.yarnBowl : {};
-                CARDS.COLORS.forEach(function(color) {
+                // Dots follow the tile's OWN color order (matches the printed art, e.g. scarf-gryo
+                // = green,red,yellow,orange) — NOT the canonical ROYGBP palette order.
+                Object.keys(exact).forEach(function(color) {
                     if (!exact[color]) return;
                     var have = bowl[color] || 0;
                     for (var d = 0; d < exact[color]; d++) {
