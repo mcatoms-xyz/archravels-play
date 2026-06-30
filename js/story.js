@@ -79,6 +79,7 @@ var Story = {
     this.root.innerHTML =
       '<div class="story-topbar">' +
         '<button class="story-menu" id="storyMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>' +
+        '<button class="story-back" id="storyBackBtn" onclick="Story.navBack()" aria-label="Back">‹</button>' +
         '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="story-edition">Digital Edition</span></div>' +
         '<button class="player-chip" title="Account" onclick="Story.openIdentity()">' +
           '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
@@ -176,6 +177,7 @@ var Story = {
   },
   displayName: function(){ if(!this.currentUser) return 'Guest Crafter'; return (this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||this.currentUser.email||'Crafter'; },
   renderChip: function(){
+    var av=document.getElementById('pcAvatar'); if(av) av.innerHTML=this.avatarInner();
     var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
     if(nm){
       if(this.currentUser){ nm.textContent=this.displayName(); if(note){ note.textContent='View stats'; note.style.display=''; } }
@@ -248,9 +250,27 @@ var Story = {
   },
 
   /* ============================ screens ============================ */
-  backBar: function(onclick, label){ return '<div class="backbar"><button class="btn btn-ghost" onclick="'+onclick+'">'+(label||'← Back')+'</button></div>'; },
+  backBar: function(onclick, label){ this._back = onclick; return '<div class="backbar"><button class="btn btn-ghost" onclick="'+onclick+'">'+(label||'← Back')+'</button></div>'; },
+  navBack: function(){ if(this._back){ try{ (new Function(this._back))(); }catch(e){ this.hide(); } } else { this.hide(); } },
+  avatarStyle: function(){ var av=(this.profile&&this.profile.avatar)||null; if(av&&av.t==='char') return {img:this.portrait(av.id)}; if(av&&av.t==='yarn') return {color:av.c}; return {emoji:'\U0001F9F6'}; },
+  avatarInner: function(){ var a=this.avatarStyle(); if(a.img) return '<img class="av-img" src="'+a.img+'" alt="">'; if(a.color) return '<span class="av-yarn" style="background:radial-gradient(circle at 35% 32%, rgba(255,255,255,.55), '+a.color+')"></span>'; return a.emoji; },
+  AV_YARNS: [['Red','#c0341a'],['Orange','#cf7a1a'],['Yellow','#cfa81a'],['Green','#4a8b3a'],['Blue','#2b5fa0'],['Purple','#7a4fb0']],
+  openAvatarPicker: function(){
+    var cur=(this.profile&&this.profile.avatar)||{};
+    var yarns=this.AV_YARNS.map(function(y){ var sel=(cur.t==='yarn'&&cur.c===y[1])?' sel':''; return '<span class="av-yarn-opt'+sel+'" title="'+y[0]+'" style="background:radial-gradient(circle at 35% 32%, rgba(255,255,255,.55), '+y[1]+')" onclick="Story.pickAvatar(\'yarn\',\''+y[1]+'\')"></span>'; }).join('');
+    var chars=Object.keys(CARDS.characters).map(function(id){ var sel=(cur.t==='char'&&cur.id===id)?' sel':''; return '<div class="av-char-opt'+sel+'" title="'+Story.char(id).name+'" onclick="Story.pickAvatar(\'char\',\''+id+'\')"><img src="'+Story.portrait(id)+'" alt=""></div>'; }).join('');
+    var html='<div class="av-sheet"><h3>Choose your avatar</h3><div class="av-ph">Pick a yarn color or a crafter — more coming later.</div>'+
+      '<div class="av-grp">Yarn ball</div><div class="av-yarns">'+yarns+'</div>'+
+      '<div class="av-grp">Crafter</div><div class="av-chars">'+chars+'</div>'+
+      '<button class="av-done" onclick="Story.closeAvatarPicker()">Done</button></div>';
+    var ov=document.getElementById('avatarPicker');
+    if(!ov){ ov=document.createElement('div'); ov.id='avatarPicker'; ov.className='av-pick'; document.body.appendChild(ov); ov.addEventListener('click',function(e){ if(e.target===ov) Story.closeAvatarPicker(); }); }
+    ov.innerHTML=html; ov.style.display='flex';
+  },
+  closeAvatarPicker: function(){ var ov=document.getElementById('avatarPicker'); if(ov) ov.style.display='none'; },
+  pickAvatar: function(t,v){ this.profile=this.profile||{}; this.profile.avatar=(t==='yarn')?{t:'yarn',c:v}:{t:'char',id:v}; if(this.save) this.save(); this.renderChip(); var ba=document.querySelector('#story-root .big-av'); if(ba) ba.innerHTML=this.avatarInner()+'<span class="big-av-edit">✎</span>'; this.openAvatarPicker(); },
 
-  goTypes: function(){
+  goTypes: function(){ this._back='Story.hide()';
     var self=this;
     var cards = Object.keys(this.TYPE_META).map(function(tid){
       var m=self.TYPE_META[tid];
@@ -268,11 +288,11 @@ var Story = {
           '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Step 1 of 2</div>'+
-      '<p class="st-sub">Take on twelve rival crafters in a one-on-one ladder.<br>Win to advance, earn achievements, and bank points toward your lifetime score.</p>'+
+      '<p class="st-sub">Become champion of your Craft Circle. Out-craft eleven fellow Ravelers, then defeat Hank the Stitchmeister to claim the crown.</p>'+
       '<div class="sm-steps">'+
-        '<span class="sm-step"><span class="sm-n">1</span>Pick a style</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step"><span class="sm-n">2</span>Out-stitch the Ravelers</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step"><span class="sm-n">3</span>Earn the Crafty Crown</span>'+
+        '<span class="sm-step"><span class="sm-n">1</span>Pick your crafter</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step"><span class="sm-n">2</span>Out-craft the Ravelers</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step"><span class="sm-n">3</span>Claim the Crown</span>'+
       '</div>'+
       '<p class="sm-note">'+(this.currentUser?'Your progress is saved to your account.':'Sign in to save your progress across devices.')+'</p>'+
       '<div class="sm-divider"></div>'+
@@ -357,36 +377,37 @@ var Story = {
       '<button class="challenge overlay" onclick="Story.goPreMatch()">Challenge '+ch.name+'</button></div></div>';
   },
   renderLadder: function(){
-    var isMobile = window.innerWidth <= 620, total=this.ladder.length, champ = this.beaten>=total;
-    var nodes=[];
-    for(var i=total-1;i>=0;i--){
-      var c=this.ladder[i], isFocus=(i===this.beaten), done=(i<this.beaten);
-      nodes.push('<div class="slot '+(isFocus?'is-focus':'')+'">'+(isFocus?this.oppCardHTML(c):this.miniHTML(c,done))+'</div>');
-      if(isMobile && isFocus) nodes.push('<div class="slot you-slot">'+this.youNodeHTML()+'</div>');
+    var total=this.ladder.length, champ=this.beaten>=total;
+    var pickedName=this.char(this.picked).name, pct=Math.round(this.beaten/total*100);
+    var top='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
+      '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
+      '<div class="cc-sub">'+(champ?'You are the Champion!':(this.beaten+' of '+total+' Ravelers beaten'))+'</div>'+
+      '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
+    var body;
+    if(champ){
+      body='<div class="cc-champ"><div class="cc-crown">\U0001F3C6</div>'+
+        '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
+        '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
+        '<button class="cc-go" onclick="Story.goStats()">View your stats →</button></div>';
+    } else {
+      var c=this.currentOpp(), ch=this.char(c), boss=(c==='hank'), dlg=this.DIALOG[c]||{};
+      var role=boss?'Final Boss':this.meta(c).name;
+      var taunt=dlg.intro?'<div class="cc-taunt">“'+dlg.intro+'”</div>':'';
+      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">\U0001F451</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
+      var btn='<button class="cc-go" onclick="Story.goPreMatch()">'+(boss?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
+      var hero='<div class="cc-herowrap"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
+        '<div class="cc-hero'+(boss?' boss':'')+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
+        '<div class="cc-info">'+fav+taunt+btn+'</div></div>'+
+        '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
+      var ahead=this.ladder.slice(this.beaten+1), scout='';
+      if(ahead.length){
+        var minis=ahead.map(function(o,i){ var b=(o==='hank'); return '<div class="cc-mini'+(b?' boss':'')+'"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml">'+(b?'Final Boss':(i===0?'Up next':'Locked'))+'</div></div>'; }).join('');
+        scout='<div class="cc-scout"><div class="cc-scout-h"><span>Scout ahead</span><span class="cc-togo">'+ahead.length+' to go</span></div><div class="cc-scout-row">'+minis+'</div></div>';
+      }
+      body='<div class="cc-nextlabel">⚔ Next Challenger</div>'+hero+scout;
     }
-    if(isMobile && champ) nodes.push('<div class="slot you-slot">'+this.youNodeHTML()+'</div>');
-    var track = nodes.map(function(n,idx){ return idx?'<div class="connector2"></div>'+n:n; }).join('');
-    var progTxt = champ ? '🏆 Champion of the Craft Circle!' : (this.beaten+' of '+total+' beaten');
-    this.screen('<div class="crumb">The Climb</div><h1 class="st-h1">Climb the Craft Circle</h1>'+
-      '<p class="st-sub">Playing as '+this.char(this.picked).name+'. Beat all eleven rivals to claim the circle.</p>'+
-      '<div class="progress">'+progTxt+'</div><div class="progbar"><div id="progFill" style="width:'+(this.beaten/total*100)+'%"></div></div>'+
-      '<div class="ladder2"><div class="you-side"><div class="side-label">You</div><div id="youCard">'+this.youCardHTML()+'</div></div>'+
-      '<div class="opp-side"><div class="side-label">The Climb ↑</div><div class="oppviewport"><div class="opptrack" id="opptrack">'+track+'</div></div></div></div>'+
-      '<p class="demohint">Scroll the climb to scout the rivals ahead. Hit Challenge to play a real match.</p>'+
+    this.screen('<div class="crumb">Your Craft Circle</div>'+top+body+
       this.backBar('Story.goTypes()','↺ Change crafter'));
-    var self=this;
-    requestAnimationFrame(function(){
-      var vp=document.querySelector('.oppviewport'), trackEl=document.getElementById('opptrack');
-      if(!vp||!trackEl) return;
-      var focusEl=trackEl.querySelector('.is-focus');
-      var focusCard=focusEl&&focusEl.querySelector('.pcard');
-      if(focusCard) focusCard.classList.add('has-cta');
-      var youEl=document.querySelector('#youCard .pcard');
-      if(focusCard&&youEl){ focusCard.style.minHeight=''; youEl.style.minHeight='';
-        if(window.innerWidth>620){ var h=Math.max(focusCard.offsetHeight, youEl.offsetHeight); focusCard.style.minHeight=h+'px'; youEl.style.minHeight=h+'px'; } }
-      var target = isMobile ? (trackEl.querySelector('.you-slot')||focusEl) : (focusEl||trackEl.lastElementChild);
-      if(target) vp.scrollTop = Math.max(0, target.offsetTop-(vp.clientHeight-target.offsetHeight-16));
-    });
   },
   youNodeHTML: function(){
     var c=this.picked, ch=this.char(c), total=this.ladder.length;
@@ -505,7 +526,7 @@ var Story = {
     var avatars=rivals.map(function(c){ return '<img src="'+Story.portrait(c)+'" title="'+Story.char(c).name+'" alt="">'; }).join('')+'<img src="'+Story.portrait('hank')+'" title="Hank" alt="">';
     var p=this.profile||{};
     var html='<div class="crumb">Story Mode · Run Complete</div>'+
-      '<div class="ending-hero"><div class="crown">🏆</div><h1 class="st-h1">Champion of the Craft Circle!</h1>'+
+      '<div class="ending-hero"><div class="crown">🏆</div><h1 class="st-h1">Champion of your Craft Circle!</h1>'+
       '<div class="sub">'+this.char(this.picked).name+', the '+this.meta(this.picked).name+', bested all eleven rivals AND toppled Hank, the Stitchmeister, at the summit. The circle is yours.</div></div>'+
       '<div class="defeated-row">'+avatars+'</div>'+
       '<div class="recap">'+
@@ -540,7 +561,7 @@ var Story = {
         '<div class="cb-score">'+score+'</div></div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Stats</div>'+
-      '<div class="stats-id"><div class="big-av">🧶</div><div class="who2"><div class="nm">'+this.displayName()+'</div>'+
+      '<div class="stats-id"><div class="big-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="big-av-edit">✎</span></div><div class="who2"><div class="nm">'+this.displayName()+'</div>'+
         '<div class="sub2">'+(this.currentUser?'Synced to your account':'Sign in to save across devices')+'</div></div>'+
         (this.currentUser
           ? '<button class="btn btn-ghost stats-signout" onclick="Story.signOut()">Sign out</button>'
