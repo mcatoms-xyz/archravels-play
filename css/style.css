@@ -7420,3 +7420,26 @@ body.cap-native .footer-build::before { content: "· "; opacity: .7; }
 /* Session 41 (cap-native): drawer scroll stays inside the drawer, not the page behind. */
 body.cap-native .fo-drawer { overscroll-behavior: contain; }
 body.cap-native.fo-drawer-active { overflow: hidden; }
+
+/* ===== Opponent-panel polish (universal) ===== */
+/* Yarn bowl: two rows of 3 token images with counts, in a little "bowl" (dark bg,
+   wide-shallow rounded bottom corners). */
+.opp-yarn-bowl {
+    background: #2e2316;
+    border-radius: 10px 10px 50% 50% / 10px 10px 26px 26px;
+    padding: 12px 12px 18px;
+    box-shadow: inset 0 -6px 16px rgba(0,0,0,0.4);
+}
+.opp-yarn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 4px; justify-items: center; }
+.opp-yarn-cell { position: relative; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; }
+.opp-yarn-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45)); }
+.opp-yarn-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-weight: 800; font-size: 15px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.85); pointer-events: none; }
+/* Projects: American Mini portrait ratio, not square */
+.opp-item-card.opp-proj { width: 58px; }
+.opp-item-card.opp-proj img { width: 54px; height: auto; aspect-ratio: 41 / 63; border-radius: 5px; }
+/* Crafted items / SRs / projects: always a single row */
+.opp-item-row { flex-wrap: nowrap; overflow-x: auto; }
+/* Pattern tiles: always exactly 3 — fill the width */
+.opp-pattern-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.opp-pattern-tile { width: auto; }
+.opp-pattern-tile img { width: 100%; height: auto; object-fit: contain; }
