@@ -287,17 +287,18 @@ var Story = {
           '<div class="cardfoot"><span class="pick">Choose this style →</span>'+
           '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
     }).join('');
-    this.screen('<div class="crumb">Story Mode · Step 1 of 2</div>'+
-      '<p class="st-sub">Become champion of your Craft Circle. Out-craft eleven fellow Ravelers, then defeat Hank the Stitchmeister to claim the crown.</p>'+
+    this.screen('<div class="crumb">Story Mode</div>'+
+      '<h1 class="st-h1">Quest for Craft Circle Champion</h1>'+
+      '<p class="st-sub">Welcome to ArchRavels! A strategy board game set in the colorful &amp; crafty world of fiber arts! Choose from a variety of fiber art crafting specialists, each with their own style. Out-craft 11 fellow Ravelers for your chance to challenge Hank the Stitchmeister for the craft circle crown.</p>'+
       '<div class="sm-steps">'+
-        '<span class="sm-step"><span class="sm-n">1</span>Pick your crafter</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step"><span class="sm-n">2</span>Out-craft the Ravelers</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step"><span class="sm-n">3</span>Claim the Crown</span>'+
+        '<span class="sm-step"><span class="sm-n">1</span>Pick a Raveler</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step"><span class="sm-n">2</span>Out-craft the Circle</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step"><span class="sm-n">3</span>Become a Champion</span>'+
       '</div>'+
-      '<p class="sm-note">'+(this.currentUser?'Your progress is saved to your account.':'Sign in to save your progress across devices.')+'</p>'+
+      (this.currentUser?'':'<p class="sm-note">Sign in to save your progress: <a href="#" onclick="Story.goSignIn();return false;">Sign in</a></p>')+
       '<div class="sm-divider"></div>'+
-      '<h2 class="sm-choose">Choose your playstyle</h2>'+
-      '<p class="st-sub">Six crafter archetypes, each plays the bazaar differently. Pick the style that fits you.</p>'+
+      '<h2 class="sm-choose">Choose Your Raveler!</h2>'+
+      '<p class="st-sub">Six crafter archetypes, each with their own special crafting abilities. Pick the style that speaks to you.</p>'+
       '<div class="types">'+cards+'</div>');
   },
 
@@ -319,7 +320,7 @@ var Story = {
     this.screen('<div class="crumb">Story Mode · Step 2 of 2</div><h1 class="st-h1">'+m.name+'</h1>'+
       '<p class="st-sub">'+m.desc+'</p>'+
       '<p class="same-note">Same playstyle, different personality. Pick the one that feels like you.</p>'+
-      '<div class="compare">'+cards+'</div>'+this.backBar('Story.goTypes()','← Back to playstyles'));
+      '<div class="compare">'+cards+'</div>'+this.backBar('Story.goTypes()','← Back to Ravelers'));
   },
 
   /* ---- ladder ---- */
