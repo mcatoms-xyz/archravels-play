@@ -7525,11 +7525,18 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
     position: relative;
     overflow: visible;
 }
-.opp-banner-img {
+/* High specificity to BEAT the old `.opponent-panel-title img` round-icon rule
+   (30px circle) that was shrinking the banner. Reset all of its circle styling. */
+.opponent-panel-header.has-banner .opp-banner-img,
+.opponent-panel-title img.opp-banner-img {
     display: block;
     width: 100%;
+    max-width: 100%;
     height: auto;
     margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
     filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
 }
 .opponent-panel-header.has-banner .opponent-panel-close {
@@ -7540,5 +7547,6 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
     background: rgba(0,0,0,0.4);
     border-color: rgba(255,255,255,0.25);
 }
+.opponent-panel-header.has-banner .opponent-panel-title { display: block; width: 100%; gap: 0; }
 /* App: banner drapes full-width across the top of the panel, bleeding up to the top edge. */
 body.cap-native .opponent-panel-header.has-banner { padding: 0; }
