@@ -77,10 +77,13 @@ var Story = {
     this.root.id = 'story-root';
     this.root.style.display = 'none';
     this.root.innerHTML =
-      '<button class="story-close" onclick="Story.hide()" aria-label="Back to home" title="Back to home">✕</button>' +
-      '<div class="player-chip" title="Account" onclick="Story.openIdentity()">' +
-        '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
-        '<div class="pc-meta"><span class="pc-name" id="pcName">Guest Crafter</span><span class="pc-note" id="pcNote">tap to sign in</span></div>' +
+      '<div class="story-topbar">' +
+        '<button class="story-menu" id="storyMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>' +
+        '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="story-edition">Digital Edition</span></div>' +
+        '<button class="player-chip" title="Account" onclick="Story.openIdentity()">' +
+          '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
+          '<div class="pc-meta"><span class="pc-name" id="pcName">Sign In</span><span class="pc-note" id="pcNote" style="display:none"></span></div>' +
+        '</button>' +
       '</div>' +
       '<div id="story-screen"></div>';
     document.body.appendChild(this.root);
@@ -175,8 +178,8 @@ var Story = {
   renderChip: function(){
     var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
     if(nm){
-      if(this.currentUser){ nm.textContent=this.displayName(); if(note) note.textContent='Signed in · view stats'; }
-      else { nm.textContent='Guest Crafter'; if(note) note.textContent='tap to sign in'; }
+      if(this.currentUser){ nm.textContent=this.displayName(); if(note){ note.textContent='View stats'; note.style.display=''; } }
+      else { nm.textContent='Sign In'; if(note){ note.textContent=''; note.style.display='none'; } }
     }
     this.renderLandingAuth();
   },
@@ -265,12 +268,11 @@ var Story = {
           '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Step 1 of 2</div>'+
-      '<h1 class="st-h1">Story Mode</h1>'+
       '<p class="st-sub">Take on twelve rival crafters in a one-on-one ladder.<br>Win to advance, earn achievements, and bank points toward your lifetime score.</p>'+
       '<div class="sm-steps">'+
-        '<span class="sm-step">🧶 Pick a style</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step">🧵 Out-stitch the Ravelers</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step">👑 Earn the Crafty Crown</span>'+
+        '<span class="sm-step"><span class="sm-n">1</span>Pick a style</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step"><span class="sm-n">2</span>Out-stitch the Ravelers</span><span class="sm-arrow">→</span>'+
+        '<span class="sm-step"><span class="sm-n">3</span>Earn the Crafty Crown</span>'+
       '</div>'+
       '<p class="sm-note">'+(this.currentUser?'Your progress is saved to your account.':'Sign in to save your progress across devices.')+'</p>'+
       '<div class="sm-divider"></div>'+
