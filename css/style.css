@@ -7543,7 +7543,8 @@ body.cap-native .fo-drawer .finished-objects-grid { padding: 0 6px; }
     width: 100%;
     max-width: 100%;
     height: auto;
-    margin: 0 0 -18px 0;   /* flush to edges; negative bottom pulls the body up to ride the line */
+    margin: 0 0 -2px 0;    /* small bottom pull → ~16px gap above the portrait (= its left margin) */
+    transform: translateX(-50px);   /* nudge the ribbon left (also pulls the badge off the ✕) */
     padding: 0;
     border-radius: 0;
     background: none;
