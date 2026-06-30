@@ -7700,3 +7700,8 @@ body.cap-native .action-bar-wrapper {
     flex-direction: column;
     justify-content: center;
 }
+
+/* App: compact action chips (icon + number), tight on the top-left of the action bar. */
+body.cap-native .action-chip { padding: 3px 8px; font-size: 12px; gap: 3px; }
+body.cap-native .ab-middle { justify-content: flex-start; }
+body.cap-native .ab-phase { align-items: center; gap: 2px; }
