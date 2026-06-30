@@ -7515,3 +7515,21 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 .pause-title { font-size: 2.1rem; font-weight: 800; color: #f0e6d2; }
 .pause-sub { font-size: .95rem; color: rgba(240,230,210,0.78); margin: 8px 0 22px; }
 .pause-resume { font-size: 1.05rem; padding: 12px 30px; }
+
+/* Character ribbon banner as the opponent-panel header (name/subtitle/badge baked into the art). */
+.opponent-panel-header.has-banner {
+    display: block;
+    padding: 6px 0 0;
+    background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
+}
+.opp-banner-img { width: 100%; height: auto; display: block; }
+.opponent-panel-header.has-banner .opponent-panel-close {
+    position: absolute;
+    top: calc(var(--sat, 0px) + 8px);
+    right: 8px;
+    z-index: 3;
+    background: rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.25);
+}
+/* App: let the banner header clear the notch (beats the generic cap-native header padding). */
+body.cap-native .opponent-panel-header.has-banner { padding: var(--sat) 0 0; }
