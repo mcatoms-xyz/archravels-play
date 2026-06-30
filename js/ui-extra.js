@@ -50,6 +50,16 @@ Object.assign(UI, {
         var body = document.getElementById('opponentPanelBody');
         body.innerHTML = '';
 
+        // 0. Character key art (portrait) — showcase the character.
+        if (p.characterId) {
+            var portrait = document.createElement('img');
+            portrait.className = 'opp-portrait';
+            portrait.src = 'story-assets/portraits/' + p.characterId + '.jpg';
+            portrait.alt = p.name + ' key art';
+            portrait.onerror = function () { this.style.display = 'none'; };
+            body.appendChild(portrait);
+        }
+
         // 1. Character info — no label (the banner already names the character).
         var charSection = this._oppSection('');
         var charInfo = document.createElement('div');
