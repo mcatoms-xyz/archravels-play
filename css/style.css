@@ -7527,11 +7527,10 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
 }
 .opp-banner-img {
     display: block;
-    width: 112%;
-    max-width: 112%;
+    width: 100%;
     height: auto;
-    margin: 0 0 -8px -6%;
-    filter: drop-shadow(0 5px 9px rgba(0,0,0,0.45));
+    margin: 0;
+    filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
 }
 .opponent-panel-header.has-banner .opponent-panel-close {
     position: absolute;
@@ -7541,8 +7540,5 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
     background: rgba(0,0,0,0.4);
     border-color: rgba(255,255,255,0.25);
 }
-/* App: banner bleeds UP to the top edge (hangs over the drawer top), and the panel stops
-   clipping horizontally so the ribbon ends hang past the side edges. Body scrolls instead. */
+/* App: banner drapes full-width across the top of the panel, bleeding up to the top edge. */
 body.cap-native .opponent-panel-header.has-banner { padding: 0; }
-body.cap-native .opponent-panel { overflow: visible; display: flex; flex-direction: column; }
-body.cap-native .opponent-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
