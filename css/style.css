@@ -7465,3 +7465,8 @@ body.cap-native .yarn-bowl-overlay {
     justify-content: space-between;
     padding: 2% 0;
 }
+
+/* Scarf's 5 pattern-requirement dots were clipping the tile — shrink + center so they fit. */
+.otc-pattern-grid .otc-need-card-dots { gap: 1.5px; justify-content: center; }
+.otc-pattern-grid .otc-dot { width: 11px; height: 11px; }
+.otc-pattern-grid .otc-dot::after { font-size: 6.5px; }
