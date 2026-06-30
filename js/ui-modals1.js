@@ -927,7 +927,7 @@ Object.assign(UI, {
             case 'friendlyClerk':
                 return 'Everyone picks 1 free yarn from the supply.';
             case 'craftCircle':
-                return 'Everyone may craft 1 item for free.';
+                return 'Everyone may craft 1 item.';
             default:
                 return 'An event has occurred!';
         }
