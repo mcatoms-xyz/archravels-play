@@ -11,9 +11,45 @@
   var CHAR_THEME={"rebecca": "Lo-Fi Soundtrack Pack/Chill.mp3", "theo": "Lo-Fi Soundtrack Pack/Coffee.mp3", "derrick": "Lo-Fi Soundtrack Pack/Cabin.mp3", "amara": "Lo-Fi Soundtrack Pack/Ambience.mp3", "neeha": "Lo-Fi Soundtrack Pack/Garden.mp3", "alex": "Lo-Fi Soundtrack Pack/Drive.mp3", "ted": "Lo-Fi Soundtrack Pack/Chiptune.mp3", "eliza": "Lo-Fi Soundtrack Pack/Vibe.mp3", "jo": "Lo-Fi Soundtrack Pack/Night.mp3", "noah": "Lo-Fi Soundtrack Pack/Midnight.mp3", "irene": "Lo-Fi Soundtrack Pack/Sunset.mp3", "mauro": "Lo-Fi Soundtrack Pack/Underwater.mp3"};
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
   function url(f){ return BASE+encodeURI(f); }
-  var cache={};
+  /* Shared AudioContext for BOTH music and SFX. iOS WKWebView ignores HTMLMediaElement
+     .volume, so SFX go through a GainNode too — played as decoded AudioBuffers so the
+     master SFX gain actually attenuates on-device (and overlapping plays just work). */
+  var _ctx=null, _ctxTried=false;
+  function getCtx(){
+    if(_ctx||_ctxTried) return _ctx;
+    _ctxTried=true;
+    try{ var AC=window.AudioContext||window.webkitAudioContext; if(AC) _ctx=new AC(); }catch(e){ _ctx=null; }
+    return _ctx;
+  }
+  function resumeCtxGlobal(){ try{ if(_ctx&&_ctx.state==='suspended') _ctx.resume(); }catch(e){} }
+  var sfxGain=null, buffers={};
+  function getSfxGain(){ var c=getCtx(); if(!c) return null; if(!sfxGain){ sfxGain=c.createGain(); sfxGain.gain.value=SFX_VOL; sfxGain.connect(c.destination); } return sfxGain; }
+  function setSfxGain(){ if(sfxGain){ try{ sfxGain.gain.value=SFX_VOL; }catch(e){} } }
+  function loadBuffer(file, cb){
+    if(buffers[file]){ cb(buffers[file]); return; }
+    var c=getCtx(); if(!c){ cb(null); return; }
+    fetch(url(file)).then(function(r){ return r.arrayBuffer(); }).then(function(ab){
+      c.decodeAudioData(ab, function(buf){ buffers[file]=buf; cb(buf); }, function(){ cb(null); });
+    }).catch(function(){ cb(null); });
+  }
+  var cache={};   /* legacy <audio> cache for the no-Web-Audio fallback */
   function sfx(file,vol){
     if(muted||!file) return;
+    var c=getCtx(), g=getSfxGain();
+    if(c && g){
+      resumeCtxGlobal();
+      loadBuffer(file, function(buf){
+        if(!buf || muted) return;
+        try{
+          var src=c.createBufferSource(); src.buffer=buf;
+          if(vol!=null && vol!==1){ var vg=c.createGain(); vg.gain.value=vol; src.connect(vg); vg.connect(g); }
+          else { src.connect(g); }
+          src.start(0);
+        }catch(e){}
+      });
+      return;
+    }
+    /* Fallback (no Web Audio): old clone-and-play path. */
     try{
       var base=cache[file]; if(!base){ base=new Audio(url(file)); base.preload='auto'; cache[file]=base; }
       var a=base.cloneNode(); a.volume=Math.min(1, SFX_VOL*(vol==null?1:vol)); a.play().catch(function(){});
@@ -28,9 +64,9 @@
     function buildGraph(){
       if(graphTried) return; graphTried=true;
       try{
-        var AC=window.AudioContext||window.webkitAudioContext;
-        if(!AC||!el) return;
-        ctx=new AC();
+        var c=getCtx();
+        if(!c||!el) return;
+        ctx=c;
         srcNode=ctx.createMediaElementSource(el);
         gain=ctx.createGain();
         gain.gain.value=muted?0:MUSIC_VOL;
@@ -76,7 +112,7 @@
     },
     music:music,
     setMusicVol:function(v){ MUSIC_VOL=v; music.setVol(); _saveVol(); },
-    setSfxVol:function(v){ SFX_VOL=v; _saveVol(); },
+    setSfxVol:function(v){ SFX_VOL=v; setSfxGain(); _saveVol(); },
     getMusicVol:function(){ return MUSIC_VOL; },
     getSfxVol:function(){ return SFX_VOL; },
     toggleMute:function(){ muted=!muted; music.setMuted(muted); _saveVol(); updateMuteUI(); return muted; },
