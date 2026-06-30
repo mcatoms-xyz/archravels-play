@@ -939,7 +939,9 @@ Object.assign(UI, {
             var fabType = (foCharDef && foCharDef.type) ? foCharDef.type : 'hank';
             foDrawerEl.style.setProperty('--fo-fabric', "url('Other Assets/fo/fabric-" + fabType + ".jpg')");
         }
-        var foHeaderEl = titleEl ? titleEl.parentNode : null;
+        // Query the header directly (NOT titleEl.parentNode — the pill gets moved out below,
+        // which would otherwise point this at the wrong element on re-render).
+        var foHeaderEl = foDrawerEl ? foDrawerEl.querySelector('.fo-drawer-header') : null;
         if (foHeaderEl) {
             var foBanner = document.getElementById('foDrawerBanner');
             if (foCharDef && foCharDef.banner) {
@@ -952,17 +954,19 @@ Object.assign(UI, {
                 }
                 foBanner.src = foCharDef.banner;
                 foBanner.alt = foCharDef.name;
-                // App: move the "Finished Objects" tag out of the dark strip and onto the fabric,
-                // so the banner can tuck right against the board and clear the close button.
-                if (document.body.classList.contains('cap-native') && foDrawerEl && titleEl) {
-                    if (titleEl.parentNode === foHeaderEl) {
-                        foDrawerEl.insertBefore(titleEl, foHeaderEl.nextSibling);
-                    }
+                // App: move the "Finished Objects" tag onto the fabric (it's absolute-positioned
+                // bottom-left over the wood). Idempotent — only move it once.
+                if (document.body.classList.contains('cap-native') && titleEl && titleEl.parentNode !== foDrawerEl) {
+                    foDrawerEl.appendChild(titleEl);
                     titleEl.classList.add('fo-title-onfabric');
                 }
             } else {
                 foHeaderEl.classList.remove('has-banner');
-                if (foBanner) foBanner.parentNode.removeChild(foBanner);
+                if (foBanner && foBanner.parentNode) foBanner.parentNode.removeChild(foBanner);
+                if (titleEl && titleEl.classList.contains('fo-title-onfabric')) {
+                    titleEl.classList.remove('fo-title-onfabric');
+                    foHeaderEl.insertBefore(titleEl, foHeaderEl.firstChild);
+                }
             }
         }
 
