@@ -118,7 +118,7 @@
     toggleMute:function(){ muted=!muted; music.setMuted(muted); _saveVol(); updateMuteUI(); return muted; },
     isMuted:function(){ return muted; }
   };
-  function updateMuteUI(){ var b=document.getElementById('navMuteBtn'); if(b) b.innerHTML=(muted?'🔇 Sound: Off':'🔊 Sound: On'); }
+  function updateMuteUI(){ var b=document.getElementById('navMuteBtn'); if(!b)return; b.classList.toggle('nm-muted',muted); var l=b.querySelector('.nm-mute-label'); if(l){ l.textContent=(muted?'Sound Off':'Sound On'); } else { b.innerHTML=(muted?'🔇 Sound: Off':'🔊 Sound: On'); } }
   // Session 38b: BROAD UI press-feedback — a subtle tick on every interactive element.
   var INTERACTIVE='button,a,input,select,label,[onclick],[role="button"],.btn,.bazaar-slot,.nav-menu-item,.nav-menu-btn,.player-strip-card,[class*="slot"],[class*="token"],[class*="card"],[class*="tile"],[class*="space"],[class*="chip"],[class*="btn"]';
   var _lastTick=0;
