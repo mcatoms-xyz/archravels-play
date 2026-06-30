@@ -7802,3 +7802,42 @@ body.cap-native #navMenuDropdown a.nm-footer-bar{ padding-bottom: calc(11px + va
 .nm-exit-btns{ display:flex; flex-direction:column; gap:9px; }
 .nm-exit-leave{ background:#b5482e; color:#fff; border:0; border-radius:12px; padding:12px; font-size:14.5px; font-weight:800; cursor:pointer; font-family:inherit; }
 .nm-exit-stay{ background:transparent; color:#3a2e1f; border:1px solid rgba(58,46,31,.18); border-radius:12px; padding:12px; font-size:14.5px; font-weight:700; cursor:pointer; font-family:inherit; }
+
+
+/* =====================================================================
+   SESSION 42 — Story/stats screens reuse the game header as a fixed,
+   notch-safe frame (#story-root). ☰ left, brand, Sign-In chip right.
+   ===================================================================== */
+#story-root .story-topbar{
+    position:fixed; top:0; left:0; right:0; z-index:9200;
+    display:flex; align-items:center; gap:10px;
+    background:linear-gradient(180deg,#3a2e1f 0%,#4a3c2a 100%);
+    box-shadow:0 2px 8px rgba(0,0,0,.35); color:#f0e6d2;
+    padding:8px 12px;
+}
+body.cap-native #story-root .story-topbar{ padding-top:calc(var(--sat) + 6px); padding-bottom:6px; }
+#story-root .story-menu{ background:none; border:1px solid rgba(255,255,255,.2); color:#f0e6d2; font-size:20px; line-height:1; cursor:pointer; padding:2px 9px; border-radius:7px; flex:none; }
+#story-root .story-brand{ display:flex; align-items:center; gap:8px; min-width:0; }
+#story-root .story-logo{ height:30px; width:auto; filter:drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+#story-root .story-edition{ font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:rgba(240,230,210,.5); white-space:nowrap; }
+/* Sign-In chip now lives inside the dark bar (override the old top-right absolute chip) */
+#story-root .story-topbar .player-chip{ position:static; margin:0 0 0 auto; display:flex; align-items:center; gap:8px; max-width:none; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); border-radius:22px; padding:4px 10px 4px 4px; cursor:pointer; flex:none; }
+#story-root .story-topbar .player-chip .pc-avatar{ width:28px; height:28px; font-size:15px; background:#fff8ec; border:1px solid var(--tan-d); }
+#story-root .story-topbar .player-chip .pc-meta{ line-height:1.1; }
+#story-root .story-topbar .player-chip .pc-name{ font-size:12.5px; font-weight:700; color:#f0e6d2; padding-right:3px; }
+#story-root .story-topbar .player-chip .pc-note{ font-size:9px; color:rgba(240,230,210,.6); }
+/* push the scroll content below the fixed header */
+#story-root{ padding-top:62px; }
+body.cap-native #story-root{ padding-top:calc(var(--sat) + 56px); }
+
+/* drawer must paint ABOVE the story overlay (now body-level, so z works) */
+body.cap-native #navMenuDropdown{ z-index:9500; }
+#navMenuDropdown{ z-index:9500; }
+/* hide the in-match group when there's no active game (Story menu context) */
+body.story-open #navMenuDropdown .nm-grp-game{ display:none; }
+
+/* slimmer intro step row (numbered) */
+#story-root .sm-steps{ margin:8px auto 4px; gap:6px; }
+#story-root .sm-step{ padding:3px 9px; font-size:clamp(.58rem,2.2vw,.78rem); }
+#story-root .sm-step .sm-n{ width:15px; height:15px; border-radius:50%; background:var(--walnut); color:var(--cream); font-size:9px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+#story-root .sm-arrow{ font-size:.7rem; }
