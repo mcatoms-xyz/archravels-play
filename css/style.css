@@ -7982,3 +7982,16 @@ body.story-open #navMenuDropdown .nm-grp-game{ display:none; }
 
 /* Session 42h: intro sign-in link */
 #story-root .sm-note a{ color:var(--st-gold-d); font-weight:bold; text-decoration:underline; cursor:pointer; }
+
+
+/* === Session 42j: PHONE-WEB — keep the app's compact cosmetics, but UNLOCK the viewport.
+   A mobile browser's URL bar eats a 100dvh lock, so instead of fixed-height-fit we let the
+   page scroll normally with a fixed top nav + a bottom action bar pinned above the chrome
+   (the visualViewport script handles the offset). Overrides only the structural cap-native
+   lock for phone-web; all the compact in-match styling still applies. === */
+body.phone-web{ height:auto; min-height:100dvh; overflow-x:hidden; overflow-y:auto; display:block; }
+body.phone-web .nav-bar{ position:fixed; top:0; left:0; right:0; flex:none; height:auto; padding-top:7px; padding-bottom:5px; z-index:500; }
+body.phone-web .game-layout{ flex:none; min-height:0; overflow:visible; padding-top:58px; padding-bottom:calc(var(--ab-h,150px) + 18px); }
+body.phone-web .action-bar-wrapper{ position:fixed; left:0; right:0; bottom:0; top:auto; flex:none; z-index:480; max-height:46vh; overflow-y:auto; }
+/* the redesigned drawer + story overlays already scroll internally — let them use the full screen */
+body.phone-web #story-root{ padding-top:58px; }
