@@ -933,6 +933,12 @@ Object.assign(UI, {
         }
         // Character ribbon banner as the drawer header (matches the opponent panel).
         var foCharDef = charId ? CARDS.getCharacter(charId) : null;
+        // Fabric background matches the player's board color (per character type).
+        var foDrawerEl = document.getElementById('foDrawer');
+        if (foDrawerEl) {
+            var fabType = (foCharDef && foCharDef.type) ? foCharDef.type : 'hank';
+            foDrawerEl.style.setProperty('--fo-fabric', "url('Other Assets/fo/fabric-" + fabType + ".jpg')");
+        }
         var foHeaderEl = titleEl ? titleEl.parentNode : null;
         if (foHeaderEl) {
             var foBanner = document.getElementById('foDrawerBanner');
