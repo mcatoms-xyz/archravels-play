@@ -7189,7 +7189,7 @@ body.cap-native .fo-drawer {
     position: fixed;
     top: calc(48px + var(--sat) + 6px);
     left: auto; right: 0; bottom: 0;
-    width: 98%; max-width: 98%;
+    width: 90%; max-width: 90%;
     height: auto; max-height: none;
     border-radius: 16px 16px 0 0;
     overflow-y: auto;
@@ -7416,3 +7416,7 @@ body.cap-native .footer-rights,
 body.cap-native .footer-build { font-size: 9.5px; }
 body.cap-native .footer-rights::before,
 body.cap-native .footer-build::before { content: "· "; opacity: .7; }
+
+/* Session 41 (cap-native): drawer scroll stays inside the drawer, not the page behind. */
+body.cap-native .fo-drawer { overscroll-behavior: contain; }
+body.cap-native.fo-drawer-active { overflow: hidden; }
