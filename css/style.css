@@ -3686,8 +3686,9 @@ body {
 
 .learn-tile-imgs {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 3px;
     flex-shrink: 0;
 }
 
@@ -3696,6 +3697,15 @@ body {
     border-radius: 6px;
     box-shadow: 0 2px 8px var(--shadow);
     border: 1.5px solid var(--panel-border);
+}
+
+/* Hand-drawn flip arrow (noun project) — points down between the two tiles. */
+.learn-tile-arrow-img {
+    width: 30px;
+    height: auto;
+    opacity: 0.78;
+    margin: -1px 0;
+    pointer-events: none;
 }
 
 .learn-tile-arrow {
