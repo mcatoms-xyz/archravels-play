@@ -7979,3 +7979,6 @@ body.story-open #navMenuDropdown .nm-grp-game{ display:none; }
 #story-root.cc-mode .backbar{ margin-top:10px; margin-bottom:0; }
 /* scout header: readable, no emoji */
 #story-root .cc-togo{ color:var(--walnut-soft); text-transform:none; letter-spacing:0; font-weight:600; }
+
+/* Session 42h: intro sign-in link */
+#story-root .sm-note a{ color:var(--st-gold-d); font-weight:bold; text-decoration:underline; cursor:pointer; }
