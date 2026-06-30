@@ -421,31 +421,39 @@ Object.assign(UI, {
         html += '</div></div>';
 
         if (mode === 'color-pick') {
-            // Your Patterns — show unlearned pattern tiles with have/short dots
+            // Your Patterns — show ALL pattern tiles. Unlearned → have/short color dots.
+            // Learned → neutral gray dots (no specific colors needed; craft with any).
             var tiles = player.patternTiles || [];
-            var unlearnedTiles = tiles.filter(function(t) { return !t.learned; });
 
-            if (unlearnedTiles.length > 0) {
+            if (tiles.length > 0) {
                 html += '<div class="otc-section-label">Your Patterns</div>';
                 html += '<div class="otc-pattern-grid">';
-                unlearnedTiles.forEach(function(tile) {
+                tiles.forEach(function(tile) {
                     var itemDef = CARDS.getItem(tile.itemId);
                     if (!itemDef) return;
-                    var exact = tile.exact;
-                    // Check if all colors are met
                     var allMet = true;
                     var dotHtml = '';
-                    CARDS.COLORS.forEach(function(color) {
-                        if (!exact[color]) return;
-                        var needed = exact[color];
-                        var have = bowl[color] || 0;
-                        for (var i = 0; i < needed; i++) {
-                            var isHave = i < have;
-                            dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" data-cb-color="' + color + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
-                            if (!isHave) allMet = false;
-                        }
-                    });
-                    html += '<div class="otc-need-card' + (allMet ? ' ready' : '') + '">';
+                    if (tile.learned) {
+                        // Learned: any colors → neutral gray dots = the item's yarn count.
+                        var need = itemDef.yarnCount || 0;
+                        var totalYarn = 0;
+                        CARDS.COLORS.forEach(function(c) { totalYarn += (bowl[c] || 0); });
+                        allMet = totalYarn >= need;
+                        for (var n = 0; n < need; n++) dotHtml += '<span class="otc-dot otc-dot-neutral"></span>';
+                    } else {
+                        var exact = tile.exact;
+                        CARDS.COLORS.forEach(function(color) {
+                            if (!exact[color]) return;
+                            var needed = exact[color];
+                            var have = bowl[color] || 0;
+                            for (var i = 0; i < needed; i++) {
+                                var isHave = i < have;
+                                dotHtml += '<span class="otc-dot ' + (isHave ? 'have' : 'short') + '" data-cb-color="' + color + '" style="background:' + CARDS.COLOR_HEX[color] + '"></span>';
+                                if (!isHave) allMet = false;
+                            }
+                        });
+                    }
+                    html += '<div class="otc-need-card' + (allMet ? ' ready' : '') + (tile.learned ? ' otc-learned' : '') + '">';
                     html += '<img src="' + itemDef.img + '" alt="' + itemDef.name + '">';
                     html += '<div class="otc-need-card-info">';
                     html += '<span class="otc-need-card-name">' + itemDef.name + '</span>';
