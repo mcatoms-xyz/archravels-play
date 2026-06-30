@@ -7687,4 +7687,11 @@ body.cap-native .action-bar-wrapper {
     left: auto; right: auto; bottom: auto;
     flex: 0 0 auto;
     max-height: none;
+    /* Fixed height — sized to the tallest state so the bar never jumps between turns.
+       Content is centered; leftover space pools as a clean margin above the bar. */
+    min-height: 150px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
