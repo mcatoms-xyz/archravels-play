@@ -7460,8 +7460,8 @@ body.cap-native .setup-players { margin-top: 10px; }
 
 /* Session 41 (cap-native): spread the board yarn-bowl tokens down more of the board. */
 body.cap-native .yarn-bowl-overlay {
-    top: 4%;
-    height: 83%;
+    top: 5%;
+    height: 68%;
     justify-content: space-between;
     padding: 2% 0;
 }
