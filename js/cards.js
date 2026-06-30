@@ -197,7 +197,7 @@ const CARDS = {
        ========================================================= */
     characters: {
         rebecca: {
-            id: 'rebecca', name: 'Rebecca', type: 'thriftyShopper',
+            id: 'rebecca', banner: 'Other Assets/Character Banners/banner-rebecca.png', name: 'Rebecca', type: 'thriftyShopper',
             subtitle: 'Snugglesaurus',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png',
             actionSpaces: [
@@ -208,7 +208,7 @@ const CARDS = {
             ],
         },
         theo: {
-            id: 'theo', name: 'Theo', type: 'thriftyShopper',
+            id: 'theo', banner: 'Other Assets/Character Banners/banner-theo.png', name: 'Theo', type: 'thriftyShopper',
             subtitle: 'Wrist Warmers',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0001_t2-theo.png',
             actionSpaces: [
@@ -219,7 +219,7 @@ const CARDS = {
             ],
         },
         derrick: {
-            id: 'derrick', name: 'Derrick', type: 'masterCrafter',
+            id: 'derrick', banner: 'Other Assets/Character Banners/banner-derrick.png', name: 'Derrick', type: 'masterCrafter',
             subtitle: 'Prodigy Cowl',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0002_fa1-derrick.png',
             actionSpaces: [
@@ -230,7 +230,7 @@ const CARDS = {
             ],
         },
         amara: {
-            id: 'amara', name: 'Amara', type: 'masterCrafter',
+            id: 'amara', banner: 'Other Assets/Character Banners/banner-amara.png', name: 'Amara', type: 'masterCrafter',
             subtitle: 'Hacky Sack',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0003_fa2-amara.png',
             actionSpaces: [
@@ -241,7 +241,7 @@ const CARDS = {
             ],
         },
         neeha: {
-            id: 'neeha', name: 'Neeha', type: 'colorSpecialist',
+            id: 'neeha', banner: 'Other Assets/Character Banners/banner-neeha.png', name: 'Neeha', type: 'colorSpecialist',
             subtitle: 'Unicorn',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0004_c1-neeha.png',
             actionSpaces: [
@@ -252,7 +252,7 @@ const CARDS = {
             ],
         },
         alex: {
-            id: 'alex', name: 'Alex', type: 'colorSpecialist',
+            id: 'alex', banner: 'Other Assets/Character Banners/banner-alex.png', name: 'Alex', type: 'colorSpecialist',
             subtitle: 'Infinity Scarf',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0005_c2-alex.png',
             actionSpaces: [
@@ -263,7 +263,7 @@ const CARDS = {
             ],
         },
         ted: {
-            id: 'ted', name: 'Ted', type: 'yarnSpinner',
+            id: 'ted', banner: 'Other Assets/Character Banners/banner-ted.png', name: 'Ted', type: 'yarnSpinner',
             subtitle: 'Octopus',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0006_s1-ted.png',
             actionSpaces: [
@@ -274,7 +274,7 @@ const CARDS = {
             ],
         },
         eliza: {
-            id: 'eliza', name: 'Eliza', type: 'yarnSpinner',
+            id: 'eliza', banner: 'Other Assets/Character Banners/banner-eliza.png', name: 'Eliza', type: 'yarnSpinner',
             subtitle: 'Robot',
             boardImg: 'Player Boards PNG/AR_PlayerBoards_Final.2.13__0007_s2-eliza.png',
             actionSpaces: [
@@ -287,7 +287,7 @@ const CARDS = {
 
         /* --- Session 13: Maker type (Magic Socks expansion characters) --- */
         jo: {
-            id: 'jo', name: 'Jo', type: 'maker',
+            id: 'jo', banner: 'Other Assets/Character Banners/banner-jo.png', name: 'Jo', type: 'maker',
             subtitle: 'Catnip Mouse',
             boardImg: 'Player Boards PNG/ARMS_PlayerBoards_0040_Maker-Board-1.png',
             actionSpaces: [
@@ -298,7 +298,7 @@ const CARDS = {
             ],
         },
         noah: {
-            id: 'noah', name: 'Noah', type: 'maker',
+            id: 'noah', banner: 'Other Assets/Character Banners/banner-noah.png', name: 'Noah', type: 'maker',
             subtitle: 'Pigs in a Blanket',
             boardImg: 'Player Boards PNG/ARMS_PlayerBoards_0042_Maker-Board-2.png',
             actionSpaces: [
@@ -312,7 +312,7 @@ const CARDS = {
         /* --- Session 13: Expert type (Magic Socks expansion characters) --- */
         /* Expert is unique: only 3 action spaces, no Exchange */
         irene: {
-            id: 'irene', name: 'Irene', type: 'expert',
+            id: 'irene', banner: 'Other Assets/Character Banners/banner-irene.png', name: 'Irene', type: 'expert',
             subtitle: 'Duck Socks',
             boardImg: 'Player Boards PNG/ARMS_PlayerBoards_0041_Expert-Board-1.png',
             actionSpaces: [
@@ -322,7 +322,7 @@ const CARDS = {
             ],
         },
         mauro: {
-            id: 'mauro', name: 'Mauro', type: 'expert',
+            id: 'mauro', banner: 'Other Assets/Character Banners/banner-mauro.png', name: 'Mauro', type: 'expert',
             subtitle: 'Dog Bandana',
             boardImg: 'Player Boards PNG/ARMS_PlayerBoards_0043_Expert-Board-2.png',
             actionSpaces: [
