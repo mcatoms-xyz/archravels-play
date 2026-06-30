@@ -7277,7 +7277,7 @@ body.cap-native .game-layout { display: flex; flex-direction: column; gap: 6px; 
    ever overflows, the game-layout scrolls instead. */
 body.cap-native .game-layout > * { flex-shrink: 0; }
 body.cap-native .board-section { order: 1; }
-body.cap-native .action-feed  { order: 3; margin: 6px auto 0; max-width: calc(100% - 14px); width: auto; }
+body.cap-native .action-feed  { order: 3; margin: auto auto 0; max-width: calc(100% - 14px); width: auto; }
 body.cap-native .player-area  { order: 2; }
 
 /* Action box: round/action label + the Shop/Craft pills on ONE row
@@ -7606,7 +7606,7 @@ body.cap-native .fo-drawer-title.fo-title-onfabric {
     display: inline-block;
     position: absolute;
     left: 8px;
-    bottom: 8px;
+    bottom: 28px;
     top: auto; right: auto;
     opacity: 1;
     width: max-content;
@@ -7621,7 +7621,7 @@ body.cap-native .fo-drawer-title.fo-title-onfabric {
     border-radius: 6px; padding: 1px 9px; line-height: 1;
 }
 .fo-drawer-header.has-banner ~ .finished-objects-total.has-points {
-    top: auto; bottom: 8px; right: -14px;
+    top: auto; bottom: 3px; right: -14px;
 }
 
 /* Player-board key art (portrait) showcased at the top of the player drawer. */
