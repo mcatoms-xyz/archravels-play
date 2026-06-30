@@ -61,6 +61,7 @@
         <div class="nav-right">
             <button class="nav-menu-btn" id="navMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>
             <div class="nav-menu-dropdown" id="navMenuDropdown" style="display:none">
+                <button class="nav-menu-item" onclick="UI.onNavMenuToggle();UI.pauseGame()">⏸ Pause Game</button>
                 <button class="nav-menu-item" onclick="UI.showGameOverModal()" id="navScoresBtn" style="display:none">View Scores</button>
                 <button class="nav-menu-item" onclick="UI.showTurnHistory()" id="navHistoryBtn" style="display:none">Turn History</button>
                 <button class="nav-menu-item cb-toggle" onclick="UI.onToggleColorblind()" id="navColorblindBtn" aria-pressed="false">
