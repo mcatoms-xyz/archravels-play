@@ -1598,11 +1598,8 @@ body {
     right: 5%;           /* starts just left of the tab strip */
     width: 55%;
     height: 100%;
-    background-color: rgba(245, 238, 225, 0.95);
-    background-image: url('../Other Images Textures Details/Textures/FabricPlain0015_ar2.png');
-    background-repeat: repeat;
-    background-size: 200px 200px;
-    background-blend-mode: multiply;
+    background-color: #f6efe2;
+    background-image: none;
     border-left: 2px solid var(--panel-border);
     border-radius: 10px 0 0 10px;
     z-index: 5;
@@ -7204,7 +7201,7 @@ body.cap-native .fo-drawer {
     border-radius: 16px 16px 0 0;
     overflow-y: auto;
     padding-bottom: calc(var(--sab) + 16px);
-    z-index: 650;
+    z-index: 9990;   /* above every panel/backdrop so nothing can tint the drawer */
 }
 /* Blanket's 5 on-board craft-cost dots were squishing at phone width — shrink them. */
 body.cap-native .craft-board-overlay .craft-slot:last-child .craft-slot-cost .craft-cost-dot {
@@ -7405,7 +7402,7 @@ body.cap-native .craft-circle-grid .craft-cost-dot { width: 8px; height: 8px; bo
 .fo-drawer-backdrop { display: none; }
 body.cap-native .fo-drawer-backdrop {
     display: block; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4); z-index: 649;
+    background: rgba(0,0,0,0.4); z-index: 9989;
     opacity: 0; pointer-events: none; transition: opacity .2s;
 }
 body.cap-native .fo-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
@@ -7555,3 +7552,26 @@ body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 2
 body.cap-native .opponent-panel { overflow: visible; display: flex; flex-direction: column; }
 body.cap-native .opponent-panel-header { flex: 0 0 auto; }
 body.cap-native .opponent-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+
+/* Character ribbon banner as the Finished Objects drawer header (matches the opponent panel). */
+.fo-drawer-header.has-banner { display: block; position: relative; padding: 0; min-height: 0; }
+.fo-drawer-header.has-banner .fo-drawer-title,
+.fo-drawer-header.has-banner .fo-drawer-charname { display: none; }
+.fo-banner-img {
+    display: block;
+    width: calc(100% + 32px);
+    max-width: none;
+    height: auto;
+    margin: -12px -14px -2px -18px;   /* bleed over the drawer padding to the edges + top */
+    filter: drop-shadow(0 4px 7px rgba(0,0,0,0.4));
+    border-radius: 14px 14px 0 0;
+}
+.fo-drawer-header.has-banner .fo-drawer-close {
+    position: absolute; top: 8px; right: 6px; z-index: 5;
+    background: rgba(0,0,0,0.4); color: #f0e6d2;
+    border-radius: 6px; padding: 1px 9px; line-height: 1;
+}
+/* Keep the points tag clear of the banner (drop it to the drawer's bottom-right). */
+.fo-drawer-header.has-banner ~ .finished-objects-total.has-points {
+    top: auto; bottom: 14px; right: -22px;
+}
