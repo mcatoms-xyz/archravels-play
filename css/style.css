@@ -7925,3 +7925,14 @@ body.story-open #navMenuDropdown .nm-grp-game{ display:none; }
 #story-root .cc-crown{ font-size:46px; }
 #story-root .cc-champ-t{ font-size:22px; font-weight:800; color:var(--walnut); margin:6px 0 6px; }
 #story-root .cc-champ-s{ font-size:13.5px; color:var(--walnut-soft); line-height:1.5; margin-bottom:16px; }
+
+
+/* === Session 42e: intro steps stack (fix width bleed) + climb hero SR thumbnail size === */
+#story-root .sm-steps{ flex-direction:column; flex-wrap:wrap; align-items:center; white-space:normal; gap:9px; width:auto; }
+#story-root .sm-steps .sm-arrow{ display:none; }
+#story-root .sm-step{ width:auto; max-width:92%; justify-content:center; }
+/* climb hero: srMini was only sized under .pcard, so it rendered full-size here */
+#story-root .cc-info .pc-srmini{ display:flex; align-items:center; gap:10px; background:var(--cream-2); border:1px solid var(--line); border-radius:12px; padding:8px; margin-bottom:11px; }
+#story-root .cc-info .pc-srmini .srthumb{ width:46px; height:46px; border-radius:8px; background:#fff; object-fit:contain; flex-shrink:0; box-shadow:var(--shadow-sm); cursor:zoom-in; }
+#story-root .cc-info .pc-srmini .l{ font-size:.62rem; font-weight:bold; text-transform:uppercase; letter-spacing:.05em; color:var(--walnut-soft); }
+#story-root .cc-info .pc-srmini .n{ font-weight:bold; color:#b5482e; font-size:1rem; line-height:1.1; }
