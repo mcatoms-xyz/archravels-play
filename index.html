@@ -8,7 +8,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=73">
+    <link rel="stylesheet" href="css/style.css?v=74">
 </head>
 
 <body>
@@ -61,22 +61,50 @@
         <div class="nav-right">
             <button class="nav-menu-btn" id="navMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>
             <div class="nav-menu-dropdown" id="navMenuDropdown" style="display:none">
-                <button class="nav-menu-item" onclick="UI.onNavMenuToggle();UI.pauseGame()">⏸ Pause Game</button>
-                <button class="nav-menu-item" onclick="UI.showGameOverModal()" id="navScoresBtn" style="display:none">View Scores</button>
-                <button class="nav-menu-item" onclick="UI.showTurnHistory()" id="navHistoryBtn" style="display:none">Turn History</button>
-                <button class="nav-menu-item cb-toggle" onclick="UI.onToggleColorblind()" id="navColorblindBtn" aria-pressed="false">
-                    <span class="cb-indicator"></span> Colorblind Mode
-                </button>
-                <button class="nav-menu-item" onclick="Story.start()">🧶 Story Mode</button>
-                <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,.08)">
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e8dcc4;margin:5px 0">🎵<input type="range" id="volMusic" min="0" max="100" style="flex:1"></label>
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e8dcc4;margin:5px 0">🔊<input type="range" id="volSfx" min="0" max="100" style="flex:1"></label>
+                <div class="nm-scroll">
+                    <div class="nm-seclabel">This Game</div>
+                    <button class="nm-row" onclick="UI.onNavMenuToggle();UI.pauseGame()"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pause Game</button>
+                    <button class="nm-row" id="navScoresBtn" style="display:none" onclick="UI.onNavMenuToggle();UI.showGameOverModal()"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M6 4h12v5a6 6 0 0 1-12 0V4z"/><path d="M6 6H4v2a3 3 0 0 0 2 2.8M18 6h2v2a3 3 0 0 1-2 2.8"/></svg>View Scores</button>
+                    <button class="nm-row" id="navHistoryBtn" style="display:none" onclick="UI.onNavMenuToggle();UI.showTurnHistory()"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>Turn History</button>
+
+                    <div class="nm-seclabel">Audio</div>
+                    <div class="nm-card">
+                        <label class="nm-slider"><svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg><input type="range" id="volMusic" min="0" max="100"></label>
+                        <label class="nm-slider"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8a5 5 0 0 1 0 8"/></svg><input type="range" id="volSfx" min="0" max="100"></label>
+                        <div class="nm-audio-actions">
+                            <button class="nm-pill" id="navMuteBtn"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8a5 5 0 0 1 0 8"/></svg><span class="nm-mute-label">Sound On</span></button>
+                            <button class="nm-pill" id="navNextTrack"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg>Next Track</button>
+                        </div>
+                    </div>
+
+                    <div class="nm-seclabel">Display</div>
+                    <button class="nm-toggle-row cb-toggle" id="navColorblindBtn" aria-pressed="false" onclick="UI.onToggleColorblind()">
+                        <svg class="nm-lead" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18"/></svg>
+                        <span class="nm-toggle-text"><span class="nm-tlabel">Colorblind Mode</span><span class="nm-sub">Shapes + letters on yarn</span></span>
+                        <span class="cb-indicator"></span>
+                        <span class="nm-switch"><span class="nm-knob"></span></span>
+                    </button>
+
+                    <div class="nm-divider"></div>
+                    <div class="nm-exit-head">Exit Current Game <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+                    <button class="nm-row nm-leave" onclick="UI.onNavMenuToggle();NMExit.confirm('the Home Screen', function(){UI.returnToMainMenu();})"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Home Screen</button>
+                    <button class="nm-row nm-leave" onclick="UI.onNavMenuToggle();NMExit.confirm('Story Mode', function(){Story.start();})"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h11v18H6a2 2 0 0 1-2-2V5z"/><path d="M9 3v18"/></svg>Story Mode</button>
+                    <button class="nm-row nm-leave" onclick="UI.onNavMenuToggle();NMExit.confirm('a New Game', function(){UI.onLandingPlaySolo();})"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New Game</button>
+
+                    <button class="nm-buy" onclick="window.open('https://shop.xyzgamelabs.com','_blank')"><svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Buy the Physical Game<svg class="nm-go" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></button>
                 </div>
-                <button class="nav-menu-item" id="navNextTrack">⏭ Next track</button>
-                <button class="nav-menu-item" id="navMuteBtn">🔊 Sound: On</button>
-                <button class="nav-menu-item" onclick="UI.onNavMenuToggle();document.getElementById('infoModal').style.display='flex'">ℹ️ Info &amp; Credits</button>
-                <button class="nav-menu-item" onclick="UI.onNavMenuToggle();window.toggleSizes&&toggleSizes()">📐 Sizes (debug)</button>
-                <button class="nav-menu-item" onclick="UI.onNewGame()">New Game</button>
+
+                <div class="nm-footer-top">
+                    <div class="nm-ar-line"><img src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="nm-name">Digital<span class="nm-beta">Beta</span></span></div>
+                    <div class="nm-credits">Designed by <b>Adam McCrimmon</b><br>Art by <b>Rochelle Steder</b></div>
+                    <div class="nm-ver" id="navMenuVer">v0.9 Beta</div>
+                    <div class="nm-legal"><a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a><span>&middot;</span><a href="terms.html" target="_blank" rel="noopener">Terms of Use</a></div>
+                </div>
+                <a class="nm-footer-bar" href="https://xyzgamelabs.com" target="_blank" rel="noopener">
+                    <img src="Other Images Textures Details/XYZ biz assets/XYZ Logo/XYZ_logo_white_nobg.png" alt="XYZ Game Labs">
+                    <span class="nm-cpy">&copy; 2026 XYZ Game Labs<br>All rights reserved</span>
+                    <svg class="nm-go" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                </a>
             </div>
         </div>
     </nav>
@@ -623,18 +651,18 @@
          GAME SCRIPTS
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
-    <script src="js/cards.js?v=73"></script>
-    <script src="js/game.js?v=73"></script>
-    <script src="js/audio.js?v=73"></script>
-    <script src="js/ai.js?v=73"></script>
+    <script src="js/cards.js?v=74"></script>
+    <script src="js/game.js?v=74"></script>
+    <script src="js/audio.js?v=74"></script>
+    <script src="js/ai.js?v=74"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=73"></script>
-    <script src="js/ui-modals1.js?v=73"></script>
-    <script src="js/ui-modals2.js?v=73"></script>
-    <script src="js/ui-panels1.js?v=73"></script>
-    <script src="js/ui-panels2.js?v=73"></script>
-    <script src="js/ui-extra.js?v=73"></script>
+    <script src="js/ui-core.js?v=74"></script>
+    <script src="js/ui-modals1.js?v=74"></script>
+    <script src="js/ui-modals2.js?v=74"></script>
+    <script src="js/ui-panels1.js?v=74"></script>
+    <script src="js/ui-panels2.js?v=74"></script>
+    <script src="js/ui-extra.js?v=74"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
          The live game is solo + pass-and-play, with zero dependency on this layer
@@ -642,13 +670,13 @@
          online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
          here. Re-add to revive online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=73"></script>
-    <script src="js/online-bridge.js?v=73"></script>
+    <script src="js/network.js?v=74"></script>
+    <script src="js/online-bridge.js?v=74"></script>
     -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=73"></script>
+    <script src="js/story.js?v=74"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
@@ -658,49 +686,11 @@
         var AR_VERSION = { v: '0.9', channel: 'Beta', build: 41 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build;
-        function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; }
+        function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; }
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stamp); else stamp();
     })();
     </script>
 
-    <!-- 📐 TEMP layout-size diagnostic — toggled from the ☰ menu. Reports section heights +
-         total vs viewport so we can see exactly where/how much the play area overflows. -->
-    <script>
-    (function () {
-        var on = false, el = null, iv = null;
-        function h(sel) {
-            var n = document.querySelector(sel);
-            if (!n || getComputedStyle(n).display === 'none') return 0;
-            return Math.round(n.getBoundingClientRect().height);
-        }
-        function tick() {
-            if (!el) return;
-            var vp = Math.round(window.innerHeight);
-            var nav = h('.nav-bar'), feed = h('.action-feed'), bazaar = h('.board-section'),
-                board = h('.player-area'), sr = h('.sr-strip'), bar = h('.action-bar-wrapper');
-            var sum = nav + feed + bazaar + board + sr + bar, over = sum - vp;
-            el.innerHTML =
-                'VP ' + vp + '<br>nav ' + nav + '<br>feed ' + feed + '<br>bazaar ' + bazaar +
-                '<br>board ' + board + '<br>sr ' + sr + '<br>bar ' + bar +
-                '<br><b>sum ' + sum + '</b><br><b style="color:' + (over > 0 ? '#ff6b6b' : '#7CFC00') +
-                '">over ' + over + '</b>';
-        }
-        window.toggleSizes = function () {
-            on = !on;
-            if (on) {
-                el = document.createElement('div');
-                el.id = 'sizesDbg';
-                el.style.cssText = 'position:fixed;top:96px;left:6px;z-index:99999;background:rgba(0,0,0,.82);color:#fff;font:11px/1.35 ui-monospace,monospace;padding:8px 10px;border-radius:8px;pointer-events:none;white-space:nowrap';
-                document.body.appendChild(el);
-                tick(); iv = setInterval(tick, 350);
-            } else {
-                if (iv) clearInterval(iv);
-                if (el && el.parentNode) el.parentNode.removeChild(el);
-                el = null;
-            }
-        };
-    })();
-    </script>
 
     <!-- Session 34c: keep the fixed bottom control bar above mobile browser
          chrome (URL/nav bars, keyboard) using the visualViewport API.
@@ -748,5 +738,35 @@
     })();
     </script>
 
+
+    <!-- Session 42: leave-current-game confirm (drawer Exit group) -->
+    <div class="nm-exit-overlay" id="nmExitOverlay" style="display:none">
+        <div class="nm-exit-modal">
+            <div class="nm-exit-ic"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+            <h3>Leave this game?</h3>
+            <p id="nmExitMsg"></p>
+            <div class="nm-exit-btns">
+                <button class="nm-exit-leave" id="nmExitConfirm">Leave Game</button>
+                <button class="nm-exit-stay" onclick="NMExit.close()">Keep Playing</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    window.NMExit = {
+        _fn: null,
+        confirm: function (dest, fn) {
+            this._fn = fn;
+            var msg = document.getElementById('nmExitMsg');
+            if (msg) msg.innerHTML = 'Going to <b>' + dest + '</b> will end your current game. Your progress won\u2019t be saved.';
+            var ov = document.getElementById('nmExitOverlay'); if (ov) ov.style.display = 'flex';
+        },
+        close: function () { var ov = document.getElementById('nmExitOverlay'); if (ov) ov.style.display = 'none'; this._fn = null; },
+        go: function () { var fn = this._fn; this.close(); if (typeof fn === 'function') fn(); }
+    };
+    document.addEventListener('DOMContentLoaded', function () {
+        var c = document.getElementById('nmExitConfirm'); if (c) c.onclick = function () { NMExit.go(); };
+        var ov = document.getElementById('nmExitOverlay'); if (ov) ov.addEventListener('click', function (e) { if (e.target === ov) NMExit.close(); });
+    });
+    </script>
 </body>
 </html>
