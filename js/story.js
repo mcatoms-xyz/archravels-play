@@ -120,7 +120,7 @@ var Story = {
 
   open: function(){ this.root.style.display='block'; document.body.classList.add('story-open'); window.scrollTo(0,0); },
   hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); },
-  screen: function(html){ document.getElementById('story-screen').innerHTML = html; window.scrollTo(0,0); },
+  screen: function(html){ var r=document.getElementById('story-root'); if(r) r.classList.remove('cc-mode'); document.getElementById('story-screen').innerHTML = html; window.scrollTo(0,0); },
 
   /* ============================ entry ============================ */
   start: async function(){
@@ -386,7 +386,7 @@ var Story = {
       '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
     var body;
     if(champ){
-      body='<div class="cc-champ"><div class="cc-crown">\U0001F3C6</div>'+
+      body='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
         '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
         '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
         '<button class="cc-go" onclick="Story.goStats()">View your stats →</button></div>';
@@ -396,23 +396,24 @@ var Story = {
       var isNext=(view===this.beaten), isBeaten=(view<this.beaten);
       var role=boss?'Final Boss':this.meta(c).name;
       var taunt=dlg.intro?'<div class="cc-taunt">“'+dlg.intro+'”</div>':'';
-      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">\U0001F451</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
+      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">👑</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
       var btn;
       if(isNext) btn='<button class="cc-go" onclick="Story.goPreMatch()">'+(boss?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
       else if(isBeaten) btn='<button class="cc-go beat" disabled>✓ Already defeated</button>';
-      else btn='<button class="cc-go lock" disabled>\U0001F512 Beat '+this.char(this.currentOpp()).name+' first</button>';
-      var label=isNext?'⚔ Next Challenger':(isBeaten?'✓ Already Defeated':'\U0001F512 Locked — Preview');
+      else btn='<button class="cc-go lock" disabled>🔒 Beat '+this.char(this.currentOpp()).name+' first</button>';
+      var label=isNext?'⚔ Next Challenger':(isBeaten?'✓ Already Defeated':'🔒 Locked — Preview');
       var hero='<div class="cc-herowrap" id="ccHero"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
         '<div class="cc-hero'+(boss?' boss':'')+(isNext?'':' dim')+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-pos">'+(view+1)+' / '+total+'</span><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
         '<div class="cc-info">'+fav+taunt+btn+'</div></div>'+
         '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
       var self=this;
       var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml">'+(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked')))+'</div></div>'; }).join('');
-      var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">swipe or tap ↕</span></div><div class="cc-scout-row">'+minis+'</div></div>';
+      var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">Swipe or tap to browse</span></div><div class="cc-scout-row">'+minis+'</div></div>';
       body='<div class="cc-nextlabel">'+label+'</div>'+hero+scout;
     }
     this.screen('<div class="crumb">Your Craft Circle</div>'+top+body+
-      this.backBar('Story.goTypes()','↺ Change crafter'));
+      this.backBar('Story.goTypes()','↺ Change Raveler'));
+    var _sr=document.getElementById('story-root'); if(_sr) _sr.classList.add('cc-mode');
     var hw=document.getElementById('ccHero');
     if(hw){ var sy=null;
       hw.addEventListener('touchstart',function(e){ sy=e.touches[0].clientY; },{passive:true});
