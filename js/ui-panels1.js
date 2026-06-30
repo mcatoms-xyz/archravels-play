@@ -952,6 +952,14 @@ Object.assign(UI, {
                 }
                 foBanner.src = foCharDef.banner;
                 foBanner.alt = foCharDef.name;
+                // App: move the "Finished Objects" tag out of the dark strip and onto the fabric,
+                // so the banner can tuck right against the board and clear the close button.
+                if (document.body.classList.contains('cap-native') && foDrawerEl && titleEl) {
+                    if (titleEl.parentNode === foHeaderEl) {
+                        foDrawerEl.insertBefore(titleEl, foHeaderEl.nextSibling);
+                    }
+                    titleEl.classList.add('fo-title-onfabric');
+                }
             } else {
                 foHeaderEl.classList.remove('has-banner');
                 if (foBanner) foBanner.parentNode.removeChild(foBanner);
