@@ -23,17 +23,28 @@ Object.assign(UI, {
         }
 
         var titleEl = document.getElementById('opponentPanelTitle');
-        var typeIcon = this._typeIcons[p.characterType] || '';
         titleEl.innerHTML = '';
-        if (typeIcon) {
-            var iconImg = document.createElement('img');
-            iconImg.src = typeIcon;
-            iconImg.alt = p.characterType;
-            titleEl.appendChild(iconImg);
+        if (character.banner) {
+            // Pre-rendered character ribbon (name + subtitle + badge baked in) as a full-bleed header.
+            if (headerEl) headerEl.classList.add('has-banner');
+            var bannerImg = document.createElement('img');
+            bannerImg.className = 'opp-banner-img';
+            bannerImg.src = character.banner;
+            bannerImg.alt = p.name + (p.isAI ? ' (CPU)' : '');
+            titleEl.appendChild(bannerImg);
+        } else {
+            if (headerEl) headerEl.classList.remove('has-banner');
+            var typeIcon = this._typeIcons[p.characterType] || '';
+            if (typeIcon) {
+                var iconImg = document.createElement('img');
+                iconImg.src = typeIcon;
+                iconImg.alt = p.characterType;
+                titleEl.appendChild(iconImg);
+            }
+            var nameSpan = document.createElement('span');
+            nameSpan.textContent = p.name + (p.isAI ? ' (CPU)' : '');
+            titleEl.appendChild(nameSpan);
         }
-        var nameSpan = document.createElement('span');
-        nameSpan.textContent = p.name + (p.isAI ? ' (CPU)' : '');
-        titleEl.appendChild(nameSpan);
 
         // --- Body ---
         var body = document.getElementById('opponentPanelBody');
