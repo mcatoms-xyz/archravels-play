@@ -7223,7 +7223,7 @@ body.cap-native .modal-overlay {
 body.cap-native .modal-content {
     max-width: 94vw;
     width: auto;
-    max-height: 88vh;
+    max-height: calc(100dvh - var(--sat) - var(--sab) - 28px);
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: 16px;
@@ -7400,3 +7400,19 @@ body.cap-native .fo-drawer-backdrop {
 }
 body.cap-native .fo-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
 body.cap-native .fo-drawer-close { font-size: 22px; padding: 6px 13px; }
+
+/* Session 41 (cap-native): the game footer collapses to ONE compact line. */
+body.cap-native .game-footer {
+    flex-wrap: nowrap; justify-content: center; align-items: center;
+    gap: 6px; padding: 5px 8px; line-height: 1;
+    white-space: nowrap; overflow: hidden;
+}
+body.cap-native .footer-left { gap: 5px; align-items: center; }
+body.cap-native .footer-left-text { flex-direction: row; align-items: center; gap: 5px; }
+body.cap-native .footer-publisher-logo { height: 16px; width: auto; }
+body.cap-native .footer-cat { display: none; }
+body.cap-native .footer-copyright,
+body.cap-native .footer-rights,
+body.cap-native .footer-build { font-size: 9.5px; }
+body.cap-native .footer-rights::before,
+body.cap-native .footer-build::before { content: "· "; opacity: .7; }
