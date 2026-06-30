@@ -7548,5 +7548,5 @@ body.cap-native .fo-drawer { background: #f6efe2 !important; background-blend-mo
     border-color: rgba(255,255,255,0.25);
 }
 .opponent-panel-header.has-banner .opponent-panel-title { display: block; width: 100%; gap: 0; }
-/* App: banner drapes full-width across the top of the panel, bleeding up to the top edge. */
-body.cap-native .opponent-panel-header.has-banner { padding: 0; }
+/* App: push the banner down clear of the notch/status bar (safe-area + breathing room). */
+body.cap-native .opponent-panel-header.has-banner { padding: calc(var(--sat) + 26px) 0 0; }
