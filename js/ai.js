@@ -49,9 +49,9 @@ var AI = {
             // more Yarn 2 cards, each shop gives ~2 yarn/card instead of ~1.4. Shop 4
             // now yields ~8 yarn per turn — accumulation is much faster.
             // Strategy shift: shop aggressively early, then pivot hard to crafting.
-            // shopWeight 1.4→1.2 (less shopping emphasis since yield per card is higher),
-            // craftWeight 1.15→1.35 (actively convert yarn to items),
-            // projectWeight 1.3→1.4 (faster accumulation = faster project completion).
+            // Session 40 retune (values below are current): shopWeight→1.05, craftWeight→1.7
+            // (Rebecca was hoarding yarn), projectWeight 1.4. hoardYarn is OFF now, so the
+            // profile.hoardYarn shopping branch is dead code — safe to prune later.
             shopWeight:     1.05,  // Session 40: shop a bit less so she pivots to crafting sooner
             craftWeight:    1.7,   // Session 40: Rebecca was hoarding yarn — craft much more
             projectWeight:  1.4,   // fast accumulation feeds project strategy
