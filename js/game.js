@@ -1363,7 +1363,8 @@ var Game = {
                 // Give yarnCount yarn to EACH other player.
                 // Total needed = yarnCount × number of other players.
                 var otherPlayerCount = this.state.players.length - 1;
-                var giveNeeded = count * otherPlayerCount;
+                // Solo: the yarn still leaves your stash (goes to supply), so it costs `count`.
+                var giveNeeded = count * Math.max(1, otherPlayerCount);
                 var giveTotal = 0;
                 CARDS.COLORS.forEach(function(c) { giveTotal += (bowl[c] || 0); });
                 return giveTotal >= giveNeeded;
