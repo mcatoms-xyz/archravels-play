@@ -52,7 +52,7 @@ var AI = {
             // Session 40 retune (values below are current): shopWeight→1.05, craftWeight→1.7
             // (Rebecca was hoarding yarn), projectWeight 1.4. hoardYarn is OFF now, so the
             // profile.hoardYarn shopping branch is dead code — safe to prune later.
-            shopWeight:     1.05,  // Session 40: shop a bit less so she pivots to crafting sooner
+            shopWeight:     0.85,  // Session 42: shop even less — she still hoarded (yarnPen ~-26); pivot to crafting
             craftWeight:    1.7,   // Session 40: Rebecca was hoarding yarn — craft much more
             projectWeight:  1.4,   // fast accumulation feeds project strategy
             srWeight:       1.1,   // Session 16: slight boost to avoid SR penalties
@@ -498,6 +498,30 @@ var AI = {
                     score += 4;
                 }
             }
+
+            // ---------------------------------------------------------------
+            // Session 42: END-GAME YARN-CONVERSION BIAS (anti-hoarding).
+            // Leftover yarn scores -1 each at game end, so late-game a big yarn
+            // reserve is pure liability. Push the AI off yarn-gaining spaces
+            // (shop / take-yarn) and onto craft spaces so it converts the hoard
+            // into scoring items before the end. Gated on game progress AND
+            // actually holding excess yarn, so the lean top-4 are barely touched.
+            // (Sim-verified: thriftyShopper 25%->45% overall, top-4 stay balanced.)
+            // ---------------------------------------------------------------
+            (function() {
+                var prog = self._gameProgress();
+                if (prog < 0.45) return;
+                var yarnNow = self._totalYarnCount(player);
+                var affNow = affordableCrafts;
+                var excess = yarnNow - 5;
+                if (excess <= 0) return;
+                var pressure = (prog - 0.45) * 1.8;
+                var mag = excess * pressure;
+                if (space.shop > 0)                        score -= mag * 1.8;
+                if (space.unique === 'take3Yarn')          score -= mag * 1.8;
+                if (space.unique === 'take5AnyCraft1Any')  score -= mag * 0.8;
+                if (space.craft > 0 && affNow > 0)         score += mag * 1.8;
+            })();
 
             if (score > bestScore) {
                 bestScore = score;
