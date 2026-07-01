@@ -1943,6 +1943,10 @@ var Game = {
      * @returns {boolean} true if game should end after the current turn
      */
     isGameOver: function() {
+        // Safety net (Session 42): if a match somehow never reaches a natural end
+        // (e.g. neither player ever completes a project, so the project deck never
+        // drains), force it after a very high turn count so a live game can't hang.
+        if (this.state.turn && this.state.turn.number > 200) return true;
         return this.state.projectDeck.length === 0 &&
                this.state.projectDisplay.length < 3;
     },
