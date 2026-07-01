@@ -461,12 +461,19 @@ var Story = {
     // Session 40: reset per-match live-achievement tracking + wire detection hooks (once)
     this._liveToasted = {}; this._matchEarned = [];
     this._wireLiveAchievementHooks();
-    Game.init({ players: [
-      { characterId:this.picked, isAI:false, name:youName },
-      { characterId:oppId,       isAI:true,  name:this.char(oppId).name }
-    ], srEnabledIds: this.srEnabledIds() });   // Session 41: Story honors the SR Board loadout
+    var youP = { characterId:this.picked, isAI:false, name:youName };
+    var oppP = { characterId:oppId, isAI:true, name:this.char(oppId).name };
+    // Session 42: turn-order difficulty ramp — you go first on rungs 1–5 (welcoming);
+    // the rival goes first from rung 6 on + the boss, which removes your ~+5–10pt first-move edge.
+    var rivalFirst = this.beaten >= 5;
+    Game.init({ players: rivalFirst ? [oppP, youP] : [youP, oppP], srEnabledIds: this.srEnabledIds() });
     UI.renderAll();
     var tb=document.getElementById('takeoverBar'); if(tb) tb.style.display='none';
+    // beginMatch bypasses onSetupStart's "if player 0 is AI, kick off" logic — do it here
+    // so a rival-first match actually starts.
+    if (Game.state.player && Game.state.player.isAI) {
+      setTimeout(function(){ try{ AI.takeTurn(function(){}); }catch(e){} }, 500);
+    }
   },
   onMatchOver: function(){
     if(!this.active) return;
