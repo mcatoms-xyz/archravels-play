@@ -881,7 +881,7 @@ var Story = {
           if(d<bestD){ bestD=d; bestId=sl.getAttribute('data-cc'); }
         });
         if(bestId && bestId!==self._ccActive){ self._ccActive=bestId; self._ccRepaint(false); }
-        else if(bestId){ self._ccCenter(bestId,true); }
+        else if(bestId && bestD>44){ self._ccCenter(bestId,true); }   // S44 guard: only nudge when meaningfully off-center (kills settle-loop twitch)
       },140);
     });
     lad.addEventListener('click', function(e){
