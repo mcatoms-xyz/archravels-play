@@ -1183,8 +1183,29 @@ var Story = {
   },
 
   /* ---- stats ---- */
-  // Session 43: the in-game Pts tag (real PointTag art, value counter-rotated level).
-  ptagHTML: function(v, sm){ return '<span class="pf-ptag'+(sm?' sm':'')+'"><span class="pf-pv">'+v+'</span></span>'; },
+  // Session 43: format point values — render quarter fractions as glyphs (¼ ½ ¾).
+  // The ¾ is a little Platform-9¾ wink for the Potter fans. Whole numbers unchanged.
+  fmtPts: function(n){
+    if(typeof n!=='number' || !isFinite(n)) return n;
+    var whole=Math.floor(n), frac=Math.round((n-whole)*100)/100;
+    var glyph={0.25:'¼',0.5:'½',0.75:'¾'}[frac];
+    if(!glyph) return String(n);
+    return (whole>0?whole:'')+glyph;
+  },
+  // The in-game Pts tag (real PointTag art, value counter-rotated level).
+  ptagHTML: function(v, sm){ return '<span class="pf-ptag'+(sm?' sm':'')+'"><span class="pf-pv">'+this.fmtPts(v)+'</span></span>'; },
+
+  // Session 43: shared Story sub-page header (60/40 dark band, title left + stat right)
+  // + a desktop nav strip so jumping between profile/boards is obvious (Adam).
+  pageHead: function(title, bigNum, subLbl, active){
+    var nav=[['profile','Profile','Story.goStats()'],['achievements','Achievements','Story.goAchievements()'],['sr-board','SR Board','Story.goSRBoard()']]
+      .map(function(n){ return '<button class="pf-navpill'+(n[0]===active?' on':'')+'" onclick="'+n[2]+'">'+n[1]+'</button>'; }).join('');
+    return '<div class="pf-pagehead">'+
+        '<div class="pf-ph-l"><div class="pf-ph-title">'+title+'</div>'+(subLbl?('<div class="pf-ph-sub">'+subLbl+'</div>'):'')+'</div>'+
+        (bigNum!=null?('<div class="pf-ph-r">'+bigNum+'</div>'):'')+
+      '</div>'+
+      '<div class="pf-nav">'+nav+'</div>';
+  },
 
   goStats: async function(){
     this._setHash('profile');
@@ -1261,7 +1282,11 @@ var Story = {
         '<div class="pf-cb"><div class="pf-cn">'+Story.char(c).name+'</div><div class="pf-cx">'+sub+'</div></div></div>';
     }).join('');
 
-    this.screen('<div class="crumb">Your Profile</div>'+
+    this.screen('<div class="pf-nav pf-nav-top">'+
+        '<button class="pf-navpill on" onclick="Story.goStats()">Profile</button>'+
+        '<button class="pf-navpill" onclick="Story.goAchievements()">Achievements</button>'+
+        '<button class="pf-navpill" onclick="Story.goSRBoard()">SR Board</button>'+
+        '<button class="pf-navpill alt" onclick="Story.goTypes()">Play Story →</button></div>'+
       hero+band+recBlock+links+
       '<div class="pf-h">Your Crafters</div><div class="pf-roster">'+roster+'</div>'+
       this.backBar('Story.goTypes()','← Back to Story'));
@@ -1330,11 +1355,10 @@ var Story = {
       }).join('');
       return '<div class="ach-section"><div class="section-h">'+g+'</div><div class="ach-grid">'+cards+'</div></div>';
     }).join('');
-    this.screen('<div class="crumb">Story Mode · Achievements</div>'+
-      '<div class="ach-hero"><div class="ach-hero-num">'+earnedCount+' <span>/ '+ACH.length+'</span></div>'+
-      '<div class="ach-hero-lbl">earned · bank '+bank+' / '+totalPts+' pts</div></div>'+
+    this.screen(this.pageHead('Achievement Board', earnedCount+'<span class="pf-ph-of">/'+ACH.length+'</span>',
+        'Bank '+bank+' of '+totalPts+' pts earned', 'achievements')+
       sections+
-      this.backBar('Story.goStats()','← Back to stats'));
+      this.backBar('Story.goStats()','← Back to profile'));
   },
 
   /* ---- achievements + persistence ---- */
@@ -1633,12 +1657,11 @@ var Story = {
     });
     var unlockedCount=allIds.filter(function(id){ return b.unlocked.indexOf(id)!==-1; }).length;
     var enabledCount=allIds.filter(function(id){ return b.enabled.indexOf(id)!==-1; }).length;
-    this.screen('<div class="crumb">Story Mode · Special Request Board</div>'+
-      '<div class="srb-hero"><div class="srb-hero-num">'+unlockedCount+' <span>/ '+allIds.length+'</span></div>'+
-      '<div class="srb-hero-lbl">unlocked · '+enabledCount+' active in your Story games</div></div>'+
+    this.screen(this.pageHead('Special Request Board', unlockedCount+'<span class="pf-ph-of">/'+allIds.length+'</span>',
+        enabledCount+' active in your Story games', 'sr-board')+
       '<div class="srb-disclaimer">📖 This board affects <b>Story Mode only</b>. Quick Play &amp; pass-and-play always draw from the full deck. Your chosen crafter always brings their own favorite, whatever you toggle.</div>'+
       sectionsHTML+
-      this.backBar('Story.goStats()','← Back to stats'));
+      this.backBar('Story.goStats()','← Back to profile'));
   },
   // ===== Session 40: live (mid-match) achievement detection + toast =====
   // Build a stats snapshot from the IN-PROGRESS match — only the fields that are
