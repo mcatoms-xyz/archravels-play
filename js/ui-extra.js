@@ -552,7 +552,7 @@ Object.assign(UI, {
     _buildTake5: function() {
         var grid = document.getElementById('take5ColorGrid');
         if (grid) grid.innerHTML = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>' +
-            UI._yarnChips({ sel: this._take5, rule: 'any', need: 5, addFn: 'UI.onTake5Pick', clearFn: 'UI.onTake5Clear' });
+            UI._yarnChips({ sel: this._take5, rule: 'any', need: 5, addFn: 'UI.onTake5Pick', clearFn: 'UI.onTake5Clear', lockCatNap: true });
         this._updateTake5Display();
     },
 
