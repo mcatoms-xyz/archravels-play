@@ -240,6 +240,7 @@ var Story = {
     Game.render.gameOver = function(){ Story.onMatchOver(); };
 
     this.initAuth();
+    this.initRouter();   // Session 43: URL routing for browsable Story destinations
 
     // Session 36: DEV shortcut — jump straight to the Hank boss fight for testing.
     // Add ?boss to the URL (optionally ?boss=mauro to pick your crafter), or call
@@ -261,12 +262,56 @@ var Story = {
   },
 
   open: function(){ this.root.style.display='block'; document.body.classList.add('story-open'); window.scrollTo(0,0); },
-  hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); },
+  hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); if(this._syncingRoute!==true) this._setHash(''); },
+
+  /* ==================== Session 43: HASH ROUTER ====================
+     Gives every browsable Story destination a real URL (#/story, #/profile, …) so
+     it's linkable, refreshes in place, and the browser back button works. Deep/
+     transient states (mid-climb, pre-match, in-match) are intentionally NOT routed —
+     they depend on live game state. `_syncingRoute` guards against hash↔screen loops. */
+  ROUTES: {
+    'story':        function(){ Story.open(); Story.goTypes(); },
+    'profile':      function(){ Story.open(); Story.goStats(); },
+    'stats':        function(){ Story.open(); Story.goStats(); },
+    'achievements': function(){ Story.open(); Story.goAchievements(); },
+    'sr-board':     function(){ Story.open(); Story.goSRBoard(); },
+    'account':      function(){ Story.open(); Story.goSignIn(); },
+  },
+  _setHash: function(route){
+    var target = route ? ('#/'+route) : (location.pathname+location.search);
+    var prev = this._syncingRoute; this._syncingRoute = true;
+    try{ if(route){ if(location.hash!=='#/'+route) location.hash='/'+route; }
+         else if(location.hash){ history.pushState('', document.title, target); } }
+    catch(e){ location.hash = route ? ('/'+route) : ''; }
+    this._syncingRoute = prev;   // restore (may be nested inside _applyRoute)
+  },
+  /** Navigate to a named route (updates the URL + renders). */
+  go: function(route){ this._setHash(route); var fn=this.ROUTES[route]; if(fn) fn(); },
+  /** Called on load + hashchange — render whatever the URL says. */
+  _applyRoute: function(){
+    var m = /^#\/([a-z-]+)/i.exec(location.hash||'');
+    var route = m && this.ROUTES[m[1]] ? m[1] : null;
+    this._syncingRoute = true;
+    try{
+      if(route){ this.ROUTES[route](); }
+      else if(document.body.classList.contains('story-open')){ this.hide(); }
+    } finally { this._syncingRoute = false; }
+  },
+  initRouter: function(){
+    var self=this;
+    window.addEventListener('hashchange', function(){ if(!self._syncingRoute) self._applyRoute(); });
+    // Apply an initial deep-link (e.g. someone opens /#/profile directly), but never
+    // fight the ?boss / ?picker dev flags which handle their own entry.
+    if(location.hash && /^#\//.test(location.hash) && !/[?&#]boss/i.test(location.href)){
+      setTimeout(function(){ self._applyRoute(); }, 380);
+    }
+  },
   screen: function(html){ var r=document.getElementById('story-root'); if(r) r.classList.remove('cc-mode'); document.getElementById('story-screen').innerHTML = html; window.scrollTo(0,0); },
 
   /* ============================ entry ============================ */
   start: async function(){
     await this.ensureProfile();
+    this._setHash('story');
     this.open();
     this.goTypes();
   },
@@ -1139,6 +1184,7 @@ var Story = {
 
   /* ---- stats ---- */
   goStats: async function(){
+    this._setHash('profile');
     await this.ensureProfile();
     var p=this.profile||{}, crafters=p.crafters||{};
     var tiles=[
@@ -1214,6 +1260,7 @@ var Story = {
 
   /* ---- achievement board ---- */
   goAchievements: async function(){
+    this._setHash('achievements');
     await this.ensureProfile();
     var p=this.profile||{}, earnedMap=p.achievements||{}, ACH=this.ACH;
     var earnedCount=ACH.filter(function(a){ return earnedMap[a.id]; }).length;
@@ -1502,6 +1549,7 @@ var Story = {
       '<div class="srb-q">?</div><div class="srb-lockover">'+(info.hint||'Locked')+'</div></div>';
   },
   goSRBoard: async function(){
+    this._setHash('sr-board');
     await this.ensureProfile();
     var p=this.profile||{}, b=this.srEnsure(p), self=this;
     this.srSyncPacks(p); this.save();   // make sure the board reflects current unlocks
