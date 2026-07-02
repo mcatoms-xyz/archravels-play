@@ -583,10 +583,10 @@ var Game = {
     HANK_TANGLE_FRONTLOAD: 0.6,
 
     // Session 43 (P5 tuning): Hank's auto-yarn per turn ramps with red count.
-    // Once the solo events landed (they're a net Hank buff), the all-green first
-    // fight simmed at ~43% — too hard for the "first fight is beatable" intent.
-    // Index = hankReds (clamped): reds 0 → +1/turn, 1–2 → +2, 3+ → full rulebook +3.
-    HANK_AUTOYARN_RAMP: [1, 2, 2],   // beyond the array = 3
+    // Re-tuned after the It's Gone!?→Where'd It Go? base-mix swap: games run LONGER
+    // now (shuffle-back extends the project clock instead of burning it), which
+    // favors the player — so the spin firms up. Index = hankReds (clamped).
+    HANK_AUTOYARN_RAMP: [3],         // rulebook +3 at every rung (see tuning note below)
 
     /**
      * Spread `inserts` at randomized positions within even segments of the deck.
