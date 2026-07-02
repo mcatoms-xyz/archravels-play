@@ -173,6 +173,7 @@ var UI = {
         Game.render.turnHistory      = function() { UI.renderTurnHistory(); };
         Game.render.navTimer         = function() { UI.renderNavTimer(); };
         Game.render.actionFeed       = function() { UI.renderActionFeed(); };
+        Game.render.gnomeRule        = function() { UI.renderGnomeRule(); };
 
         // Session 12: Close opponent panel when clicking backdrop
         var backdrop = document.getElementById('opponentPanelBackdrop');
@@ -223,7 +224,47 @@ var UI = {
         this.renderActionBar();
         this.renderDeckCounter();
         this.renderTurnHistory();
+        this.renderGnomeRule();
         this._updateTakeoverButton();
+    },
+
+    /**
+     * Session 42: Render the active Gnome Rule into the bottom-left board slot.
+     * Shows during the Hank automa boss match whenever a Gnome Rule is active.
+     */
+    renderGnomeRule: function() {
+        var slot = document.getElementById('gnomeRuleSlot');
+        if (!slot) return;
+        var rule = Game.state && Game.state.activeGnomeRule;
+        if (rule && Game.state.hankAutoma) {
+            var img = document.getElementById('gnomeRuleImg');
+            if (img && img.src.indexOf(rule.img) === -1) { img.src = rule.img; img.alt = rule.name; }
+            if (slot.style.display === 'none') {
+                slot.style.display = '';
+                // Re-trigger the pop animation on (re)appearance.
+                slot.style.animation = 'none'; void slot.offsetWidth; slot.style.animation = '';
+            }
+        } else {
+            slot.style.display = 'none';
+        }
+    },
+
+    /**
+     * Session 42: Modal showing the active Gnome Rule card + its rulebook reminder text.
+     */
+    showGnomeRuleModal: function() {
+        var rule = Game.state && Game.state.activeGnomeRule;
+        if (!rule) return;
+        try { if (window.Sound) Sound.play('open-modal'); } catch(e) {}
+        UI.showGameMoment({
+            badge: 'Gnome Rule',
+            badgeClass: 'moment-gnome',
+            img: rule.img,
+            title: rule.name,
+            desc: '<div class="gnome-rule-desc">' + (rule.text || '') + '</div>' +
+                  '<div class="gnome-rule-note">Ongoing — stays in effect until another Gnome Rule replaces it.</div>',
+            noConfetti: true
+        });
     },
 
 
