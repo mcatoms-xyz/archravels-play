@@ -819,12 +819,19 @@ const CARDS = {
 
     // Which themed tangles seed at the base game (4 of 7). A balanced default mix: 2 that
     // score Hank (finish-project instants) + 2 that pressure the player (Gnome Rules).
-    // Cat Nap, Where'd It Go, Lessons Learned are defined + ready; which 4 seed is a P5
-    // tuning knob (the difficulty ladder will rotate/expand the set).
-    HANK_BASE_THEMED: ['blazingNeedles', 'itsGone', 'archRivals', 'yarnRation'],
+    // Cat Nap, Lessons Learned are defined + ready; which 4 seed is a P5 tuning knob
+    // (the difficulty ladder will rotate/expand the set).
+    // Session 43 (Adam's playtest call): It's Gone!? is OUT of the base mix — its
+    // row-wipe "came outta nowhere and just ended the game" at R0. Where'd It Go?
+    // replaces it: same Hank-snipes-a-project beat, but the rest of the row shuffles
+    // BACK into the deck (no wipe, no surprise game-end). It's Gone!? becomes a
+    // deep-ladder card — rotates in at high reds only (opt-in pain, difficulty v2).
+    HANK_BASE_THEMED: ['blazingNeedles', 'whereItGo', 'archRivals', 'yarnRation'],
     // Greenest-first flip order: as red-count R climbs, these flip to Hard in order.
-    HANK_FLIP_ORDER:  ['blazingNeedles', 'itsGone', 'archRivals', 'yarnRation',
-                       'urgentRequest', 'yarnballWizard', 'shenaniGnomes', 'yarnEnvy'],
+    // itsGone parked at the END — it only matters once card rotation seeds it (deep reds).
+    HANK_FLIP_ORDER:  ['blazingNeedles', 'whereItGo', 'archRivals', 'yarnRation',
+                       'urgentRequest', 'yarnballWizard', 'shenaniGnomes', 'yarnEnvy',
+                       'itsGone'],
 
     /**
      * Assemble the Hank automa card set for a match.
