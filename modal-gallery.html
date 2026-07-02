@@ -127,7 +127,7 @@
     ['eventModal','yarnSaleModal','donateModal','srTakeModal','gameMomentModal','gameOverModal','colorModal','craftConfirmModal','tangledCatModal','finishProjectModal','learnPatternModal','frogItModal','take5Modal']
       .forEach(function(id){ var el=d.getElementById(id); if(el) el.style.display='none'; });
     // Session 43: dynamically-created warning modals — remove them entirely
-    ['snagWarnModal','emergencyWarnModal','catNapPairModal','endActionsWarnModal']
+    ['snagWarnModal','emergencyWarnModal','catNapPairModal','endActionsWarnModal','hankBeatModal']
       .forEach(function(id){ var el=d.getElementById(id); if(el) el.remove(); });
   }
 
@@ -252,6 +252,11 @@
     { label:'Event — Tangled Cat (hits YOU copy)', run:function(w){
         w.Game.state.hankAutoma = true;
         w.UI.showEventModal(evt(w,'tangledCat'), noop);
+      } },
+    { label:'Hank’s Turn beat (shopping + Yarn3 anim)', run:function(w){
+        w.Game.state.hankAutoma = true;
+        w.Game.state._hankBeat = { amount:3, color:'orange', colors:['orange','yellow','green'], score:41, turn:7, bowl:{} };
+        w.UI.showHankTurnBeat();
       } },
 
     { grp:'Crafting' },
