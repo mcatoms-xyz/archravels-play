@@ -113,6 +113,10 @@ var Story = {
       var m = /[?&#]boss(?:=([a-z]+))?/i.exec(location.href);
       if (m) {
         var who = m[1] && CARDS.characters[m[1]] ? m[1] : 'rebecca';
+        // Session 43 DEV: ?boss&picker=N fakes an unlocked ceiling of N (in-memory
+        // only, never saved) so the difficulty scale can be tested pre-first-win.
+        var pm = /[?&#]picker(?:=(\d+))?/i.exec(location.href);
+        if (pm) Story._pickerPreview = Math.max(1, Math.min(13, parseInt(pm[1] || '1', 10)));
         setTimeout(function(){ Story.testHank(who); }, 350);
       }
     } catch(e){}
@@ -529,11 +533,69 @@ var Story = {
   },
   goPreMatch: function(){
     var c=this.currentOpp(), dlg=this.DIALOG[c]||{};
+    // Session 43 (difficulty v2): the boss face-off carries the red-card scale once
+    // you've beaten Hank anywhere. First-ever fight = all green, no picker.
+    var scale = this.isBoss(c) ? this.hankScaleHTML() : '';
     this.screen('<div class="crumb">Match · Face-Off</div><h1 class="st-h1">Before the match</h1>'+
       '<div class="vs-stage"><div>'+this.fighterHTML(this.picked,'You')+'</div><div class="vs-badge">VS</div><div>'+this.fighterHTML(c,'Challenger')+'</div></div>'+
       '<div class="dialogbox">'+this.dialogHTML(c, dlg.intro||'Let’s craft.')+'</div>'+
+      scale+
       '<div class="match-actions"><button class="btn btn-gold" onclick="Story.beginMatch()">Begin Match</button>'+
       '<button class="btn btn-ghost" onclick="Story.renderLadder()">Back</button></div>');
+  },
+
+  /* ---- Session 43: difficulty v2 (Hades-style opt-in escalation) ----
+     Ceiling = highest red beaten + 1 (locked spec). Default = the ceiling (the nudge
+     upward). Dial DOWN freely — down-wins don't raise the ceiling (recordMatch only
+     raises highestRedBeaten on wins at a new high). First-ever fight: no picker. */
+  _bossPick: null,        // this session's explicit pick (null → default = ceiling)
+  _pickerPreview: null,   // dev hook (?picker=N) — fakes an unlocked ceiling, no profile writes
+  _hankAgg: function(){ var a=this.profile&&this.profile.agg; return (a&&a.hank)||null; },
+  hankCeiling: function(){
+    if(this._pickerPreview!=null) return Math.min(13, this._pickerPreview);
+    var h=this._hankAgg();
+    if(!h || !h.beaten) return 0;   // never beaten Hank anywhere → first-fight rules
+    var hi=(h.highestRedBeaten==null)?-1:h.highestRedBeaten;
+    return Math.min(13, hi+1);
+  },
+  _hankBest: function(){
+    if(this._pickerPreview!=null) return this._pickerPreview-1;
+    var h=this._hankAgg();
+    return (h && h.highestRedBeaten!=null) ? h.highestRedBeaten : -1;
+  },
+  bossRedsForMatch: function(){
+    var ceil=this.hankCeiling();
+    if(ceil<=0) return 0;
+    var pick=(this._bossPick==null)?ceil:this._bossPick;
+    return Math.max(0, Math.min(pick, ceil));
+  },
+  setBossPick: function(n){
+    this._bossPick=Math.max(0, Math.min(n, this.hankCeiling()));
+    this.goPreMatch();   // re-render the face-off with the new scale state
+  },
+  hankScaleHTML: function(){
+    var ceil=this.hankCeiling();
+    if(ceil<=0) return '';   // first fight — the system stays invisible until earned
+    var hi=this._hankBest();
+    var pick=this.bossRedsForMatch();
+    var cards='';
+    for(var i=1;i<=13;i++){
+      var cls='hk-card'+(i<=pick?' red':'')+(i>ceil?' locked':'');
+      // Tap card i → difficulty i; tap the topmost red again → step down to i-1.
+      var attrs=(i<=ceil)?' onclick="Story.setBossPick('+((i===pick)?(i-1):i)+')" role="button" tabindex="0" aria-label="Set difficulty '+i+'"':'';
+      cards+='<span class="'+cls+'"'+attrs+'></span>';
+    }
+    var label = pick===0
+      ? 'All green — a friendly tangle'
+      : pick+' red card'+(pick>1?'s':'')+(pick===13?' — the WOOLEN CROWN 👑':'');
+    var best = hi>=0 ? '<span class="hk-best">🏆 Best: '+hi+' red'+(hi===1?'':'s')+'</span>' : '';
+    return '<div class="hk-scale-wrap">'+
+      '<div class="hk-scale-head"><b>Hank’s Challenge</b>'+best+'</div>'+
+      '<div class="hk-scale">'+cards+'</div>'+
+      '<div class="hk-scale-label">'+label+'</div>'+
+      (ceil<13 ? '<div class="hk-scale-hint">Win at '+ceil+' red'+(ceil===1?'':'s')+' to unlock the next</div>'
+               : '<div class="hk-scale-hint">The full gauntlet is open. Claim the crown.</div>')+
+      '</div>';
   },
   beginMatch: function(){
     var oppId=this.currentOpp();
@@ -555,9 +617,9 @@ var Story = {
     // the rival goes first from rung 6 on, which removes your ~+5–10pt first-move edge.
     // The boss automa never "goes first" (he takes no turns) → you always lead the solo fight.
     var rivalFirst = !isBossMatch && this.beaten >= 5;
-    // Session 42 (P2): the boss match seeds the Awards Season automa cards. Difficulty =
-    // number of prior Hank wins (red cards), tracked on the profile (persistence = P5).
-    var hankReds = isBossMatch ? ((this.currentUser && this.currentUser.hankReds) || this.hankReds || 0) : 0;
+    // Session 43 (difficulty v2): red count comes from the face-off picker — default
+    // = highest-beaten+1 (the ceiling), adjustable down, first-ever fight forced R0.
+    var hankReds = isBossMatch ? this.bossRedsForMatch() : 0;
     Game.init({
         players: rivalFirst ? [oppP, youP] : [youP, oppP],
         srEnabledIds: this.srEnabledIds(),
