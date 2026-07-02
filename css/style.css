@@ -8423,3 +8423,13 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 
 /* Gold border on any crafter you've played a Story game with (Adam) */
 #story-root .pf-craf.played{ box-shadow:0 0 0 3px var(--gold), 0 4px 14px rgba(0,0,0,.28); }
+
+/* Session 43: Craft Circle head-to-head stats (shown for a beaten rival) */
+#story-root .cc-stats{ background:rgba(74,58,42,.06); border:1px solid rgba(74,58,42,.18); border-radius:12px; padding:10px 12px; margin:2px 0 10px; }
+#story-root .cc-stats-h{ font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--walnut-soft); font-weight:800; margin-bottom:8px; text-align:center; }
+#story-root .cc-stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+#story-root .cc-stat{ text-align:center; }
+#story-root .cc-stat-n{ font-family:'SantElia',var(--font-system); font-weight:800; font-size:1.25rem; color:var(--walnut); line-height:1; }
+#story-root .cc-stat-l{ font-size:.64rem; letter-spacing:.03em; text-transform:uppercase; color:var(--walnut-soft); margin-top:3px; }
+#story-root .cc-stats-empty{ font-size:.8rem; color:var(--walnut-soft); text-align:center; font-style:italic; }
+@media(max-width:480px){ #story-root .cc-stats-grid{ grid-template-columns:1fr 1fr; } }
