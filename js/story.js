@@ -245,6 +245,9 @@ var Story = {
     // Add ?boss to the URL (optionally ?boss=mauro to pick your crafter), or call
     // Story.testHank() from the console. Skips the whole climb.
     try {
+      // Session 43 DEV: ?gate forces the free tier on web; ?unlock grants entitlement.
+      if (/[?&#]gate\b/i.test(location.href)) this._forceGate = true;
+      if (/[?&#]unlock\b/i.test(location.href)) this._devUnlock = true;
       var m = /[?&#]boss(?:=([a-z]+))?/i.exec(location.href);
       if (m) {
         var who = m[1] && CARDS.characters[m[1]] ? m[1] : 'rebecca';
@@ -273,8 +276,8 @@ var Story = {
   testHank: function(crafterId){
     crafterId = (crafterId && CARDS.characters[crafterId] && crafterId!=='hank') ? crafterId : 'rebecca';
     this.picked = crafterId;
-    this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==crafterId; }).concat(['hank']);
-    this.beaten = this.ladder.length - 1;   // currentOpp() → 'hank'
+    this.ladder = this.buildLadder(crafterId);
+    this.beaten = this.ladder.length - 1;   // currentOpp() → final rung (hank, or the twin when gated)
     var landing=document.getElementById('landingScreen'); if(landing) landing.style.display='none';
     this.open();
     this.goPreMatch();
@@ -535,7 +538,10 @@ var Story = {
       var srBlock = sr ? '<div class="favbox"><img class="srcard" src="'+sr.img+'" alt="'+sr.name+'" '+
           'onmouseenter="Story.hoverSR(\''+c+'\',event)" onmousemove="Story.moveHover(event)" onmouseleave="Story.unhoverSR()" onclick="event.stopPropagation();Story.openSR(\''+c+'\')">'+
           '<div class="favtext"><div class="favlabel">Favorite Special Request</div><div class="favname">'+sr.name+'</div><div class="favhint">Hover or tap to preview</div></div></div>' : '';
-      return '<div class="char" style="--tc:'+m.color+'" onclick="Story.goLadder(\''+c+'\')">'+
+      // Session 43: entitlement gate — non-OG crafters lock on the free tier.
+      var locked = self.crafterLocked(c);
+      return '<div class="char'+(locked?' char-locked':'')+'" style="--tc:'+m.color+'" onclick="'+(locked?'Story.goUpgrade(\'crafter\')':'Story.goLadder(\''+c+'\')')+'">'+
+        (locked?'<div class="char-lock">🔒 Full Game</div>':'')+
         '<div class="port"><span class="cornerpill left">'+ch.name+'</span><img src="'+self.portrait(c)+'"></div>'+
         '<div class="info"><div class="ctype">'+m.name+'</div>'+
           (dlg.intro?'<div class="quote">“'+dlg.intro+'”</div>':'')+
@@ -554,9 +560,9 @@ var Story = {
   goLadder: async function(charId){
     await this.ensureProfile();   // make sure saved progress is loaded before resuming
     this.picked=charId;
-    this.ladder = this.LADDER_ORDER.filter(function(c){ return c!==charId; }).concat(['hank']);
-    this.beaten = this._storedBeaten(charId);   // resume where this crafter left off
-    this._climbView = this.beaten;
+    this.ladder = this.buildLadder(charId);      // Session 43: full climb, or the free 4-match arc
+    this.beaten = Math.min(this._storedBeaten(charId), this.ladder.length);   // resume (clamped for the free arc)
+    this._climbView = Math.min(this.beaten, this.ladder.length - 1);
     this.renderLadder();
   },
   // How many rivals this crafter has already beaten, from the saved profile.
@@ -611,7 +617,14 @@ var Story = {
       '<div class="cc-sub">'+(champ?'You are the Champion!':(this.beaten+' of '+total+' Ravelers beaten'))+'</div>'+
       '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
     var body;
-    if(champ){
+    if(champ && !this.entitled()){
+      // Session 43 (entitlement): free-arc complete — twin beaten. The climb pauses here.
+      body='<div class="cc-champ"><div class="cc-crown">🧶</div>'+
+        '<div class="cc-champ-t">You’ve mastered your corner of the bazaar!</div>'+
+        '<div class="cc-champ-s">Your twin is beaten — but eleven Ravelers and the Stitchmeister himself await in the full Craft Circle.</div>'+
+        '<button class="cc-go" onclick="Story.goUpgrade(\'twin\')">Unlock the Full Craft Circle →</button>'+
+        '<button class="cc-go beat" onclick="Story.goStats()" style="margin-top:8px">View your stats →</button></div>';
+    } else if(champ){
       body='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
         '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
         '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
@@ -634,6 +647,13 @@ var Story = {
         '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
       var self=this;
       var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml">'+(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked')))+'</div></div>'; }).join('');
+      // Session 43 (entitlement): on the free arc, Hank looms at the end of the rail —
+      // visible, locked, magnificent. Tapping him opens the upgrade pitch.
+      if(!this.entitled()){
+        minis+='<div class="cc-mini boss hank-teaser" onclick="Story.goUpgrade(\'hank\')">'+
+          '<div class="cc-ma"><img src="'+Story.portrait('hank')+'" alt=""><span>Hank</span></div>'+
+          '<div class="cc-ml">🔒 Full Game</div></div>';
+      }
       var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">Swipe or tap to browse</span></div><div class="cc-scout-row">'+minis+'</div></div>';
       body='<div class="cc-nextlabel">'+label+'</div>'+hero+scout;
     }
@@ -666,6 +686,105 @@ var Story = {
     var port = '<img class="dlg-port'+(this.isBoss(c)?' boss':'')+'" src="'+this.portrait(c)+'">';
     return '<div class="dlg" style="--tc:'+col+'">'+port+'<div class="bubble"><b>'+who+'</b><p>“'+line+'”</p></div></div>';
   },
+  /* ==================== Session 43: FREE/PAID ENTITLEMENT ====================
+     The decided line (IOS_v1_FREE-PAID-SPLIT.md): the WEB BETA stays fully
+     unlocked (it's the marketing surface); the gate is APP-only. Free app tier =
+     Quick Play + the 4 OG crafters + a 4-match story arc per OG (3 fellow OGs,
+     then your TYPE TWIN as the finale) → upgrade prompt. $4.99 unlocks the full
+     Craft Circle. DEV hooks: `?gate` forces the gate on web (testing), `?unlock`
+     grants entitlement in-memory. */
+  OG_CRAFTERS: ['rebecca','derrick','neeha','ted'],
+  _forceGate: false,   // ?gate — test the free tier on web
+  _devUnlock: false,   // ?unlock — test entitlement without a purchase
+  entitled: function(){
+    if(this._devUnlock) return true;
+    // A real unlock ALWAYS counts (even under the ?gate test flag — so the full
+    // purchase→unlock flow is testable end-to-end).
+    try{ if(localStorage.getItem('ar_full_unlock')==='1') return true; }catch(e){}
+    if(this.profile && this.profile.fullUnlock) return true;   // cloud-synced (IAP sets both)
+    if(this._forceGate) return false;                          // ?gate — simulate the free tier
+    return !this.isNativeApp();                                // web beta = fully unlocked
+  },
+  /** Called by the (future) IAP success/restore handlers. */
+  grantFullUnlock: function(){
+    try{ localStorage.setItem('ar_full_unlock','1'); }catch(e){}
+    var p=this.profile=this.profile||{};
+    p.fullUnlock=true; this.save();
+  },
+  crafterLocked: function(cid){ return !this.entitled() && this.OG_CRAFTERS.indexOf(cid)===-1; },
+  /** The other crafter of your playstyle — the free arc's final boss. */
+  typeTwin: function(cid){
+    var t=CARDS.characters[cid] && CARDS.characters[cid].type;
+    var pair=Object.keys(CARDS.characters).filter(function(c){
+      return c!==cid && c!=='hank' && CARDS.characters[c].type===t;
+    });
+    return pair[0]||null;
+  },
+  /** Free story ladder: the 3 fellow OGs, then your type twin. */
+  _freeLadder: function(cid){
+    var twin=this.typeTwin(cid);
+    return this.OG_CRAFTERS.filter(function(c){ return c!==cid; }).concat(twin?[twin]:[]);
+  },
+  buildLadder: function(cid){
+    return this.entitled()
+      ? this.LADDER_ORDER.filter(function(c){ return c!==cid; }).concat(['hank'])
+      : this._freeLadder(cid);
+  },
+  /** Twin face-off intro lines (free finale) — a personal-rivalry beat. */
+  TWIN_INTROS: {
+    theo:  'Two thrifty shoppers, one bazaar. The math only works if I win.',
+    amara: 'Oh, we make the SAME stuff? Cute. Mine\'s better. Let\'s find out.',
+    alex:  'Same palette, same tricks. Whoever breaks the rules better takes the circle.',
+    eliza: 'I\'ve modeled your spinning rhythm exactly. It\'s mine, but slower.',
+  },
+  /** Is this opponent the final rung of the FREE arc (the type twin)? */
+  _isFreeFinale: function(c){
+    return !this.entitled() && !this.isBoss(c) &&
+           this.ladder.length>0 && this.ladder[this.ladder.length-1]===c &&
+           this.beaten>=this.ladder.length-1;
+  },
+
+  /* Session 43: the upgrade screen — celebration + what-you-get + (stubbed) purchase.
+     Reached from: beating your twin (source='twin'), tapping a locked crafter
+     ('crafter'), or the locked-Hank teaser on the free climb ('hank'). */
+  goUpgrade: function(source){
+    var head = source==='twin'
+      ? '<div class="crumb">The Full Craft Circle</div><h1 class="st-h1">You’ve mastered your corner of the bazaar!</h1><p class="st-sub">Your twin is beaten. But eleven Ravelers are still out there… and above them all, in his nook at the summit, the gnome is waiting.</p>'
+      : '<div class="crumb">The Full Craft Circle</div><h1 class="st-h1">Unlock the Full Craft Circle</h1><p class="st-sub">The whole bazaar, one small skein of coin.</p>';
+    var perks = [
+      ['🧗','The full Story Mode climb','Eleven rivals stand between you and the summit'],
+      ['👑','Hank the Stitchmeister','The final boss — and the 13-red-card challenge ladder to the Woolen Crown'],
+      ['🧶','All 12 crafters','Every playstyle, including the Makers and the Experts'],
+      ['🏅','The full Achievement + Special Request Boards','Collect, curate, complete'],
+      ['📦','All future content packs included','Magic Socks, Rivals!, Award Season'],
+    ].map(function(p){ return '<div class="up-perk"><span class="up-ico">'+p[0]+'</span><div><b>'+p[1]+'</b><span>'+p[2]+'</span></div></div>'; }).join('');
+    this.screen(head+
+      '<div class="up-hank"><img src="'+this.portrait('hank')+'" alt="Hank"><div class="up-hank-lock">🔒</div></div>'+
+      '<div class="up-perks">'+perks+'</div>'+
+      '<div class="match-actions">'+
+        '<button class="btn btn-gold" onclick="Story.buyFullGame()">Unlock the Full Game · $4.99</button>'+
+        '<button class="btn btn-ghost" onclick="Story.restorePurchases()">Restore Purchase</button>'+
+      '</div>'+
+      '<div class="si-msg" id="upMsg"></div>'+
+      this.backBar('Story.goTypes()','← Keep playing free'));
+  },
+  /* IAP stubs — real StoreKit plumbing lands with the Apple account (plugin +
+     App Store Connect product). Same graceful pattern as the sign-in scaffolding. */
+  buyFullGame: async function(){
+    var msg=document.getElementById('upMsg');
+    var IAP = window.Capacitor && window.Capacitor.Plugins && (window.Capacitor.Plugins.Purchases || window.Capacitor.Plugins.InAppPurchases);
+    if(!IAP){ if(msg) msg.textContent='Purchases arrive with the App Store release — everything here is free for now!'; return; }
+    // TODO (IAP plumbing): offerings → purchase → verify → this.grantFullUnlock()
+    if(msg) msg.textContent='Purchase flow not configured yet.';
+  },
+  restorePurchases: async function(){
+    var msg=document.getElementById('upMsg');
+    var IAP = window.Capacitor && window.Capacitor.Plugins && (window.Capacitor.Plugins.Purchases || window.Capacitor.Plugins.InAppPurchases);
+    if(!IAP){ if(msg) msg.textContent='Nothing to restore yet — purchases arrive with the App Store release!'; return; }
+    // TODO (IAP plumbing): restore → verify → this.grantFullUnlock()
+    if(msg) msg.textContent='Restore flow not configured yet.';
+  },
+
   /* Session 43: random line pools. kind='win' (you won — rival concedes) or 'lose'.
      Falls back to the legacy single-string keys so nothing ever renders blank. */
   _pickLine: function(arr){ return arr[Math.floor(Math.random()*arr.length)]; },
@@ -696,6 +815,8 @@ var Story = {
     // you've beaten Hank anywhere. First-ever fight = all green, no picker.
     var scale = this.isBoss(c) ? this.hankScaleHTML() : '';
     var introLine = this.isBoss(c) ? this.hankIntroLine() : (dlg.intro||'Let’s craft.');
+    // Session 43 (entitlement): the free arc's finale is your TYPE TWIN — special intro.
+    if(this._isFreeFinale(c) && this.TWIN_INTROS[c]) introLine = this.TWIN_INTROS[c];
     this.screen('<div class="crumb">Match · Face-Off</div><h1 class="st-h1">Before the match</h1>'+
       '<div class="vs-stage"><div>'+this.fighterHTML(this.picked,'You')+'</div><div class="vs-badge">VS</div><div>'+this.fighterHTML(c,'Challenger')+'</div></div>'+
       '<div class="dialogbox">'+this.dialogHTML(c, introLine)+'</div>'+
@@ -932,7 +1053,9 @@ var Story = {
         '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:3px">⏱ Match time '+mt+'</div>'+ach+'</div>';
       actions = this.isBoss(c)
         ? '<button class="btn btn-gold" onclick="Story.goEnding()">See the ending →</button>'
-        : '<button class="btn btn-gold" onclick="Story.nextChallenger()">Next Challenger →</button>';
+        : (this._isFreeFinale(c)
+          ? '<button class="btn btn-gold" onclick="Story.goUpgrade(\'twin\')">See what’s next →</button>'
+          : '<button class="btn btn-gold" onclick="Story.nextChallenger()">Next Challenger →</button>');
     } else {
       details = '<div class="result-card"><div class="rd-score" style="font-style:italic;color:var(--st-walnut-soft)">No shame in a dropped stitch. Pick your needles back up and try again.</div>'+
         '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:6px">Your score '+lm.you+' · '+this.char(c).name+' '+lm.opp+'</div></div>';
