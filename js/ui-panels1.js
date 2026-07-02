@@ -330,6 +330,14 @@ Object.assign(UI, {
             UI.renderActionBar();
         }
 
+        // Session 43: Emergency! craft-order blocked this craft — explain, don't fail silently.
+        if (!changed && Game.state._lastCraftBlock === 'emergency') {
+            Game.state._lastCraftBlock = null;
+            this._pendingCraft = null;
+            UI._showEmergencyBlockWarning();
+            return;
+        }
+
         // Session 17: Show SR completion moment (not for regular items or frog it)
         if (changed && srData && !isCraftCircle) {
             var isFav = srData.isFavorite;
