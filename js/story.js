@@ -325,7 +325,40 @@ var Story = {
     });
     await this.loadProfile();
   },
-  displayName: function(){ if(!this.currentUser) return 'Guest Crafter'; return (this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||this.currentUser.email||'Crafter'; },
+  // Session 43 (Adam's QoL pick): a chosen handle wins over everything — and it works
+  // for GUESTS too (stored on the on-device profile; cloud-syncs once they sign in).
+  displayName: function(){
+    var p=this.profile;
+    if(p && p.handle) return p.handle;
+    if(!this.currentUser) return 'Guest Crafter';
+    return (this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||this.currentUser.email||'Crafter';
+  },
+  /** Sanitize + save a player handle (3–18 chars, letters/numbers/space/_/-/'). */
+  setHandle: function(raw){
+    var h=String(raw||'').replace(/[^\w \-'’]/g,'').replace(/\s+/g,' ').trim().slice(0,18);
+    if(h.length<3) return null;
+    var p=this.profile=this.profile||{};
+    p.handle=h; this.save();
+    return h;
+  },
+  goEditName: function(){
+    var cur=(this.profile&&this.profile.handle)||'';
+    this.screen('<div class="crumb">Account · Your Name</div><h1 class="st-h1">What shall the bazaar call you?</h1>'+
+      '<p class="st-sub">Shown on your profile, match screens, and victories. Works as a guest, no account needed.</p>'+
+      '<div class="signin-box">'+
+        '<input type="text" id="handleInput" maxlength="18" placeholder="e.g. StitchSorceress" value="'+cur.replace(/"/g,'&quot;')+'" autocomplete="nickname">'+
+        '<button class="btn btn-gold" onclick="Story.saveHandle()">Save name</button>'+
+        '<div class="si-msg" id="handleMsg"></div>'+
+      '</div>'+this.backBar('Story.goStats()','← Back to stats'));
+    var inp=document.getElementById('handleInput'); if(inp) setTimeout(function(){ inp.focus(); },80);
+  },
+  saveHandle: function(){
+    var inp=document.getElementById('handleInput'), msg=document.getElementById('handleMsg');
+    var h=this.setHandle(inp?inp.value:'');
+    if(!h){ if(msg) msg.textContent='Give it at least 3 letters (letters, numbers, spaces).'; return; }
+    this.renderChip();
+    this.goStats();
+  },
   renderChip: function(){
     var av=document.getElementById('pcAvatar'); if(av) av.innerHTML=this.avatarInner();
     var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
@@ -882,7 +915,8 @@ var Story = {
     var oppId=this.currentOpp();
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
     try{ if(window.Sound){ Sound.music.startTheme(oppId); Sound.play('game-start'); } }catch(e){}
-    var youName=(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
+    // Session 43: the chosen handle plays under your name in-match (guests included).
+    var youName=(this.profile&&this.profile.handle)||(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
     // hide the landing/front door too — otherwise closing the story overlay reveals
     // the homepage sitting on top of the freshly-started match (looked like "kicked back home").
@@ -1114,7 +1148,7 @@ var Story = {
         '<div class="cb-score">'+score+'</div></div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode · Stats</div>'+
-      '<div class="stats-id"><div class="big-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="big-av-edit">✎</span></div><div class="who2"><div class="nm">'+this.displayName()+'</div>'+
+      '<div class="stats-id"><div class="big-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="big-av-edit">✎</span></div><div class="who2"><div class="nm nm-edit" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="nm-pen">✎</span></div>'+
         '<div class="sub2">'+(this.currentUser?'Synced to your account':'Sign in to save across devices')+'</div></div>'+
         (this.currentUser
           ? '<button class="btn btn-ghost stats-signout" onclick="Story.signOut()">Sign out</button>'
