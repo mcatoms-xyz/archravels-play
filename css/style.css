@@ -8139,3 +8139,22 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 #story-root .hk-scale-label { font-size: .85rem; margin-top: 8px; font-weight: 600; }
 #story-root .hk-scale-hint { font-size: .72rem; opacity: .65; margin-top: 3px; }
 @media (max-width: 420px) { #story-root .hk-card { width: 17px; height: 26px; } }
+
+/* Session 43: profile Records section (match-history summaries) */
+#story-root .rec-tiles { margin-top: 4px; }
+#story-root .rec-tile .rec-sub { font-size: .62em; opacity: .65; font-weight: 400; }
+#story-root .rec-item-img { width: 30px; height: 30px; object-fit: contain; vertical-align: middle; }
+#story-root .hank-record {
+    display: flex; align-items: center; gap: 14px;
+    margin: 10px auto 0; padding: 12px 16px; max-width: 560px;
+    background: rgba(126,91,192,.12); border: 1px solid rgba(126,91,192,.45);
+    border-radius: 12px;
+}
+#story-root .hr-port { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; object-position: top; border: 3px solid #7E5BC0; flex: none; }
+#story-root .hr-body { text-align: left; min-width: 0; }
+#story-root .hr-title { font-weight: 700; font-size: .95rem; }
+#story-root .hr-line { font-size: .8rem; opacity: .85; margin-top: 2px; }
+#story-root .hr-scale { display: flex; gap: 3px; margin-top: 6px; }
+#story-root .hkm-dot { width: 12px; height: 17px; border-radius: 3px; background: linear-gradient(180deg,#7fae6d,#5f8f4e); border: 1px solid rgba(0,0,0,.3); }
+#story-root .hkm-dot.red { background: linear-gradient(180deg,#cf5a3e,#a63a24); }
+#story-root .hr-sub { font-size: .72rem; opacity: .75; margin-top: 5px; }
