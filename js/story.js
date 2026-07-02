@@ -175,7 +175,7 @@ var Story = {
             'Every loss is a lesson in disguise, little stitch. This one wore a very good disguise.',
             'The Stitchmeister stands. Come back when your yarn is angrier.'],
       crownWin:[
-        'THE CROWN… is yours. Thirteen reds, and you stitched through every one. I am not weeping — gnomes don’t weep. We felt. WE FELT, LITTLE STITCH. Wear it well, Champion of Champions.'],
+        'THE CROWN… is yours. Thirteen reds, and you stitched through every one. I am not weeping — gnomes don’t weep. We fell. WE FELL, LITTLE STITCH. Wear it well, Champion of Champions.'],
     },
   },
   // Two waves through the types (easy->hard); each type's pair sits 6 apart so you
