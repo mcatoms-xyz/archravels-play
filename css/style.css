@@ -6617,15 +6617,17 @@ html { overflow-x: hidden; }
 #story-root #story-screen{max-width:1000px;margin:0 auto}
 #story-root .story-close{position:absolute;top:16px;left:16px;z-index:6;background:rgba(255,253,248,.9);border:1px solid var(--tan-d);border-radius:50%;width:40px;height:40px;font-size:1.05rem;font-weight:bold;color:var(--walnut);cursor:pointer;box-shadow:var(--shadow-sm)}
 #story-root .story-close:hover{background:#fff}
-#story-root .crumb{text-align:center;color:var(--walnut-soft);font-size:.84rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-weight:bold}
+#story-root .crumb{text-align:center;color:#fdf6e8;font-size:.84rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;font-weight:bold;text-shadow:0 2px 5px rgba(0,0,0,.55)}
 #story-root .st-h1{text-align:center;font-size:clamp(1.7rem,3.6vw,2.5rem);margin:0 0 6px;color:var(--walnut)}
 #story-root .st-sub{text-align:center;color:var(--walnut-soft);margin-bottom:24px;font-size:1.04rem}
 #story-root .btn{font-family:inherit;font-weight:bold;border:none;cursor:pointer;border-radius:999px;padding:13px 26px;font-size:1rem;transition:transform .12s,background .12s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 #story-root .btn:hover{transform:translateY(-2px)}
 #story-root .btn-gold{background:var(--gold);color:#3a2a08;box-shadow:var(--shadow-sm)}
 #story-root .btn-gold:hover{background:var(--gold-d)}
-#story-root .btn-ghost{background:transparent;border:2px solid var(--walnut-soft);color:var(--walnut)}
-#story-root .btn-ghost:hover{background:var(--walnut);color:var(--cream)}
+/* Session 43: ghost buttons sit on the DARK yarn bg now — give them a readable
+   cream face instead of transparent+dark-text (which vanished). */
+#story-root .btn-ghost{background:rgba(255,250,240,.94);border:1px solid rgba(255,255,255,.5);color:var(--walnut);box-shadow:0 3px 10px rgba(0,0,0,.28);font-weight:700}
+#story-root .btn-ghost:hover{background:#fff;color:var(--walnut)}
 #story-root .backbar{display:flex;justify-content:center;margin-top:26px}
 /* player chip */
 #story-root .player-chip{display:flex;align-items:center;gap:10px;justify-content:flex-end;max-width:1000px;margin:0 auto 16px;cursor:pointer}
@@ -8375,4 +8377,31 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
   #story-root .pf-links{ grid-template-columns:1fr; }
   #story-root .pf-roster{ grid-template-columns:1fr 1fr; }
   #story-root .pf-hero{ flex-direction:column; text-align:center; }
+}
+
+/* ============ Session 43: shared Story sub-page header + desktop nav ============ */
+#story-root .pf-pagehead{ display:flex; align-items:center; gap:18px; background:linear-gradient(135deg,#3a2d1c,#241a10); color:#f6efe1; border:1px solid rgba(246,239,225,.35); border-radius:18px; padding:18px 24px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+#story-root .pf-ph-l{ flex:3; min-width:0; }
+#story-root .pf-ph-title{ font-family:'SantElia',var(--font-system); font-size:1.7rem; font-weight:800; line-height:1.05; }
+#story-root .pf-ph-sub{ font-size:.88rem; opacity:.75; margin-top:3px; }
+#story-root .pf-ph-r{ flex:2; text-align:right; font-family:'SantElia',var(--font-system); font-size:2.6rem; font-weight:800; color:#e8cf7e; line-height:1; }
+#story-root .pf-ph-of{ font-size:1.2rem; opacity:.6; }
+/* nav pills */
+#story-root .pf-nav{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:14px 0 6px; }
+#story-root .pf-nav-top{ justify-content:center; margin:0 0 14px; }
+#story-root .pf-navpill{ font:inherit; font-weight:700; font-size:.86rem; padding:8px 16px; border-radius:20px; cursor:pointer;
+  background:rgba(255,250,240,.92); border:1px solid rgba(255,255,255,.5); color:var(--walnut); box-shadow:0 3px 10px rgba(0,0,0,.25); }
+#story-root .pf-navpill:hover{ background:#fff; }
+#story-root .pf-navpill.on{ background:var(--gold); border-color:var(--gold); color:#2a2118; }
+#story-root .pf-navpill.alt{ background:var(--blue,#3769BE); border-color:var(--blue,#3769BE); color:#fff; }
+
+/* Session 43: Craft Circle headings/crumb read on the dark bg too */
+#story-root .cc-scout-h span:first-child{ color:#fdf6e8; text-shadow:0 2px 5px rgba(0,0,0,.5); }
+#story-root .cc-togo{ color:rgba(253,246,232,.75); }
+#story-root .cc-nextlabel{ color:#fdf6e8; text-shadow:0 2px 5px rgba(0,0,0,.5); }
+#story-root .cc-as{ color:#fdf6e8; text-shadow:0 1px 4px rgba(0,0,0,.5); }
+#story-root .cc-sub{ color:rgba(253,246,232,.85); }
+@media(max-width:720px){
+  #story-root .pf-pagehead{ flex-direction:column; text-align:center; }
+  #story-root .pf-ph-r{ text-align:center; }
 }
