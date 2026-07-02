@@ -331,6 +331,7 @@ var Story = {
   // Session 36: DEV — drop straight into the Hank boss face-off (skips the climb).
   // Usage: Story.testHank() or Story.testHank('mauro'), or the ?boss URL flag.
   testHank: function(crafterId){
+    this._devMatch=true;   // Session 44 (Adam): dev-hook matches are TESTING ONLY — never recorded
     crafterId = (crafterId && CARDS.characters[crafterId] && crafterId!=='hank') ? crafterId : 'rebecca';
     this.picked = crafterId;
     this.ladder = this.buildLadder(crafterId);
@@ -652,6 +653,7 @@ var Story = {
   currentOpp: function(){ return this.ladder[Math.min(this.beaten, this.ladder.length-1)]; },
   isBoss: function(c){ return c==='hank'; },
   goLadder: async function(charId){
+    this._devMatch=false;         // normal climb entry — matches count again
     await this.ensureProfile();   // make sure saved progress is loaded before resuming
     this.picked=charId;
     this.ladder = this.buildLadder(charId);      // Session 43: full climb, or the free 4-match arc
@@ -1207,6 +1209,13 @@ var Story = {
     var c = this._rematchOpp || this.currentOpp();
     var stats = this.captureMatchStats(you, opp, ys, os);
     this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[], stats:stats };
+    // Session 44 (Adam): dev-hook matches (?boss etc.) are testing only — show the
+    // result screen but record NOTHING (no history, no aggregates, no credit).
+    if(this._devMatch){
+      try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
+      this.open(); this.showResult(this.lastMatch.win);
+      return;
+    }
     // Session 43: record EVERY finished match (win AND loss) — history ring buffer +
     // running aggregates on the profile. Runs before creditWin so a win's save() also
     // persists the record; losses save explicitly below.
@@ -1882,7 +1891,7 @@ var Story = {
   // remembered for the end recap, and announced with a toast. Idempotent + cheap,
   // so it's safe to call from render hooks. No-ops outside an active Story match.
   checkAchievementsLive: function(){
-    if(!this.active || !this.profile) return;
+    if(!this.active || !this.profile || this._devMatch) return;
     var p=this.profile; p.achievements=p.achievements||{}; p.bank=p.bank||0; p.lifetimeStoryScore=p.lifetimeStoryScore||0;
     this._liveToasted=this._liveToasted||{}; this._matchEarned=this._matchEarned||[];
     var s=this._liveStats(), self=this, newly=[];
