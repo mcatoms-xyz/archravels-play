@@ -285,6 +285,56 @@ body {
     filter: brightness(1);
 }
 
+/* Session 42: Active Gnome Rule slot — the empty bottom-left board slot, one row below
+   the yarn deck (top 9% + height 27% + ~4.5% gap ≈ 40.5%). Mirrors the deck slot size. */
+.gnome-rule-slot {
+    position: absolute;
+    top: 40.5%;
+    left: 6%;
+    width: 20%;
+    height: 27%;
+    z-index: 2;
+    cursor: pointer;
+    border-radius: 8px;
+    pointer-events: auto;
+    animation: gnomeRulePop 0.5s ease-out;
+}
+.gnome-rule-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* drop-shadow (not box-shadow) so the glow hugs the card's rounded shape rather than
+       drawing a rectangle around the card art's transparent margin. */
+    filter: drop-shadow(0 0 6px rgba(126,91,192,0.8)) drop-shadow(0 3px 8px rgba(0,0,0,0.5));
+    animation: gnomeRuleGlow 2.6s ease-in-out infinite;   /* soft ongoing "active rule" glow */
+}
+.gnome-rule-tag {
+    position: absolute;
+    top: -7%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-system);
+    font-size: clamp(8px, 1.05vw, 12px);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #f5e6c8;
+    background: rgba(126, 91, 192, 0.92);
+    padding: 1px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.gnome-rule-slot:hover img { filter: drop-shadow(0 0 10px rgba(126,91,192,0.95)) drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+@keyframes gnomeRuleGlow {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(126,91,192,0.6)) drop-shadow(0 3px 8px rgba(0,0,0,0.5)); }
+    50%      { filter: drop-shadow(0 0 11px rgba(126,91,192,0.95)) drop-shadow(0 3px 8px rgba(0,0,0,0.5)); }
+}
+@keyframes gnomeRulePop {
+    0%   { transform: scale(0.6); opacity: 0; }
+    60%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
 /* --- Bazaar card slot --- */
 
 .bazaar-slot {
@@ -2430,6 +2480,22 @@ body {
 .game-moment-badge.moment-sr       { background: #b57730; }
 .game-moment-badge.moment-event    { background: #8b5c9e; }
 .game-moment-badge.moment-favorite { background: var(--color-error); }
+/* Session 42: Hank automa reveals */
+.game-moment-badge.moment-gnome    { background: #7e5bc0; }
+.game-moment-badge.moment-tangle   { background: #b07a2e; }
+.game-moment-badge.moment-snag     { background: #a2472e; }
+.gnome-rule-desc {
+    font-size: 0.98rem;
+    line-height: 1.4;
+    color: var(--st-walnut, #4a3826);
+    margin: 2px 0 4px;
+}
+.gnome-rule-note {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--st-walnut-soft, #8a7256);
+    margin-top: 6px;
+}
 
 /* Player name — sits above the name+badge header */
 .game-moment-player {
@@ -7998,3 +8064,39 @@ body.phone-web #story-root{ padding-top:58px; }
 
 /* Session 42k: phone-web feed clearance (margin:auto from the locked layout collapsed it into the board dots) */
 body.phone-web .action-feed{ margin:40px auto 4px; }
+
+/* Session 43: Urgent Request persistent reminder pill (above the project row) */
+.snag-pill {
+    position: absolute;
+    top: -34%;
+    right: 0;
+    z-index: 6;
+    background: rgba(166, 58, 36, 0.94);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.2;
+    padding: 5px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.35);
+    box-shadow: 0 3px 10px rgba(0,0,0,.35);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.snag-pill b { font-weight: 700; }
+body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding: 4px 10px; }
+
+/* Session 43: Cat Nap — napped-on bowl columns get the sleeping cat + a dim */
+.yarn-token-slot.catnap-locked { opacity: .55; position: relative; }
+.yarn-token-slot.catnap-locked::after {
+    content: '🐱';
+    position: absolute;
+    top: -6px; right: -4px;
+    font-size: 17px;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.35));
+}
+
+/* Session 43: Cat Nap (Hard) adjacent-pair picker */
+.catnap-pair-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.catnap-pair-btn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.catnap-pair-btn img { width: 26px; height: 26px; pointer-events: none; }
+.catnap-pair-btn span { pointer-events: none; }
