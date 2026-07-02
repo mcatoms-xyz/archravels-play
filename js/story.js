@@ -689,71 +689,212 @@ var Story = {
       (dlg.intro?'<div class="pc-quote">“'+dlg.intro+'”</div>':'')+
       '<button class="challenge overlay" onclick="Story.goPreMatch()">Challenge '+ch.name+'</button></div></div>';
   },
+  /* ---- Session 44: Craft Circle redesign (Adam's spec, mockup-approved) ----
+     YOU are the stable point on the left; the ladder scrolls in its own frame on
+     the right. Whatever card crosses the center line (your level) expands into the
+     big card: next -> Challenge, beaten -> record + first-beaten date + achievements
+     earned vs them + safe Rematch, locked -> preview. Climb dots on your card jump
+     the ladder. Replaces the hero/carousel (climbStep/_climbView retired). */
   renderLadder: function(){
+    this._rematchOpp=null;                       // leaving a rematch flow resets it
     var total=this.ladder.length, champ=this.beaten>=total;
     var pickedName=this.char(this.picked).name, pct=Math.round(this.beaten/total*100);
-    var top='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
-      '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
-      '<div class="cc-sub">'+(champ?'You are the Champion!':(this.beaten+' of '+total+' Ravelers beaten'))+'</div>'+
-      '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
-    var body;
     if(champ && !this.entitled()){
       // Session 43 (entitlement): free-arc complete — twin beaten. The climb pauses here.
-      body='<div class="cc-champ"><div class="cc-crown">🧶</div>'+
+      var top='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
+        '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
+        '<div class="cc-sub">You are the Champion!</div>'+
+        '<div class="cc-bar"><i style="width:'+pct+'%"></i></div></div></div>';
+      var body='<div class="cc-champ"><div class="cc-crown">🧶</div>'+
         '<div class="cc-champ-t">You’ve mastered your corner of the bazaar!</div>'+
         '<div class="cc-champ-s">Your twin is beaten — but eleven Ravelers and the Stitchmeister himself await in the full Craft Circle.</div>'+
         '<button class="cc-go" onclick="Story.goUpgrade(\'twin\')">Unlock the Full Craft Circle →</button>'+
         '<button class="cc-go beat" onclick="Story.goStats()" style="margin-top:8px">View your stats →</button></div>';
-    } else if(champ){
-      body='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
+      this.screen('<div class="crumb">Your Craft Circle</div>'+top+body+this.backBar('Story.goTypes()','↺ Change Raveler'));
+      return;
+    }
+    if(champ){
+      var top2='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
+        '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
+        '<div class="cc-sub">You are the Champion!</div>'+
+        '<div class="cc-bar"><i style="width:100%"></i></div></div></div>';
+      var body2='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
         '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
         '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
         '<button class="cc-go" onclick="Story.goStats()">View your stats →</button></div>';
-    } else {
-      var view=(typeof this._climbView==='number')?Math.max(0,Math.min(this._climbView,total-1)):this.beaten;
-      var c=this.ladder[view], ch=this.char(c), boss=(c==='hank'), dlg=this.DIALOG[c]||{};
-      var isNext=(view===this.beaten), isBeaten=(view<this.beaten);
-      var role=boss?'Final Boss':this.meta(c).name;
-      var taunt=dlg.intro?'<div class="cc-taunt">“'+dlg.intro+'”</div>':'';
-      var fav=boss?'<div class="cc-fav cc-fav-boss"><div class="cc-fav-ic">👑</div><div><div class="ft">Every Special Request</div><div class="fn">is his favorite</div></div></div>':this.srMini(c);
-      var btn;
-      if(isNext) btn='<button class="cc-go" onclick="Story.goPreMatch()">'+(boss?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
-      else if(isBeaten) btn='<button class="cc-go beat" disabled>✓ Already defeated</button>';
-      else btn='<button class="cc-go lock" disabled>🔒 Beat '+this.char(this.currentOpp()).name+' first</button>';
-      var label=isNext?'⚔ Next Challenger':(isBeaten?'✓ Already Defeated':'🔒 Locked — Preview');
-      // Session 43 (Adam): for a BEATEN rival, show your head-to-head record instead of
-      // the (now-pointless) pre-fight taunt.
-      var info = isBeaten ? (fav + this.opponentStatsHTML(c) + btn) : (fav + taunt + btn);
-      var hero='<div class="cc-herowrap" id="ccHero"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
-        '<div class="cc-hero'+(boss?' boss':'')+(isNext?'':(isBeaten?'':' dim'))+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-pos">'+(view+1)+' / '+total+'</span><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
-        '<div class="cc-info">'+info+'</div></div>'+
-        '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
-      var self=this;
-      var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); var stLabel=(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked'))); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml"><span class="cc-mn">'+Story.char(o).name+'</span><span class="cc-mst">'+stLabel+'</span></div></div>'; }).join('');
-      // Session 43 (entitlement): on the free arc, Hank looms at the end of the rail —
-      // visible, locked, magnificent. Tapping him opens the upgrade pitch.
-      if(!this.entitled()){
-        minis+='<div class="cc-mini boss hank-teaser" onclick="Story.goUpgrade(\'hank\')">'+
-          '<div class="cc-ma"><img src="'+Story.portrait('hank')+'" alt=""><span>Hank</span></div>'+
-          '<div class="cc-ml">🔒 Full Game</div></div>';
-      }
-      // Session 43 (desktop climb fix): on wide/mouse viewports the rail is a browsable
-      // two-column list beside the hero, not a swipe carousel. Copy tweaks per mode.
-      var wide=this._wideView();
-      var scoutHint=wide?'Click any Raveler to preview':'Swipe or tap to browse';
-      var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">'+scoutHint+'</span></div><div class="cc-scout-row">'+minis+'</div></div>';
-      body='<div class="cc-nextlabel">'+label+'</div>'+(wide?('<div class="cc-desk">'+hero+scout+'</div>'):(hero+scout));
+      this.screen('<div class="crumb">Your Craft Circle</div>'+top2+body2+this.backBar('Story.goTypes()','↺ Change Raveler'));
+      return;
     }
-    this.screen('<div class="crumb">Your Craft Circle</div>'+top+body+
-      this.backBar('Story.goTypes()','↺ Change Raveler'));
-    // Fixed-height carousel lock is MOBILE-only; desktop scrolls the page naturally.
-    var _sr=document.getElementById('story-root'); if(_sr) _sr.classList.toggle('cc-mode', !this._wideView());
-    var hw=document.getElementById('ccHero');
-    if(hw && !this._wideView()){ var sy=null;
-      hw.addEventListener('touchstart',function(e){ sy=e.touches[0].clientY; },{passive:true});
-      hw.addEventListener('touchend',function(e){ if(sy===null)return; var dy=e.changedTouches[0].clientY-sy; sy=null; if(dy<-35) Story.climbStep(1); else if(dy>35) Story.climbStep(-1); });
-    }
+    var html='<div class="cc2-title"><span class="cc2-t">The Craft Circle</span>'+
+      '<span class="cc2-hint">Scroll — the card at your level expands</span></div>'+
+      '<div class="cc2-stage"><div class="cc2-vs">VS</div>'+
+      '<div class="cc2-youcol">'+this._ccYouHTML(total)+'</div>'+
+      '<div class="cc2-ladcol"><div class="cc2-frame"><div class="cc2-lad" id="opptrack"></div></div></div>'+
+      '</div>'+this.backBar('Story.goTypes()','↺ Change Raveler');
+    this.screen(html);
+    this._ccActive=this.currentOpp();
+    this._ccRepaint(false);
+    this._ccWireScroll();
   },
+  /* Your static card: portrait, progress, and the climb dots (2 near-even rows). */
+  _ccYouHTML: function(total){
+    var c=this.picked, ch=this.char(c), self=this;
+    var cols=(total>6)?Math.ceil(total/2):total;
+    var dots=this.ladder.map(function(o,idx){
+      var st=(idx<self.beaten)?'won':(idx===self.beaten?'next':'todo');
+      var cls='cc2-dot '+st+(self.isBoss(o)?' boss':'');
+      return '<img class="'+cls+'" src="'+self.portrait(o)+'" title="'+self.char(o).name+'" alt="'+self.char(o).name+'" onclick="Story.ccView(\''+o+'\')">';
+    }).join('');
+    return '<div class="cc2-label">🧶 Your Character</div>'+
+      '<div class="cc2-you"><div class="cc2-youart"><img src="'+this.portrait(c)+'" alt="">'+
+      '<span class="cc2-badge">YOU</span><span class="cc2-role">'+this.meta(c).name+'</span><span class="cc2-name">'+ch.name+'</span></div>'+
+      '<div class="cc2-youbody"><div class="cc2-as">Playing as '+ch.name+'</div>'+
+      '<div class="cc2-sub">'+this.beaten+' of '+total+' Ravelers beaten</div>'+
+      '<div class="cc2-bar"><i style="width:'+Math.round(this.beaten/total*100)+'%"></i></div>'+
+      '<div class="cc2-journey"><div class="cc2-jh">Your Climb</div>'+
+      '<div class="cc2-dots" style="grid-template-columns:repeat('+cols+',1fr)">'+dots+'</div></div></div></div>';
+  },
+  _ccState: function(idx){ return (idx<this.beaten)?'beaten':(idx===this.beaten?'next':'locked'); },
+  _ccMini: function(o, st){
+    var b=this.isBoss(o);
+    var lbl=b?'👑 Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'⚔ Up next':'🔒 Locked'));
+    return '<div class="cc2-mini '+st+(b?' boss':'')+'"><img src="'+this.portrait(o)+'" alt="">'+
+      '<span class="mn">'+this.char(o).name+'</span><span class="mst">'+lbl+'</span></div>';
+  },
+  /* The gold Favorite-Request box (real SR card art, same hover/zoom as elsewhere). */
+  _ccFav: function(o){
+    if(this.isBoss(o)) return '<div class="cc2-fav bossy"><div class="cc2-crownthumb">👑</div>'+
+      '<div><div class="l">Every Special Request</div><div class="n">is his favorite</div></div></div>';
+    var sr=this.faveSR(o); if(!sr) return '';
+    return '<div class="cc2-fav"><img class="srthumb" src="'+sr.img+'" alt="'+sr.name+'" onmouseenter="Story.hoverSR(\''+o+'\',event)" onmousemove="Story.moveHover(event)" onmouseleave="Story.unhoverSR()" onclick="event.stopPropagation();Story.openSR(\''+o+'\')">'+
+      '<div><div class="l">Favorite Request</div><div class="n">'+sr.name+'</div></div></div>';
+  },
+  _ccViewer: function(o, idx){
+    var st=this._ccState(idx), b=this.isBoss(o), ch=this.char(o), dlg=this.DIALOG[o]||{};
+    var total=this.ladder.length, cls='cc2-viewer', status='', mid='', btns='';
+    var backBtn='<button class="cc2-btn ghost" onclick="Story.ccView(\''+this.currentOpp()+'\')">Back to next fight</button>';
+    if(st==='next'){
+      cls+=(b?' boss-card':' next-card');
+      status='<div class="cc2-status next">'+(b?'👑 The Final Fight':'⚔ Next Challenger')+'</div>';
+      mid=(dlg.intro?'<div class="cc2-taunt">“'+dlg.intro+'”</div>':'');
+      btns='<button class="cc2-go" onclick="Story.goPreMatch()">'+(b?'Face Hank →':'Challenge '+ch.name+' →')+'</button>';
+    } else if(st==='beaten'){
+      cls+=' beaten-card';
+      status='<div class="cc2-status beaten">✓ Defeated</div>';
+      var stats=this.opponentStats(o, this.picked)||this.opponentStats(o);
+      if(stats){
+        var first=this._firstBeaten(o);
+        mid='<div class="cc2-stats"><div class="cc2-stats-h"><span>Your Record</span>'+
+          (first?('<span class="date">First beaten '+first+'</span>'):'')+'</div>'+
+          '<div class="cc2-stats-grid">'+
+          '<div><div class="n">'+stats.played+'</div><div class="l">Faced</div></div>'+
+          '<div><div class="n">'+stats.wins+'–'+stats.losses+'</div><div class="l">Record</div></div>'+
+          '<div><div class="n">'+this.fmtPts(stats.high)+'</div><div class="l">High Score</div></div>'+
+          '<div><div class="n">'+(stats.bestTime||'—')+'</div><div class="l">Best Time</div></div></div></div>';
+        var ach=this.achVs(o);
+        if(ach.length) mid+='<div class="cc2-ach"><span class="al">Achievements earned vs '+ch.name+'</span><div class="chips">'+
+          ach.map(function(a){ return '<span class="chip">🏅 '+a.name+'</span>'; }).join('')+'</div></div>';
+      } else {
+        mid='<div class="cc2-defeated"><span class="big">🏅</span><div><div class="t">Defeated ✓</div>'+
+          '<div class="s">Play a rematch to start your head-to-head tally.</div></div></div>';
+      }
+      btns='<button class="cc2-go rematch" onclick="Story.rematch(\''+o+'\')">⚔ Rematch</button>'+backBtn;
+    } else {
+      cls+=(b?' boss-card':' locked-card');
+      status='<div class="cc2-status '+(b?'boss':'locked')+'">'+(b?'👑 Final Boss':'🔒 Locked — Preview')+'</div>';
+      var away=idx-this.beaten;
+      var note=b?'Beat all the Ravelers to face the Stitchmeister.'
+        :(away===1?'Beat '+this.char(this.currentOpp()).name+' to unlock this match.'
+        :'Beat '+this.char(this.currentOpp()).name+' first — '+away+' more stand between you.');
+      mid=(dlg.intro?'<div class="cc2-taunt">“'+dlg.intro+'”</div>':'')+'<div class="cc2-locknote">'+note+'</div>';
+      btns=backBtn;
+    }
+    return '<div class="'+cls+'"><div class="cc2-vinner">'+
+      '<div class="cc2-vart"><img src="'+this.portrait(o)+'" alt=""><span class="pos">'+(idx+1)+' / '+total+'</span>'+
+      '<span class="role">'+(b?'The Stitchmeister':this.meta(o).name)+'</span><span class="name">'+ch.name+'</span></div>'+
+      '<div class="cc2-vinfo">'+status+this._ccFav(o)+mid+'<div class="cc2-btns">'+btns+'</div></div></div></div>';
+  },
+  /* Rebuild the rail (summit at top) around the active card + center it. */
+  _ccRepaint: function(smooth){
+    var lad=document.getElementById('opptrack'); if(!lad) return;
+    var self=this, order=this.ladder.slice().reverse();
+    var html='<div class="cc2-spacer"></div>';
+    // Free arc: Hank looms above the summit — locked, magnificent, tap = upgrade pitch.
+    if(!this.entitled()){
+      html+='<div class="cc2-mini locked boss teaser" onclick="Story.goUpgrade(\'hank\')">'+
+        '<img src="'+this.portrait('hank')+'" alt=""><span class="mn">Hank</span><span class="mst">🔒 Full Game</span></div>';
+    }
+    order.forEach(function(o){
+      var idx=self.ladder.indexOf(o);
+      html+='<div class="cc2-slot'+(o===self._ccActive?' active':'')+'" data-cc="'+o+'">'+
+        (o===self._ccActive?self._ccViewer(o,idx):self._ccMini(o,self._ccState(idx)))+'</div>';
+    });
+    html+='<div class="cc2-spacer"></div>';
+    lad.innerHTML=html;
+    this._ccCenter(this._ccActive, smooth);
+  },
+  _ccCenter: function(o, smooth){
+    var lad=document.getElementById('opptrack'); if(!lad) return;
+    var slot=lad.querySelector('.cc2-slot[data-cc="'+o+'"]'); if(!slot) return;
+    var target=slot.offsetTop + slot.offsetHeight/2 - lad.clientHeight/2;
+    this._ccLock=true;
+    try{ lad.scrollTo({top:target, behavior:smooth?'smooth':'auto'}); }catch(e){ lad.scrollTop=target; }
+    var self=this; setTimeout(function(){ self._ccLock=false; }, smooth?450:60);
+  },
+  ccView: function(o){
+    if(this.ladder.indexOf(o)===-1) return;
+    if(o===this._ccActive){ this._ccCenter(o,true); return; }
+    this._ccActive=o; this._ccRepaint(false); this._ccCenter(o,true);
+  },
+  _ccWireScroll: function(){
+    var lad=document.getElementById('opptrack'); if(!lad) return;
+    var self=this, deb=null;
+    lad.addEventListener('scroll', function(){
+      if(self._ccLock) return;
+      clearTimeout(deb);
+      deb=setTimeout(function(){
+        var mid=lad.scrollTop + lad.clientHeight/2, bestId=null, bestD=1e9;
+        lad.querySelectorAll('.cc2-slot').forEach(function(sl){
+          var d=Math.abs(sl.offsetTop + sl.offsetHeight/2 - mid);
+          if(d<bestD){ bestD=d; bestId=sl.getAttribute('data-cc'); }
+        });
+        if(bestId && bestId!==self._ccActive){ self._ccActive=bestId; self._ccRepaint(false); }
+        else if(bestId){ self._ccCenter(bestId,true); }
+      },140);
+    });
+    lad.addEventListener('click', function(e){
+      var slot=e.target.closest('.cc2-slot');
+      if(slot && slot.getAttribute('data-cc')!==self._ccActive) self.ccView(slot.getAttribute('data-cc'));
+    });
+  },
+  /* Earliest recorded win vs a rival (match capture began S43 — older wins have none). */
+  _firstBeaten: function(oppId){
+    var ms=(this.profile&&this.profile.matches)||[], best=null;
+    ms.forEach(function(m){ if(m.opponentId===oppId && m.result==='win' && m.when){ if(!best||m.when<best) best=m.when; } });
+    if(!best) return null;
+    try{ return new Date(best).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch(e){ return null; }
+  },
+  /* Achievements stamped as earned against this rival (forward-only, from achMeta). */
+  achVs: function(oppId){
+    var p=this.profile||{}, meta=p.achMeta||{}, out=[];
+    (this.ACH||[]).forEach(function(a){ var m=meta[a.id]; if(m && m.opp===oppId) out.push(a); });
+    return out;
+  },
+  /* Session 44: remember WHO an achievement was earned against (rival cards show these). */
+  _stampAch: function(p, id, opp){
+    try{ p.achMeta=p.achMeta||{}; if(!p.achMeta[id]) p.achMeta[id]={ when:Date.now(), opp:opp||null, crafter:this.picked||null }; }catch(e){}
+  },
+  /* Session 44: SAFE rematch vs an already-beaten rival — records to match history
+     (stats/aggregates) but NEVER touches creditWin/beaten/nextChallenger, so a
+     rematch win can't false-credit climb progress. */
+  rematch: function(oppId){
+    if(this.ladder.indexOf(oppId)===-1 || this.isBoss(oppId)) return;
+    this._rematchOpp=oppId;
+    this.goPreMatch();
+  },
+  // Legacy carousel hooks (pre-S44) — kept as no-ops in case anything still calls them.
+  climbStep: function(){ },
+  climbView: function(i){ var o=this.ladder[i]; if(o) this.ccView(o); },
   /** Wide (desktop/mouse) vs. narrow (phone/touch) climb layout. */
   _wideView: function(){
     try{ return window.matchMedia('(min-width: 860px) and (pointer: fine)').matches; }catch(e){ return window.innerWidth>=860; }
@@ -788,8 +929,6 @@ var Story = {
     ].map(function(c){ return '<div class="cc-stat"><div class="cc-stat-n">'+c[1]+'</div><div class="cc-stat-l">'+c[0]+'</div></div>'; }).join('');
     return '<div class="cc-stats"><div class="cc-stats-h">Your record vs '+this.char(oppId).name+'</div><div class="cc-stats-grid">'+cells+'</div></div>';
   },
-  climbStep: function(d){ var total=this.ladder.length; var v=(typeof this._climbView==='number')?this._climbView:this.beaten; this._climbView=Math.max(0,Math.min(v+d,total-1)); this.renderLadder(); },
-  climbView: function(i){ this._climbView=i; this.renderLadder(); },
   youNodeHTML: function(){
     var c=this.picked, ch=this.char(c), total=this.ladder.length;
     return '<div class="pcard you-node" style="--tc:#d9a521"><div class="pc-port"><img src="'+this.portrait(c)+'"><div class="pc-grad"></div><div class="you-badge">YOU</div><div class="pc-name">'+ch.name+'</div></div>'+
@@ -932,14 +1071,14 @@ var Story = {
   },
 
   goPreMatch: function(){
-    var c=this.currentOpp(), dlg=this.DIALOG[c]||{};
+    var c=this._rematchOpp||this.currentOpp(), dlg=this.DIALOG[c]||{};
     // Session 43 (difficulty v2): the boss face-off carries the red-card scale once
     // you've beaten Hank anywhere. First-ever fight = all green, no picker.
     var scale = this.isBoss(c) ? this.hankScaleHTML() : '';
     var introLine = this.isBoss(c) ? this.hankIntroLine() : (dlg.intro||'Let’s craft.');
     // Session 43 (entitlement): the free arc's finale is your TYPE TWIN — special intro.
     if(this._isFreeFinale(c) && this.TWIN_INTROS[c]) introLine = this.TWIN_INTROS[c];
-    this.screen('<div class="crumb">Match · Face-Off</div><h1 class="st-h1">Before the match</h1>'+
+    this.screen('<div class="crumb">Match · '+(this._rematchOpp?'Rematch':'Face-Off')+'</div><h1 class="st-h1">'+(this._rematchOpp?'Rematch — bragging rights only':'Before the match')+'</h1>'+
       '<div class="vs-stage"><div>'+this.fighterHTML(this.picked,'You')+'</div><div class="vs-badge">VS</div><div>'+this.fighterHTML(c,'Challenger')+'</div></div>'+
       '<div class="dialogbox">'+this.dialogHTML(c, introLine)+'</div>'+
       scale+
@@ -1001,7 +1140,7 @@ var Story = {
       '</div>';
   },
   beginMatch: function(){
-    var oppId=this.currentOpp();
+    var oppId=this._rematchOpp||this.currentOpp();
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
     try{ if(window.Sound){ Sound.music.startTheme(oppId); Sound.play('game-start'); } }catch(e){}
     // Session 43: the chosen handle plays under your name in-match (guests included).
@@ -1020,7 +1159,8 @@ var Story = {
     // Session 42: turn-order difficulty ramp — you go first on rungs 1–5 (welcoming);
     // the rival goes first from rung 6 on, which removes your ~+5–10pt first-move edge.
     // The boss automa never "goes first" (he takes no turns) → you always lead the solo fight.
-    var rivalFirst = !isBossMatch && this.beaten >= 5;
+    var rung=this._rematchOpp?this.ladder.indexOf(oppId):this.beaten;
+    var rivalFirst = !isBossMatch && rung >= 5;
     // Session 43 (difficulty v2): red count comes from the face-off picker — default
     // = highest-beaten+1 (the ceiling), adjustable down, first-ever fight forced R0.
     var hankReds = isBossMatch ? this.bossRedsForMatch() : 0;
@@ -1048,7 +1188,8 @@ var Story = {
     players.forEach(function(p){ if(p.isHank||p.isAutoma||p.isAI){ opp=p; } else { you=p; } });
     var ys = you ? (Game.calculateFinalScore(you).total||0) : 0;
     var os = opp ? (Game.calculateFinalScore(opp).total||0) : 0;
-    var c = this.currentOpp();
+    // Session 44: a rematch plays against the chosen beaten rival, not the climb's next.
+    var c = this._rematchOpp || this.currentOpp();
     var stats = this.captureMatchStats(you, opp, ys, os);
     this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[], stats:stats };
     // Session 43: record EVERY finished match (win AND loss) — history ring buffer +
@@ -1056,7 +1197,11 @@ var Story = {
     // persists the record; losses save explicitly below.
     this.recordMatch(c);
     try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
-    if(this.lastMatch.win) this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
+    if(this.lastMatch.win){
+      // Session 44: rematch wins are history-only — no creditWin, no ladder progress.
+      if(this._rematchOpp){ this.lastMatch.earned=(this._matchEarned||[]).slice(); this.save(); }
+      else this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
+    }
     else this.save();                            // losses: persist the match record + playtime
     this.open();
     this.showResult(this.lastMatch.win);
@@ -1096,6 +1241,7 @@ var Story = {
       when: new Date().toISOString(),
       durationSec: Math.round((lm.timeMs||0)/1000),
       mode: isBossMatch?'boss':'story',
+      rematch: !!this._rematchOpp,
       rung: this.beaten||0,
       characterId: this.picked,
       opponentId: oppId,
@@ -1164,7 +1310,7 @@ var Story = {
     };
   },
   showResult: function(win){
-    var c=this.currentOpp(), dlg=this.DIALOG[c]||{}, lm=this.lastMatch||{you:0,opp:0,timeMs:0};
+    var c=this._rematchOpp||this.currentOpp(), dlg=this.DIALOG[c]||{}, lm=this.lastMatch||{you:0,opp:0,timeMs:0};
     var secs=Math.round((lm.timeMs||0)/1000), mt=Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0');
     var banner = win ? 'Victory!' : 'Not this time';
     var details, actions;
@@ -1174,7 +1320,9 @@ var Story = {
       details = '<div class="result-card"><div class="rd-score">Match score <b>'+lm.you+'</b> · they had '+lm.opp+'</div>'+
         '<div class="rd-total">+'+lm.you+' to your Story Mode score</div>'+
         '<div style="color:var(--st-walnut-soft);font-size:.85rem;margin-top:3px">⏱ Match time '+mt+'</div>'+ach+'</div>';
-      actions = this.isBoss(c)
+      actions = this._rematchOpp
+        ? '<button class="btn btn-gold" onclick="Story.renderLadder()">Back to the climb →</button>'
+        : this.isBoss(c)
         ? '<button class="btn btn-gold" onclick="Story.goEnding()">See the ending →</button>'
         : (this._isFreeFinale(c)
           ? '<button class="btn btn-gold" onclick="Story.goUpgrade(\'twin\')">See what’s next →</button>'
@@ -1729,6 +1877,7 @@ var Story = {
       if(a.test(p, s)){
         self._liveToasted[a.id]=true;
         p.achievements[a.id]=Date.now();
+        self._stampAch(p, a.id, self._rematchOpp||self.currentOpp());   // Session 44: vs-rival stamp
         p.bank+=a.pts; p.lifetimeStoryScore+=a.pts;
         self._matchEarned.push(a);
         newly.push(a);
@@ -1792,7 +1941,7 @@ var Story = {
     // then add end-of-match-only achievements. Result is the full list for the recap.
     var earned = (this._matchEarned || []).slice();
     var sctx = Object.assign({beaten:beatenAfter}, (this.lastMatch&&this.lastMatch.stats)||{});
-    this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test && a.test(p,sctx)){ p.achievements[a.id]=Date.now(); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
+    this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test && a.test(p,sctx)){ p.achievements[a.id]=Date.now(); Story._stampAch(p, a.id, c); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
     // Session 41: SR Board unlocks — beating a crafter unlocks THEIR favorite SR;
     // beating Hank unlocks Everyone's Welcome. Then sync achievement-milestone Packs
     // (counts the achievements just credited above; excludes pack-unlock awards).
