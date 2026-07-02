@@ -550,11 +550,13 @@ var Story = {
     }).join('');
     this.screen('<div class="crumb">Story Mode</div>'+
       '<h1 class="st-h1">Quest for Craft Circle Champion</h1>'+
-      '<p class="st-sub">Welcome to ArchRavels! A strategy board game set in the colorful &amp; crafty world of fiber arts! Choose from a variety of fiber art crafting specialists, each with their own style. Out-craft 11 fellow Ravelers for your chance to challenge Hank the Stitchmeister for the craft circle crown.</p>'+
-      '<div class="sm-steps">'+
-        '<span class="sm-step"><span class="sm-n">1</span>Pick a Raveler</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step"><span class="sm-n">2</span>Out-craft the Circle</span><span class="sm-arrow">→</span>'+
-        '<span class="sm-step"><span class="sm-n">3</span>Become a Champion</span>'+
+      '<div class="sm-intro">'+
+        '<p class="st-sub sm-copy">Welcome to ArchRavels! A strategy board game set in the colorful &amp; crafty world of fiber arts! Choose from a variety of fiber art crafting specialists, each with their own style. Out-craft 11 fellow Ravelers for your chance to challenge Hank the Stitchmeister for the craft circle crown.</p>'+
+        '<div class="sm-steps">'+
+          '<span class="sm-step"><span class="sm-n">1</span>Pick a Raveler</span><span class="sm-arrow">→</span>'+
+          '<span class="sm-step"><span class="sm-n">2</span>Out-craft the Circle</span><span class="sm-arrow">→</span>'+
+          '<span class="sm-step"><span class="sm-n">3</span>Become a Champion</span>'+
+        '</div>'+
       '</div>'+
       (this.currentUser?'':'<p class="sm-note">Sign in to save your progress: <a href="#" onclick="Story.goSignIn();return false;">Sign in</a></p>')+
       '<div class="sm-divider"></div>'+
@@ -679,7 +681,7 @@ var Story = {
         '<div class="cc-info">'+fav+taunt+btn+'</div></div>'+
         '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
       var self=this;
-      var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml">'+(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked')))+'</div></div>'; }).join('');
+      var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); var stLabel=(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked'))); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml"><span class="cc-mn">'+Story.char(o).name+'</span><span class="cc-mst">'+stLabel+'</span></div></div>'; }).join('');
       // Session 43 (entitlement): on the free arc, Hank looms at the end of the rail —
       // visible, locked, magnificent. Tapping him opens the upgrade pitch.
       if(!this.entitled()){
