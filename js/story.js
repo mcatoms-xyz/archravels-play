@@ -721,9 +721,12 @@ var Story = {
       else if(isBeaten) btn='<button class="cc-go beat" disabled>✓ Already defeated</button>';
       else btn='<button class="cc-go lock" disabled>🔒 Beat '+this.char(this.currentOpp()).name+' first</button>';
       var label=isNext?'⚔ Next Challenger':(isBeaten?'✓ Already Defeated':'🔒 Locked — Preview');
+      // Session 43 (Adam): for a BEATEN rival, show your head-to-head record instead of
+      // the (now-pointless) pre-fight taunt.
+      var info = isBeaten ? (fav + this.opponentStatsHTML(c) + btn) : (fav + taunt + btn);
       var hero='<div class="cc-herowrap" id="ccHero"><div class="cc-edge top2"></div><div class="cc-edge top"></div>'+
-        '<div class="cc-hero'+(boss?' boss':'')+(isNext?'':' dim')+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-pos">'+(view+1)+' / '+total+'</span><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
-        '<div class="cc-info">'+fav+taunt+btn+'</div></div>'+
+        '<div class="cc-hero'+(boss?' boss':'')+(isNext?'':(isBeaten?'':' dim'))+'"><div class="cc-art"><img src="'+this.portrait(c)+'" alt=""><span class="cc-pos">'+(view+1)+' / '+total+'</span><span class="cc-role">'+role+'</span><span class="cc-name">'+ch.name+'</span></div>'+
+        '<div class="cc-info">'+info+'</div></div>'+
         '<div class="cc-edge bot"></div><div class="cc-edge bot2"></div></div>';
       var self=this;
       var minis=this.ladder.map(function(o,idx){ if(idx===view) return ''; var b=(o==='hank'); var st=(idx<self.beaten)?'beaten':(idx===self.beaten?'next':'locked'); var stLabel=(b?'Boss':(st==='beaten'?'✓ Beaten':(st==='next'?'Up next':'Locked'))); return '<div class="cc-mini '+st+(b?' boss':'')+'" onclick="Story.climbView('+idx+')"><div class="cc-ma"><img src="'+Story.portrait(o)+'" alt=""><span>'+Story.char(o).name+'</span></div><div class="cc-ml"><span class="cc-mn">'+Story.char(o).name+'</span><span class="cc-mst">'+stLabel+'</span></div></div>'; }).join('');
@@ -754,6 +757,36 @@ var Story = {
   /** Wide (desktop/mouse) vs. narrow (phone/touch) climb layout. */
   _wideView: function(){
     try{ return window.matchMedia('(min-width: 860px) and (pointer: fine)').matches; }catch(e){ return window.innerWidth>=860; }
+  },
+
+  /* Session 43 (Adam): your head-to-head record vs a specific rival, from the match
+     history (profile.matches[]). forCrafter (optional) filters to games you played AS
+     that crafter; omitted = across all your crafters. */
+  opponentStats: function(oppId, forCrafter){
+    var ms=(this.profile&&this.profile.matches)||[];
+    var mine=ms.filter(function(m){ return m.opponentId===oppId && (!forCrafter || m.characterId===forCrafter); });
+    if(!mine.length) return null;
+    var wins=0, hi=0, best=null, sum=0;
+    mine.forEach(function(m){
+      if(m.result==='win'){ wins++; if(m.durationSec!=null && (best==null || m.durationSec<best)) best=m.durationSec; }
+      if((m.yourScore||0)>hi) hi=m.yourScore||0;
+      sum+=(m.yourScore||0);
+    });
+    return { played:mine.length, wins:wins, losses:mine.length-wins, high:hi,
+             avg:Math.round(sum/mine.length),
+             bestTime: best!=null ? (Math.floor(best/60)+':'+String(best%60).padStart(2,'0')) : null };
+  },
+  /** The head-to-head stats card shown for a beaten rival on the climb. */
+  opponentStatsHTML: function(oppId){
+    var st=this.opponentStats(oppId, this.picked) || this.opponentStats(oppId);
+    if(!st){ return '<div class="cc-stats cc-stats-empty">No match record yet — your next win here starts the tally.</div>'; }
+    var cells=[
+      ['Faced', st.played],
+      ['Record', st.wins+'–'+st.losses],
+      ['High Score', this.fmtPts(st.high)],
+      ['Best Time', st.bestTime||'—'],
+    ].map(function(c){ return '<div class="cc-stat"><div class="cc-stat-n">'+c[1]+'</div><div class="cc-stat-l">'+c[0]+'</div></div>'; }).join('');
+    return '<div class="cc-stats"><div class="cc-stats-h">Your record vs '+this.char(oppId).name+'</div><div class="cc-stats-grid">'+cells+'</div></div>';
   },
   climbStep: function(d){ var total=this.ladder.length; var v=(typeof this._climbView==='number')?this._climbView:this.beaten; this._climbView=Math.max(0,Math.min(v+d,total-1)); this.renderLadder(); },
   climbView: function(i){ this._climbView=i; this.renderLadder(); },
@@ -1285,10 +1318,7 @@ var Story = {
         '<div class="pf-cb"><div class="pf-cn">'+Story.char(c).name+'</div><div class="pf-cx">'+sub+'</div></div></div>';
     }).join('');
 
-    this.screen('<div class="pf-nav pf-nav-top">'+
-        '<button class="pf-navpill on" onclick="Story.goStats()">Profile</button>'+
-        '<button class="pf-navpill" onclick="Story.goAchievements()">Achievements</button>'+
-        '<button class="pf-navpill" onclick="Story.goSRBoard()">SR Board</button></div>'+
+    this.screen(
       hero+band+recBlock+links+
       '<div class="pf-h">Your Crafters</div><div class="pf-roster">'+roster+'</div>'+
       this.backBar('Story.goTypes()','← Back to Story'));
