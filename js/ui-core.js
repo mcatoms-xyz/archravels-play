@@ -487,12 +487,19 @@ var UI = {
             html += '<img class="setup-tile-icon" src="' + icon + '" alt="' + tName + '">';
             html += '<div class="setup-tile-header-text">';
 
-            // Type dropdown — available types depend on human/AI priority
+            // Type dropdown — available types depend on human/AI priority.
+            // Session 43 (entitlement): on the free tier, HUMAN seats can't take a type
+            // whose crafters are all locked (Maker/Expert). CPU seats roam free — the
+            // opposition showing off locked crafters is part of the pitch.
+            var gateFn = (!isAI && window.Story && Story.crafterLocked)
+                ? function(cid){ return Story.crafterLocked(cid); } : function(){ return false; };
             var avail = availableTypesFor(p);
             html += '<select class="setup-type-select" id="setupType' + p + '" onchange="UI.onSetupTypeChange(' + p + ')">';
             avail.forEach(function(tp) {
+                var typeLocked = allIds.filter(function(c){ return CARDS.characters[c].type === tp; }).every(gateFn);
                 var selected = (tp === type) ? ' selected' : '';
-                html += '<option value="' + tp + '"' + selected + '>' + typeNames[tp] + '</option>';
+                html += '<option value="' + tp + '"' + selected + (typeLocked ? ' disabled' : '') + '>' +
+                        typeNames[tp] + (typeLocked ? ' — 🔒 Full Game' : '') + '</option>';
             });
             html += '</select>';
 
@@ -511,9 +518,13 @@ var UI = {
             html += '</div></div>';
 
             // Character picker (filtered to this type)
+            // Session 43 (entitlement): locked crafters unpickable for human seats.
             var charDefault = currentChars[p] || self._aiRandomPicks[type];
-            if (!charDefault || !CARDS.characters[charDefault] || CARDS.characters[charDefault].type !== type) {
+            if (!charDefault || !CARDS.characters[charDefault] || CARDS.characters[charDefault].type !== type || gateFn(charDefault)) {
                 var typeCandidates = allIds.filter(function(cid) {
+                    return CARDS.characters[cid].type === type && !gateFn(cid);
+                });
+                if (!typeCandidates.length) typeCandidates = allIds.filter(function(cid) {
                     return CARDS.characters[cid].type === type;
                 });
                 charDefault = typeCandidates.length > 0
@@ -525,8 +536,10 @@ var UI = {
             allIds.forEach(function(cid) {
                 var ch = CARDS.characters[cid];
                 if (ch.type !== type) return;
-                var selected = (charDefault && cid === charDefault) ? ' selected' : '';
-                html += '<option value="' + cid + '"' + selected + '>' + ch.name + ' — ' + ch.subtitle + '</option>';
+                var locked = gateFn(cid);
+                var selected = (charDefault && cid === charDefault && !locked) ? ' selected' : '';
+                html += '<option value="' + cid + '"' + selected + (locked ? ' disabled' : '') + '>' +
+                        ch.name + ' — ' + ch.subtitle + (locked ? ' 🔒' : '') + '</option>';
             });
             html += '</select>';
 
