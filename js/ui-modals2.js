@@ -24,7 +24,7 @@ Object.assign(UI, {
         var sel = this._yarnSale, need = 3;
         var total = 0; UI.ROYGBP.forEach(function(c) { total += sel[c] || 0; });
         var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
-        html += UI._yarnChips({ sel: sel, rule: 'any', need: need, addFn: 'UI._yarnSaleAdd', clearFn: 'UI._yarnSaleClear' });
+        html += UI._yarnChips({ sel: sel, rule: 'any', need: need, addFn: 'UI._yarnSaleAdd', clearFn: 'UI._yarnSaleClear', lockCatNap: true });
         html += '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
                 (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + UI._selectedYarnChips(sel) + '</div>';
         html += '<div class="event-pick-controls"><button class="btn btn-primary" onclick="UI._yarnSaleConfirm()" ' + (total === need ? '' : 'disabled') + '>Take Yarn</button></div>';
@@ -48,6 +48,8 @@ Object.assign(UI, {
         var arr = [];
         UI.ROYGBP.forEach(function(c) { var n = UI._yarnSale[c] || 0; for (var i = 0; i < n; i++) arr.push(c); });
         var changed = Game.applyYarnSale(arr);
+        // Session 43 Hank automa: solo rule — BOTH of you shop the sale. Hank +3.
+        if (Game.state.hankAutoma) Game.hankEventYarn(3, 'Yarn Sale');
         UI.renderYarnBowl(changed); UI.renderCraftGrid(); UI.renderSpecialRequests();
         var cb = this._yarnSaleCallback; this._yarnSaleCallback = null;
         if (cb) cb();
@@ -86,9 +88,9 @@ Object.assign(UI, {
         var bowl = Game.state.player.yarnBowl;
         var hasSomething = CARDS.COLORS.some(function(c) { return bowl[c] > 0; });
 
-        var destination = Game.state.playerCount > 1
-            ? 'another player'
-            : 'the supply';
+        var destination = Game.state.hankAutoma
+            ? 'Hank'
+            : (Game.state.playerCount > 1 ? 'another player' : 'the supply');
 
         var html = '<div class="event-yarn-pick-summary">' +
             'Choose 1 Yarn token from your stash to give to ' + destination + '.' +
@@ -114,6 +116,16 @@ Object.assign(UI, {
     _donatePickColor: function(color) {
         this.els.donateModal.style.display = 'none';
 
+        // Session 43 Hank automa: solo rule — the donated yarn goes straight to
+        // Hank's bowl. Only one possible recipient, so skip the picker.
+        if (Game.state.hankAutoma) {
+            var hankIdx = Game.state.players.findIndex(function(p) { return p.isAutoma; });
+            if (hankIdx !== -1) {
+                this._donateColor = color;      // _onDonateTarget reads this
+                UI._onDonateTarget(hankIdx);
+                return;
+            }
+        }
         if (Game.state.playerCount <= 1) {
             // SP: yarn goes to supply
             var changed = Game.applyDonate(color, -1);
@@ -200,6 +212,28 @@ Object.assign(UI, {
         }
 
         var player = Game.state.players[playerIndex];
+
+        // Session 43 Hank automa: solo rule — Hank crafts a Blanket for FREE
+        // (no yarn spent). Announced as a game moment so the player sees the hit.
+        if (player.isAutoma) {
+            var blanket = Game.hankCraftFreeBlanket();
+            UI.renderFinishedObjects();
+            if (blanket) {
+                UI.showGameMoment({
+                    badge: 'Event',
+                    badgeClass: 'moment-event',
+                    img: blanket.img,
+                    title: 'Craft Circle',
+                    desc: '<span class="player-name">Hank</span> crafts a Blanket — <b>free!</b>',
+                    points: blanket.points
+                }, function() {
+                    UI.showCraftCircleModal(playerIndex + 1, callback);
+                });
+            } else {
+                UI.showCraftCircleModal(playerIndex + 1, callback);
+            }
+            return;
+        }
 
         // Session 9b: AI players auto-resolve — craft best affordable item or skip
         if (player.isAI) {
@@ -420,12 +454,27 @@ Object.assign(UI, {
         var giveBtn = document.getElementById('srGiveBtn');
         var subtitle = document.getElementById('srTakeSubtitle');
         var playerName = Game.state.player ? Game.state.player.name : 'You';
-        if (Game.state.playerCount > 1) {
+        if (subtitle) subtitle.textContent = playerName + ' found a Special Request!';
+        // Session 42: Hank automa boss match — rulebook solo rule: keep the revealed SR
+        // or give it to Hank (he claims it + completes it FREE at end of game, so it's a
+        // real trade-off). High Demand / Emergency! Gnome Rules force a keep.
+        this._srGiveHankMode = false;
+        if (Game.state.hankAutoma) {
+            if (Game.srMustKeep()) {
+                giveBtn.style.display = 'none';
+                var mkRule = Game.state.activeGnomeRule;
+                if (subtitle) subtitle.textContent = (mkRule && mkRule.name ? mkRule.name : 'A Gnome Rule') +
+                    ' is in effect — you must keep this Special Request!';
+            } else {
+                this._srGiveHankMode = true;
+                giveBtn.textContent = 'Give It to Hank';
+                giveBtn.style.display = '';
+            }
+        } else if (Game.state.playerCount > 1) {
+            giveBtn.textContent = 'Give It Away';
             giveBtn.style.display = '';
-            if (subtitle) subtitle.textContent = playerName + ' found a Special Request!';
         } else {
             giveBtn.style.display = 'none';
-            if (subtitle) subtitle.textContent = playerName + ' found a Special Request!';
         }
         // Reset give picker state
         document.getElementById('srGivePicker').style.display = 'none';
@@ -475,6 +524,9 @@ Object.assign(UI, {
      * Session 9b: Toggle the "Give to..." player picker in SR Take modal.
      */
     onSRGiveToggle: function() {
+        // Session 42 Hank automa: only one possible recipient — skip the picker,
+        // give straight to Hank via the rulebook path.
+        if (this._srGiveHankMode) { this.onSRGiveToHank(); return; }
         var picker = document.getElementById('srGivePicker');
         var buttons = document.getElementById('srTakeButtons');
         var list = document.getElementById('srGivePlayerList');
@@ -520,6 +572,19 @@ Object.assign(UI, {
             card ? card.name : 'Special Request',
             targetPlayer ? targetPlayer.name : 'Player'
         );
+    },
+
+    /**
+     * Session 42: Give the revealed SR to Hank (rulebook solo automa rule).
+     * Routes through Game.giveSRToHank — Hank claims it and free-completes it at
+     * end of game — NOT the normal player-give (takeSpecialRequest), which would
+     * treat him like a burdened opponent.
+     */
+    onSRGiveToHank: function() {
+        var card = this._srTakeCard || UI._pendingSRCard;
+        if (card) Game.giveSRToHank(card);
+        UI._pendingSRCard = null;   // stop the ui-extra onSRTakeConfirm patch double-taking it
+        this._showSRAssignConfirm(card ? card.name : 'Special Request', 'Hank');
     },
 
 
@@ -572,6 +637,10 @@ Object.assign(UI, {
                 void el.offsetWidth;
                 el.classList.add('pulse');
             }
+
+            // Session 43: Cat Nap — badge + dim the napped-on bowl columns
+            var slot = el.closest('.yarn-token-slot');
+            if (slot) slot.classList.toggle('catnap-locked', !!(Game.catNapLocked && Game.catNapLocked(color)));
         });
     },
 
