@@ -670,14 +670,17 @@ Object.assign(UI, {
             return;
         }
 
-        var isTangle = item.kind === 'tangledYarn';
+        // Session 43 (playtest fix): gnome-rule installs announce themselves too.
+        var isGnome  = item.kind === 'gnomeRule';
+        var isTangle = item.kind === 'tangledYarn' || isGnome;
         try { if (window.Sound) Sound.play('tangle-reveal'); } catch(e) {}
         UI.showGameMoment({
-            badge: isTangle ? 'Tangled Yarn' : 'Snagged Project',
+            badge: isGnome ? 'New Gnome Rule!' : (isTangle ? 'Tangled Yarn' : 'Snagged Project'),
             badgeClass: isTangle ? 'moment-tangle' : 'moment-snag',
             img: card.img,
             title: card.name + (card.hard ? ' (Hard)' : ''),
-            desc: '<div class="gnome-rule-desc">' + (card.text || '') + '</div>'
+            desc: '<div class="gnome-rule-desc">' + (card.text || '') +
+                  (isGnome ? '<br><i>Ongoing — sits by the bazaar until a new Gnome Rule replaces it.</i>' : '') + '</div>'
         }, function() {
             UI.playHankReveals(callback);   // next reveal in the queue
         });
