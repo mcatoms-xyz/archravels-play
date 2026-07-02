@@ -153,6 +153,92 @@ Object.assign(UI, {
         document.body.appendChild(overlay);
     },
 
+    /**
+     * Session 43: Urgent Request (Snagged Project) blocked a project finish —
+     * explain the constraint + current progress. Same dynamic pattern as the
+     * must-shop warning.
+     */
+    _showSnagBlockWarning: function() {
+        var rem = Game.state.activeSnagReminder;
+        if (!rem) return;
+        this._dismissSnagBlockWarning();
+        var detail = '';
+        if (rem.arg && rem.arg.mode === 'oneEachItem') {
+            var types = ['hat', 'bear', 'mittens', 'scarf', 'blanket'];
+            var you = Game._humanPlayer();
+            var missing = types.filter(function(t) {
+                return !you.items.some(function(it) { return it.id === t; });
+            }).map(function(t) { var d = CARDS.getItem(t); return d ? d.name : t; });
+            detail = missing.length
+                ? '<div class="end-warn-body" style="margin-top:6px">Still needed: <b>' + missing.join(', ') + '</b></div>'
+                : '';
+        } else if (rem.arg && rem.arg.mode === 'completeSR') {
+            detail = '<div class="end-warn-body" style="margin-top:6px">Complete <b>any Special Request</b> to clear it.</div>';
+        }
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'snagWarnModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.style.display = 'flex';
+        overlay.innerHTML =
+            '<div class="modal-content" style="max-width:420px;text-align:center">' +
+                '<div class="modal-title">Snagged! 🧶</div>' +
+                '<div class="end-warn-body">' +
+                    '<b>' + rem.name + (rem.hard ? ' (Hard)' : '') + '</b> is in effect:<br>' + rem.text +
+                '</div>' + detail +
+                '<div class="modal-actions end-warn-actions">' +
+                    '<button class="btn btn-cta" onclick="UI._dismissSnagBlockWarning()">Got It</button>' +
+                '</div>' +
+            '</div>';
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) UI._dismissSnagBlockWarning();
+        });
+        document.body.appendChild(overlay);
+    },
+
+    _dismissSnagBlockWarning: function() {
+        var m = document.getElementById('snagWarnModal');
+        if (m) m.remove();
+    },
+
+    /**
+     * Session 43: Emergency! Gnome Rule blocked a craft — the tagged SR must be
+     * crafted before anything else.
+     */
+    _showEmergencyBlockWarning: function() {
+        var sr = Game.emergencyBlocks();
+        if (!sr) return;
+        this._dismissEmergencyBlockWarning();
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'emergencyWarnModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.style.display = 'flex';
+        overlay.innerHTML =
+            '<div class="modal-content" style="max-width:420px;text-align:center">' +
+                '<div class="modal-title">Emergency! 🚨</div>' +
+                '<div class="end-warn-body">' +
+                    'The gnomes demand it: you must craft ' +
+                    '<b>' + sr.name + '</b> before crafting anything else.' +
+                '</div>' +
+                (sr.img ? '<img src="' + sr.img + '" alt="' + sr.name + '" style="width:110px;border-radius:8px;margin:10px auto 0;display:block;box-shadow:0 4px 12px rgba(0,0,0,.3)">' : '') +
+                '<div class="modal-actions end-warn-actions">' +
+                    '<button class="btn btn-cta" onclick="UI._dismissEmergencyBlockWarning()">Got It</button>' +
+                '</div>' +
+            '</div>';
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) UI._dismissEmergencyBlockWarning();
+        });
+        document.body.appendChild(overlay);
+    },
+
+    _dismissEmergencyBlockWarning: function() {
+        var m = document.getElementById('emergencyWarnModal');
+        if (m) m.remove();
+    },
+
 
     /* =========================================================
        TAKE YARN FLOW
@@ -375,26 +461,31 @@ Object.assign(UI, {
         this._restockDone = true;
         var revealed = Game.restockBazaar();
 
-        if (revealed.length === 0) {
-            // No events or SRs — re-render to show any new restock actions, then let player act
-            UI.renderBazaar();
-            UI.renderProjectStrip();   // S40 fix #19: re-render so the click-to-finish handler attaches now that _restockDone is true
-            UI.renderActionBar();
-        } else {
-            // Process the queue of revealed Events/SRs, then return to restock bar
-            UI._processRestockQueue(revealed, 0, function() {
-                // Re-render so player can finish projects / learn patterns before ending turn.
-                try {
-                    UI.renderBazaar();
-                    UI.renderCraftGrid();
-                    UI.renderSpecialRequests();
-                    UI.renderFinishedObjects();
-                    UI.renderProjectStrip();
-                } catch (e) {}
-                // Always advance the action bar to "End Turn", even if a render above hiccups.
+        // Session 42: Tangled Yarn cards that surfaced during restock queue up as reveals.
+        // Play them (cat meow + yarn confetti), update the Gnome Rule slot, THEN the events/SRs.
+        UI.renderGnomeRule();
+        UI.playHankReveals(function() {
+            if (revealed.length === 0) {
+                // No events or SRs — re-render to show any new restock actions, then let player act
+                UI.renderBazaar();
+                UI.renderProjectStrip();   // S40 fix #19: re-render so the click-to-finish handler attaches now that _restockDone is true
                 UI.renderActionBar();
-            });
-        }
+            } else {
+                // Process the queue of revealed Events/SRs, then return to restock bar
+                UI._processRestockQueue(revealed, 0, function() {
+                    // Re-render so player can finish projects / learn patterns before ending turn.
+                    try {
+                        UI.renderBazaar();
+                        UI.renderCraftGrid();
+                        UI.renderSpecialRequests();
+                        UI.renderFinishedObjects();
+                        UI.renderProjectStrip();
+                    } catch (e) {}
+                    // Always advance the action bar to "End Turn", even if a render above hiccups.
+                    UI.renderActionBar();
+                });
+            }
+        });
     },
 
     /**
@@ -542,6 +633,94 @@ Object.assign(UI, {
        Config: { badge, badgeClass, img, title, desc, points }
        ========================================================= */
 
+    /**
+     * Session 42: Play the queued Hank automa reveals (Tangled Yarn instants + Snagged
+     * Projects) as game-moment modals — a cat meow + yarn-strand confetti per card. Chains
+     * through the whole queue, then fires callback. (Gnome Rules don't queue here — they
+     * slide into the board slot instead.)
+     */
+    playHankReveals: function(callback) {
+        var q = (Game.state && Game.state.hankReveals) || [];
+        if (!q.length) { if (callback) callback(); return; }
+        var item = q.shift();
+        var card = item.card || {};
+
+        // Session 43: Cat Nap placement — the human chooses where the cat sleeps.
+        // (AI/sim seats never place; enforcement is human-only anyway.)
+        if (item.kind === 'catNapPick') {
+            var nColors = (card.arg && card.arg.colors) || 1;   // built card: flat arg, boolean hard
+            try { if (window.Sound) Sound.play('tangle-reveal'); } catch(e) {}
+            UI.showGameMoment({
+                badge: 'Tangled Yarn',
+                badgeClass: 'moment-tangle',
+                img: card.img,
+                title: card.name + (card.hard ? ' (Hard)' : ''),
+                desc: '<div class="gnome-rule-desc">' + (card.text || '') + '</div>'
+            }, function() {
+                if (nColors >= 2) {
+                    UI._showCatNapPairPicker(function() { UI.playHankReveals(callback); });
+                } else {
+                    UI.showColorPicker(function(color) {
+                        Game.placeCatNap([color]);
+                        UI.renderYarnBowl();
+                        UI.playHankReveals(callback);
+                    }, 'Cat Nap — where does the cat sleep? 🐱');
+                }
+            });
+            return;
+        }
+
+        var isTangle = item.kind === 'tangledYarn';
+        try { if (window.Sound) Sound.play('tangle-reveal'); } catch(e) {}
+        UI.showGameMoment({
+            badge: isTangle ? 'Tangled Yarn' : 'Snagged Project',
+            badgeClass: isTangle ? 'moment-tangle' : 'moment-snag',
+            img: card.img,
+            title: card.name + (card.hard ? ' (Hard)' : ''),
+            desc: '<div class="gnome-rule-desc">' + (card.text || '') + '</div>'
+        }, function() {
+            UI.playHankReveals(callback);   // next reveal in the queue
+        });
+    },
+
+    /**
+     * Session 43: Cat Nap (Hard) — pick 2 ADJACENT colors (bowl order R·O·Y·G·B·P).
+     */
+    _showCatNapPairPicker: function(done) {
+        var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'catNapPairModal';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.style.display = 'flex';
+        var btns = '';
+        for (var i = 0; i < order.length - 1; i++) {
+            var a = order[i], b = order[i + 1];
+            btns += '<button class="btn btn-secondary catnap-pair-btn" data-pair="' + a + ',' + b + '">' +
+                '<img src="Wood Yarn Tokens PNG/' + a + '.png" alt="' + a + '">' +
+                '<img src="Wood Yarn Tokens PNG/' + b + '.png" alt="' + b + '">' +
+                '<span>' + a.charAt(0).toUpperCase() + a.slice(1) + ' + ' + b.charAt(0).toUpperCase() + b.slice(1) + '</span>' +
+                '</button>';
+        }
+        overlay.innerHTML =
+            '<div class="modal-content" style="max-width:440px;text-align:center">' +
+                '<div class="modal-title">Cat Nap (Hard) — where does the cat sprawl? 🐱</div>' +
+                '<div class="end-warn-body">Pick 2 adjacent colors. You can\'t shop or collect them while the cat\'s there.</div>' +
+                '<div class="catnap-pair-grid">' + btns + '</div>' +
+            '</div>';
+        overlay.addEventListener('click', function(e) {
+            var btn = e.target.closest('.catnap-pair-btn');
+            if (!btn) return;
+            var pair = btn.getAttribute('data-pair').split(',');
+            Game.placeCatNap(pair);
+            UI.renderYarnBowl();
+            overlay.remove();
+            if (done) done();
+        });
+        document.body.appendChild(overlay);
+    },
+
     _gameMomentCallback: null,
 
     /**
@@ -587,8 +766,9 @@ Object.assign(UI, {
 
         modal.style.display = 'flex';
 
-        // Session 17: Spawn confetti particles behind the modal
-        UI._spawnConfetti(modal);
+        // Session 17: Spawn confetti particles behind the modal (Session 42: yarn strands).
+        // Reference modals (e.g. the Gnome Rule card) pass noConfetti — no celebration.
+        if (!config.noConfetti) UI._spawnConfetti(modal);
 
         if (isAI) {
             // 4s so human spectators can read what happened
@@ -626,39 +806,42 @@ Object.assign(UI, {
         var layer = document.createElement('div');
         layer.className = 'gm-confetti-layer';
 
-        var colors = ['#e74c3c','#f39c12','#2ecc71','#3498db','#9b59b6','#e67e22','#1abc9c','#c9a84c'];
-        var shapes = ['circle', 'square', 'strip'];
-        var count = 100;
+        // Session 42: yarn-strand confetti — little tumbling snippets of yarn in the game's
+        // six yarn-token colors. Some are straight strands, some curl like a loose loop.
+        var colors = ['#d24b4b','#3b7dd8','#4fae5a','#e8c33f','#e2853a','#8b5cc0'];
+        var count = 90;
 
         for (var i = 0; i < count; i++) {
             var p = document.createElement('div');
-            p.className = 'gm-confetti-piece';
+            p.className = 'gm-confetti-piece gm-yarn';
             var color = colors[Math.floor(Math.random() * colors.length)];
-            var shape = shapes[Math.floor(Math.random() * shapes.length)];
             var left = Math.random() * 100;
             var delay = Math.random() * 1.5;
             var duration = 2.5 + Math.random() * 2;
-            var size = 6 + Math.random() * 8;
-            var drift = -40 + Math.random() * 80;
+            var thickness = 3 + Math.random() * 2;         // strand thickness
+            var length = 12 + Math.random() * 16;          // strand length
+            var drift = -50 + Math.random() * 100;
+            var curl = Math.random() < 0.45;               // ~half curl into a loop
 
             p.style.left = left + '%';
             p.style.animationDelay = delay + 's';
             p.style.animationDuration = duration + 's';
             p.style.setProperty('--drift', drift + 'px');
-            p.style.background = color;
 
-            if (shape === 'circle') {
-                p.style.width = size + 'px';
-                p.style.height = size + 'px';
+            if (curl) {
+                // A hollow loop of yarn: colored ring, transparent center.
+                var d = length * 0.9;
+                p.style.width = d + 'px';
+                p.style.height = d + 'px';
                 p.style.borderRadius = '50%';
-            } else if (shape === 'strip') {
-                p.style.width = (size * 0.4) + 'px';
-                p.style.height = (size * 1.5) + 'px';
-                p.style.borderRadius = '2px';
+                p.style.border = thickness + 'px solid ' + color;
+                p.style.borderRightColor = 'transparent';   // open the loop so it reads as a strand
+                p.style.background = 'transparent';
             } else {
-                p.style.width = size + 'px';
-                p.style.height = size + 'px';
-                p.style.borderRadius = '1px';
+                p.style.width = thickness + 'px';
+                p.style.height = length + 'px';
+                p.style.borderRadius = '999px';              // rounded yarn ends
+                p.style.background = color;
             }
 
             layer.appendChild(p);
@@ -1004,6 +1187,21 @@ Object.assign(UI, {
        ========================================================= */
 
     showTangledCatModal: function(callback) {
+        // Session 43 Hank automa: solo rule — Tangled Cat ALWAYS affects you.
+        // (Hank takes no turns, so tangling him would be meaningless anyway.)
+        if (Game.state.hankAutoma) {
+            var humanIdx = Game.state.activePlayerIndex;
+            Game.applyTangledCat(humanIdx);
+            UI.renderActionBar();
+            UI.showGameMoment({
+                badge: 'Event',
+                badgeClass: 'moment-event',
+                img: 'Square Cards PNG/AR_YarnEvents_Final_0000_Tangled-Cat.png',
+                title: 'Tangled Cat',
+                desc: 'The cat\'s got <span class="player-name">your</span> yarn!<br>You can\'t Craft on your next turn.'
+            }, callback);
+            return;
+        }
         if (Game.state.playerCount === 1) {
             // Single player — apply immediately, no selector needed
             Game.applyTangledCat(0);
@@ -1079,6 +1277,18 @@ Object.assign(UI, {
         }
 
         var player = Game.state.players[idx];
+
+        // Session 43 Hank automa: solo rule — Hank gets his +1 too, piled onto his
+        // most-stocked color (color is cosmetic for him: he crafts any-color and
+        // leftover yarn scores 2:1).
+        if (player.isAutoma) {
+            Game.hankEventYarn(1, 'Friendly Clerk');
+            UI._friendlyClerkPlayerIdx++;
+            setTimeout(function() {
+                UI._friendlyClerkNextPlayer();
+            }, AI.DELAY);
+            return;
+        }
 
         // Session 9b: AI players auto-resolve — pick most needed color
         if (player.isAI) {
