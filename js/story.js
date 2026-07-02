@@ -461,12 +461,23 @@ var Story = {
     // Session 40: reset per-match live-achievement tracking + wire detection hooks (once)
     this._liveToasted = {}; this._matchEarned = [];
     this._wireLiveAchievementHooks();
+    var isBossMatch = this.isBoss(oppId);
     var youP = { characterId:this.picked, isAI:false, name:youName };
-    var oppP = { characterId:oppId, isAI:true, name:this.char(oppId).name };
+    // Session 42 (P1 automa): the boss is a score-only automa, not an AI turn-taker.
+    var oppP = { characterId:oppId, isAI:!isBossMatch, name:this.char(oppId).name };
     // Session 42: turn-order difficulty ramp — you go first on rungs 1–5 (welcoming);
-    // the rival goes first from rung 6 on + the boss, which removes your ~+5–10pt first-move edge.
-    var rivalFirst = this.beaten >= 5;
-    Game.init({ players: rivalFirst ? [oppP, youP] : [youP, oppP], srEnabledIds: this.srEnabledIds() });
+    // the rival goes first from rung 6 on, which removes your ~+5–10pt first-move edge.
+    // The boss automa never "goes first" (he takes no turns) → you always lead the solo fight.
+    var rivalFirst = !isBossMatch && this.beaten >= 5;
+    // Session 42 (P2): the boss match seeds the Awards Season automa cards. Difficulty =
+    // number of prior Hank wins (red cards), tracked on the profile (persistence = P5).
+    var hankReds = isBossMatch ? ((this.currentUser && this.currentUser.hankReds) || this.hankReds || 0) : 0;
+    Game.init({
+        players: rivalFirst ? [oppP, youP] : [youP, oppP],
+        srEnabledIds: this.srEnabledIds(),
+        hankAutoma: isBossMatch,
+        hankReds: hankReds,
+    });
     UI.renderAll();
     var tb=document.getElementById('takeoverBar'); if(tb) tb.style.display='none';
     // beginMatch bypasses onSetupStart's "if player 0 is AI, kick off" logic — do it here
@@ -479,16 +490,104 @@ var Story = {
     if(!this.active) return;
     this.active=false;
     var players=(Game.state&&Game.state.players)||[], you=null, opp=null;
-    players.forEach(function(p){ if(p.isAI) opp=p; else you=p; });
+    // Session 42 (P1 automa): the boss is identified by isHank/isAutoma (isAI is now false
+    // for him). The opponent is anyone who isn't the human seat; the human is !isAI & !automa.
+    players.forEach(function(p){ if(p.isHank||p.isAutoma||p.isAI){ opp=p; } else { you=p; } });
     var ys = you ? (Game.calculateFinalScore(you).total||0) : 0;
     var os = opp ? (Game.calculateFinalScore(opp).total||0) : 0;
     var c = this.currentOpp();
     var stats = this.captureMatchStats(you, opp, ys, os);
     this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[], stats:stats };
+    // Session 43: record EVERY finished match (win AND loss) — history ring buffer +
+    // running aggregates on the profile. Runs before creditWin so a win's save() also
+    // persists the record; losses save explicitly below.
+    this.recordMatch(c);
     try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
     if(this.lastMatch.win) this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
+    else this.save();                            // losses: persist the match record + playtime
     this.open();
     this.showResult(this.lastMatch.win);
+  },
+
+  /* ---- Session 43: per-match history + running aggregates ----
+     Two tiers so the profile never balloons:
+     (1) p.matches[]  — full per-match detail, RING BUFFER capped at MATCH_HISTORY_CAP
+     (2) p.agg        — tiny incremental aggregates, kept forever (powers profile
+         summaries, streaks, Hank record incl. highest red beaten, Hank flavor lines).
+     Leaderboards (future) get their own server-side table — NOT this blob. */
+  MATCH_HISTORY_CAP: 75,
+
+  recordMatch: function(oppId){
+    var p=this.profile=this.profile||{};
+    var lm=this.lastMatch||{}; var st=lm.stats||{};
+    var isBossMatch=!!(this.isBoss && this.isBoss(oppId));
+    // Compact scorecards for both seats (game state is still at game-over here)
+    var youBd=null, oppBd=null, you=null;
+    try{
+      (Game.state.players||[]).forEach(function(pl){
+        var bd=Game.calculateFinalScore(pl);
+        var compact={ items:bd.items, srs:bd.specialRequests, favBonus:bd.favoriteBonus,
+                      projects:bd.projects, patterns:bd.learnedTiles,
+                      srPenalty:bd.srPenalty, yarn:bd.yarnPenalty, total:bd.total };
+        if(pl.isHank||pl.isAutoma||pl.isAI){ oppBd=compact; } else { youBd=compact; you=pl; }
+      });
+    }catch(e){}
+    // What you actually made
+    var made={items:{},srs:[],projects:[]};
+    if(you){
+      (you.items||[]).forEach(function(it){ made.items[it.id]=(made.items[it.id]||0)+1; });
+      (you.craftedSpecialRequests||[]).forEach(function(sr){ made.srs.push(sr.name); });
+      (you.projects||[]).forEach(function(pr){ made.projects.push(pr.name); });
+    }
+    var rec={
+      when: new Date().toISOString(),
+      durationSec: Math.round((lm.timeMs||0)/1000),
+      mode: isBossMatch?'boss':'story',
+      rung: this.beaten||0,
+      characterId: this.picked,
+      opponentId: oppId,
+      result: lm.win?'win':'loss',
+      yourScore: lm.you||0,
+      theirScore: lm.opp||0,
+      rounds: st.turns||0,
+      scorecard: { you:youBd, opp:oppBd },
+      made: made
+    };
+    if(isBossMatch) rec.hankReds=(Game.state && Game.state.hankReds)||0;
+    p.matches=p.matches||[];
+    p.matches.push(rec);
+    if(p.matches.length>this.MATCH_HISTORY_CAP) p.matches=p.matches.slice(-this.MATCH_HISTORY_CAP);
+    this._updateAggregates(p, rec);
+    // Playtime: creditWin banks it for WINS only (pre-existing); count losses here
+    // so total playtime reflects every finished match without double-counting.
+    if(!lm.win) p.totalPlayTimeMs=(p.totalPlayTimeMs||0)+(lm.timeMs||0);
+    return rec;
+  },
+
+  _updateAggregates: function(p, rec){
+    var a=p.agg=p.agg||{ played:0, wins:0, losses:0, sumScore:0, byCrafter:{}, itemCounts:{},
+                         streak:{cur:0,best:0}, fastestWinSec:null,
+                         hank:{faced:0,beaten:0,lost:0,highestRedBeaten:null} };
+    var win=rec.result==='win';
+    a.played++; a.sumScore+=(rec.yourScore||0);
+    if(win){
+      a.wins++; a.streak.cur++;
+      if(a.streak.cur>a.streak.best) a.streak.best=a.streak.cur;
+      if(rec.durationSec && (a.fastestWinSec==null || rec.durationSec<a.fastestWinSec)) a.fastestWinSec=rec.durationSec;
+    } else { a.losses++; a.streak.cur=0; }
+    var bc=a.byCrafter[rec.characterId]=a.byCrafter[rec.characterId]||{played:0,wins:0};
+    bc.played++; if(win) bc.wins++;
+    var mi=(rec.made&&rec.made.items)||{};
+    Object.keys(mi).forEach(function(id){ a.itemCounts[id]=(a.itemCounts[id]||0)+mi[id]; });
+    if(rec.mode==='boss'){
+      a.hank.faced++;
+      if(win){
+        a.hank.beaten++;
+        var r=rec.hankReds||0;
+        if(a.hank.highestRedBeaten==null || r>a.hank.highestRedBeaten) a.hank.highestRedBeaten=r;
+      } else { a.hank.lost++; }
+    }
+    return a;
   },
   // Snapshot the per-match stats the achievement tests read. Pulled from the
   // game-over player state + calculateFinalScore breakdown (no new in-play hooks).
