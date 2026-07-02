@@ -166,6 +166,14 @@ var Story = {
   initAuth: async function(){
     if (!this.sb){ await this.ensureProfile(); this.renderChip(); return; }
     try { var r = await this.sb.auth.getSession(); this.currentUser = r.data.session ? r.data.session.user : null; } catch(e){ this.currentUser=null; }
+    // Session 43 (SIGNIN_PLAN): deep-link fallback listener — inert until the custom
+    // URL scheme is registered in the iOS project; harmless everywhere else.
+    try{
+      var CapApp = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+      if(this.isNativeApp() && CapApp && CapApp.addListener){
+        CapApp.addListener('appUrlOpen', function(ev){ Story._handleAuthDeepLink(ev && ev.url); });
+      }
+    }catch(e){}
     this.sb.auth.onAuthStateChange(function(_e,s){
       var was=(Story.currentUser&&Story.currentUser.id)||null;
       Story.currentUser = s ? s.user : null;
@@ -213,6 +221,19 @@ var Story = {
       html = '<div class="crumb">Account</div><h1 class="st-h1">Sign in</h1>'+
         '<div class="signin-box"><p class="si-msg" style="color:var(--st-walnut)">Sign-in connects on the live site. For now, play as a guest.</p>'+
         '<button class="btn btn-gold" onclick="Story.goTypes()">Play as guest</button></div>'+this.backBar('Story.goTypes()');
+    } else if(this.isNativeApp()){
+      // Session 43 (SIGNIN_PLAN): native app sign-in — Apple first (required, guideline
+      // 4.8), Google second, both via native sheets + signInWithIdToken (no browser
+      // bounce). Email magic-link is web-only until the deep link lands (lower priority).
+      html = '<div class="crumb">Account</div><h1 class="st-h1">Sign in</h1>'+
+        '<p class="st-sub">Save your progress, scores, and achievements across devices.</p>'+
+        '<div class="signin-box">'+
+          '<button class="btn btn-apple" onclick="Story.signInApple()"> Sign in with Apple</button>'+
+          '<button class="btn btn-gold" onclick="Story.signInGoogle()">Continue with Google</button>'+
+          '<div class="si-msg" id="siMsg"></div>'+
+          '<div class="si-or">or</div>'+
+          '<button class="btn btn-ghost" onclick="Story.goTypes()">Play as guest</button>'+
+        '</div>';
     } else {
       html = '<div class="crumb">Account</div><h1 class="st-h1">Sign in</h1>'+
         '<p class="st-sub">Save your progress, scores, and achievements across devices.</p>'+
@@ -228,6 +249,56 @@ var Story = {
     }
     this.screen(html);
   },
+  /* Session 43 (SIGNIN_PLAN scaffolding): native-app auth. All of this is a NO-OP
+     until the Capacitor plugins + Supabase provider config land (Adam's day-of-
+     approval checklist) — the buttons degrade to a friendly "not enabled yet". */
+  isNativeApp: function(){
+    try{ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+    catch(e){ return false; }
+  },
+  _genNonce: function(){
+    var b = new Uint8Array(32);
+    (window.crypto || window.msCrypto).getRandomValues(b);
+    return Array.prototype.map.call(b, function(x){ return ('0'+x.toString(16)).slice(-2); }).join('');
+  },
+  _sha256Hex: async function(str){
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.prototype.map.call(new Uint8Array(buf), function(x){ return ('0'+x.toString(16)).slice(-2); }).join('');
+  },
+  signInApple: async function(){
+    var msg = document.getElementById('siMsg');
+    if(!this.sb){ if(msg) msg.textContent='Not connected yet.'; return; }
+    try{
+      var SIA = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SignInWithApple;
+      if(!SIA){ if(msg) msg.textContent='Apple sign-in arrives with the next app update!'; return; }
+      // Nonce: SHA-256 hash goes to Apple, the RAW nonce goes to Supabase.
+      var raw = this._genNonce();
+      var hashed = await this._sha256Hex(raw);
+      var res = await SIA.authorize({
+        clientId: 'com.xyzgamelabs.archravels',
+        redirectURI: 'https://archravels.xyzgamelabs.com',
+        scopes: 'email name', state: 'ar', nonce: hashed
+      });
+      var token = res && res.response && res.response.identityToken;
+      if(!token){ if(msg) msg.textContent='Apple sign-in was cancelled.'; return; }
+      var r = await this.sb.auth.signInWithIdToken({ provider:'apple', token: token, nonce: raw });
+      if(r.error){ if(msg) msg.textContent='Error: '+r.error.message; }
+      // success → onAuthStateChange picks up the session + reloads the profile
+    }catch(e){ if(msg) msg.textContent='Apple sign-in unavailable ('+(e && e.message || e)+')'; }
+  },
+  /* Deep-link fallback (drafted, inert until the custom scheme is registered):
+     if a web-OAuth redirect ever returns via com.xyzgamelabs.archravels://auth,
+     catch it and hand the tokens to Supabase. */
+  _handleAuthDeepLink: async function(url){
+    try{
+      if(!url || !this.sb) return;
+      var hash = url.split('#')[1] || '';
+      var p = {}; hash.split('&').forEach(function(kv){ var x=kv.split('='); if(x[0]) p[x[0]]=decodeURIComponent(x[1]||''); });
+      if(p.access_token && p.refresh_token){
+        await this.sb.auth.setSession({ access_token: p.access_token, refresh_token: p.refresh_token });
+      }
+    }catch(e){}
+  },
   sendMagicLink: async function(){
     var email=(document.getElementById('siEmail').value||'').trim(), msg=document.getElementById('siMsg');
     if(!email){ if(msg) msg.textContent='Enter your email first.'; return; }
@@ -239,6 +310,21 @@ var Story = {
   },
   signInGoogle: async function(){
     if(!this.sb) return;
+    var msg = document.getElementById('siMsg');
+    // Session 43 (SIGNIN_PLAN): native app → native Google sheet + signInWithIdToken
+    // (web OAuth can't redirect back into capacitor://localhost). Web keeps OAuth.
+    if(this.isNativeApp()){
+      try{
+        var GA = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.GoogleAuth) || window.GoogleAuth;
+        if(!GA){ if(msg) msg.textContent='Google sign-in arrives with the next app update!'; return; }
+        var u = await GA.signIn();
+        var token = u && ((u.authentication && u.authentication.idToken) || u.idToken);
+        if(!token){ if(msg) msg.textContent='Google sign-in was cancelled.'; return; }
+        var r = await this.sb.auth.signInWithIdToken({ provider:'google', token: token });
+        if(r.error && msg) msg.textContent='Error: '+r.error.message;
+      }catch(e){ if(msg) msg.textContent='Google sign-in unavailable ('+(e && e.message || e)+')'; }
+      return;
+    }
     try{ await this.sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } }); }catch(e){}
   },
   signOut: async function(){
