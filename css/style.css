@@ -8100,3 +8100,14 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 .catnap-pair-btn { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .catnap-pair-btn img { width: 26px; height: 26px; pointer-events: none; }
 .catnap-pair-btn span { pointer-events: none; }
+
+/* Session 43: native Sign in with Apple button (HIG-ish: black, white text) */
+.btn-apple {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.btn-apple:hover { background: #1a1a1a; }
