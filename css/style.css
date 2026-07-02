@@ -8209,3 +8209,17 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 #story-root .nm-pen { font-size: .7em; opacity: .55; }
 #story-root .nm-edit:hover .nm-pen { opacity: 1; }
 #story-root #handleInput { width: 100%; font-size: 1.05rem; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,.25); margin-bottom: 10px; text-align: center; }
+
+/* Session 43: DESKTOP Craft Circle climb — two-column browsable layout (the mobile
+   carousel/fixed-height cc-mode is NOT applied at wide widths; page scrolls naturally). */
+#story-root .cc-desk { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(280px,.85fr); gap: 26px; max-width: 940px; margin: 0 auto; align-items: start; }
+#story-root .cc-desk .cc-herowrap { margin: 0; }
+#story-root .cc-desk .cc-hero { min-height: 340px; }
+#story-root .cc-desk .cc-art { min-height: 300px; }
+/* the rail becomes a vertical scrolling list of all rungs on desktop */
+#story-root .cc-desk .cc-scout { background: rgba(0,0,0,.10); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 12px 12px 6px; }
+#story-root .cc-desk .cc-scout-row { display: flex; flex-direction: column; gap: 8px; max-height: 460px; overflow-y: auto; padding-right: 4px; }
+#story-root .cc-desk .cc-mini { width: auto; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; }
+#story-root .cc-desk .cc-mini:hover { background: rgba(255,255,255,.08); }
+#story-root .cc-desk .cc-mini .cc-ma { display: flex; align-items: center; gap: 10px; }
+#story-root .cc-desk .cc-mini .cc-ma img { width: 40px; height: 40px; }
