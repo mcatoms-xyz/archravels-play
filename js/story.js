@@ -357,7 +357,10 @@ var Story = {
     this.renderChip();
     if(this.root && this.root.style.display!=='none'){
       var scr=document.getElementById('story-screen');
-      if(scr && /Story Mode · Stats/.test(scr.innerHTML)) this.goStats();
+      // Session 44 fix: the S43 profile redesign changed the page markup, so the old
+      // "Story Mode · Stats" marker never matched — after sign-in the profile kept
+      // showing GUEST data until a manual reload (looked like sign-in was broken).
+      if((scr && (/Story Mode · Stats/.test(scr.innerHTML) || scr.querySelector('.pf-hero'))) || /^#\/(profile|stats)/.test(location.hash)) this.goStats();
       else if(document.getElementById('opptrack')) this.renderLadder();
     }
   },
@@ -438,7 +441,9 @@ var Story = {
           '<a class="landing-link landing-signout" href="#" onclick="Story.signOut();return false;">Sign out</a>'+
         '</div>';
     } else if(this._hasLocalStats()){
-      el.innerHTML = '<a class="landing-link" href="#" onclick="Story.account();return false;">View your stats →</a>';
+      el.innerHTML = '<div class="landing-auth-links">'+
+        '<a class="landing-link" href="#" onclick="Story.account();return false;">View your stats →</a>'+
+        '<a class="landing-link" href="#" onclick="Story.open();Story.goSignIn();return false;">Sign in</a></div>';
     } else {
       el.innerHTML = '<a class="landing-link" href="#" onclick="Story.account();return false;">Sign in / view your stats →</a>';
     }
@@ -1424,7 +1429,7 @@ var Story = {
     var hero='<div class="pf-hero">'+
       '<div class="pf-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="pf-av-edit">✎</span></div>'+
       '<div class="pf-id"><div class="pf-name" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="pf-pen">✎</span></div>'+
-        '<div class="pf-sub">'+(this.currentUser?'Synced to your account':'Playing as a guest')+' · <span class="pf-editlink" onclick="Story.goEditName()">Change name</span></div></div>'+
+        '<div class="pf-sub">'+(this.currentUser?('Synced · '+(this.currentUser.email||'your account')):'Playing as a guest')+' · <span class="pf-editlink" onclick="Story.goEditName()">Change name</span></div></div>'+
       '<div class="pf-herocta">'+
         '<button class="btn btn-gold" onclick="Story.goTypes()">Play Story →</button>'+
         (this.currentUser
