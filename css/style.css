@@ -8323,6 +8323,7 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 #story-root .pf-pen{ font-size:.9rem; opacity:.5; }
 #story-root .pf-sub{ font-size:.88rem; opacity:.72; margin-top:2px; }
 #story-root .pf-editlink,#story-root .pf-sub .pf-editlink{ color:var(--gold); cursor:pointer; }
+#story-root .pf-herocta{ display:flex; gap:10px; flex:none; }
 #story-root .pf-herocta .btn{ white-space:nowrap; }
 
 /* headline stat band */
@@ -8405,3 +8406,20 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
   #story-root .pf-pagehead{ flex-direction:column; text-align:center; }
   #story-root .pf-ph-r{ text-align:center; }
 }
+
+/* ============ Session 43: light headings on the dimmed Story bg (Adam) ============ */
+#story-root .st-h1{ color:#fdf6e8 !important; text-shadow:0 2px 8px rgba(0,0,0,.6); font-family:'SantElia',var(--font-system); }
+#story-root .st-sub{ color:#f3e9d6 !important; text-shadow:0 1px 4px rgba(0,0,0,.5); }
+#story-root .same-note,#story-root .sm-note{ color:#efe3cf !important; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+#story-root .sm-choose{ color:#fdf6e8 !important; text-shadow:0 2px 8px rgba(0,0,0,.6); font-family:'SantElia',var(--font-system); }
+#story-root .srb-sec-title{ color:#fdf6e8 !important; text-shadow:0 2px 6px rgba(0,0,0,.55); }
+#story-root .srb-sec-sub{ color:rgba(243,233,214,.85) !important; }
+#story-root .srb-sec-prog{ color:#e8cf7e !important; }
+
+/* ¾ fraction on Pts tags / scores: spaced, ~50% size, raised */
+#story-root .pf-frac{ font-size:.5em; vertical-align:.55em; margin-left:.12em; font-weight:700; }
+/* keep the fraction dark-readable ON the cream Pts tag */
+#story-root .pf-ptag .pf-frac{ color:var(--walnut); }
+
+/* Gold border on any crafter you've played a Story game with (Adam) */
+#story-root .pf-craf.played{ box-shadow:0 0 0 3px var(--gold), 0 4px 14px rgba(0,0,0,.28); }
