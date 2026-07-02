@@ -514,13 +514,17 @@ Object.assign(UI, {
         try { if (window.Sound) Sound.play('restock'); } catch(e) {}
         var SECS = 6;
         var YARN3 = { orange:'0000', blue:'0001', green:'0002', purple:'0003', red:'0004', yellow:'0005' };
-        var colors = (beat.colors && beat.colors.length) ? beat.colors : (beat.color ? [beat.color] : []);
-        // one Yarn3 token per gained yarn, staggered pop-in
-        var tokens = colors.map(function(c, i){
-            var code = YARN3[c] || '0001';
-            return '<img class="hb-tok" style="animation-delay:'+(0.15+i*0.5)+'s" '+
-              'src="Yarn 3 Tokens PNG/AR_Yarn3_Tokens_'+code+'_'+c+'.png" alt="'+c+' yarn">';
-        }).join('');
+        var c = (beat.colors && beat.colors[0]) || beat.color || 'blue';
+        // Session 43 (Adam): ONE Yarn3 "3-count" token — he grabbed 3 of a single color.
+        // (If a future ramp makes the amount ≠ 3, fall back to N single tokens.)
+        var tokens;
+        if (beat.amount === 3) {
+            tokens = '<img class="hb-tok hb-tok-big" style="animation-delay:.15s" '+
+              'src="Yarn 3 Tokens PNG/AR_Yarn3_Tokens_'+(YARN3[c]||'0001')+'_'+c+'.png" alt="'+c+' yarn">';
+        } else {
+            tokens = '';
+            for (var k=0;k<beat.amount;k++) tokens += '<img class="hb-tok" style="animation-delay:'+(0.15+k*0.4)+'s" src="Wood Yarn Tokens PNG/'+c+'.png" alt="'+c+' yarn">';
+        }
         var overlay = document.createElement('div');
         overlay.className = 'modal-overlay hank-beat-overlay';
         overlay.id = 'hankBeatModal';
@@ -538,7 +542,7 @@ Object.assign(UI, {
             '<button class="btn btn-gold hb-go" onclick="UI._dismissHankTurnBeat(true)">Your Turn →</button>'+
           '</div>';
         document.body.appendChild(overlay);
-        try { if (window.Sound) colors.forEach(function(c,i){ setTimeout(function(){ Sound.play('draw-card'); }, 150+i*500); }); } catch(e) {}
+        try { if (window.Sound) Sound.play('draw-card'); } catch(e) {}
         // Kick the countdown ring (CSS transition over SECS)
         var fg = overlay.querySelector('.hb-ring-fg');
         if (fg) { fg.style.transition = 'stroke-dashoffset '+SECS+'s linear'; requestAnimationFrame(function(){ fg.style.strokeDashoffset = '289'; }); }
