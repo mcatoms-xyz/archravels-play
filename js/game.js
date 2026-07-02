@@ -438,13 +438,14 @@ var Game = {
         // surface before the project-list timer ends the game (a project-timed solo game
         // only draws ~half the yarn deck). HANK_TANGLE_FRONTLOAD = 1.0 → spread across the
         // whole deck (old behavior); 0.5 → concentrate in the front half.
-        this._seedIntoDeck(this.state.deck, tangles, this.HANK_TANGLE_FRONTLOAD);
+        this._seedIntoDeck(this.state.deck, tangles, this.HANK_TANGLE_FRONTLOAD, 2);
 
         // Session 42 (P4): seed the 4 Snagged Projects into the face-down Project deck
         // (the initial 3 face-up were already dealt in initProjects, so they stay clean).
         var snagged = built.snagged.slice();
         this.shuffle(snagged);
-        this._seedIntoDeck(this.state.projectDeck, snagged);
+        // Session 43 (playtest fix): min gap 3 — no more back-to-back snags.
+        this._seedIntoDeck(this.state.projectDeck, snagged, null, 3);
     },
 
     /**
@@ -590,20 +591,37 @@ var Game = {
     /**
      * Spread `inserts` at randomized positions within even segments of the deck.
      * frontFraction (0–1] limits seeding to the FRONT portion of the deck (default whole).
+     * Session 43 (playtest fix): minGap enforces a minimum spacing between inserts —
+     * the old per-segment jitter could drop two cards ADJACENT at segment boundaries
+     * (Adam hit back-to-back Snagged Projects). Gap auto-shrinks if the deck's too small.
      */
-    _seedIntoDeck: function(deck, inserts, frontFraction) {
+    _seedIntoDeck: function(deck, inserts, frontFraction, minGap) {
         var n = inserts.length;
         if (!n || !deck) return;
         var region = (frontFraction && frontFraction > 0 && frontFraction < 1)
             ? Math.max(n, Math.floor(deck.length * frontFraction))
             : deck.length;
         var seg = Math.max(1, Math.floor(region / n));
+        // 1. Jittered position per segment (against the ORIGINAL deck indices)
+        var positions = [];
         for (var k = 0; k < n; k++) {
             var lo = k * seg;
             var hi = (k === n - 1) ? region : lo + seg;
             var span = Math.max(1, hi - lo);
-            var pos = Math.min(deck.length, lo + Math.floor(Math.random() * span));
-            deck.splice(pos, 0, inserts[k]);
+            positions.push(Math.min(deck.length, lo + Math.floor(Math.random() * span)));
+        }
+        positions.sort(function(a, b) { return a - b; });
+        // 2. Enforce the minimum gap (shrunk to what the deck can actually hold)
+        var gap = Math.max(0, minGap || 0);
+        if (gap && n > 1) gap = Math.min(gap, Math.floor(deck.length / (n - 1)));
+        for (var i = 1; i < n; i++) {
+            if (positions[i] < positions[i - 1] + gap) positions[i] = positions[i - 1] + gap;
+            if (positions[i] > deck.length) positions[i] = deck.length;
+        }
+        // 3. Insert from the BACK so earlier indices stay valid (each earlier insert
+        //    also adds +1 real card between neighbors, widening the final gap).
+        for (var j = n - 1; j >= 0; j--) {
+            deck.splice(positions[j], 0, inserts[j]);
         }
     },
 
@@ -630,6 +648,10 @@ var Game = {
             this.state.catNapColors = [];
             if (card.fx === 'catNap') {
                 this.state.hankReveals.push({ kind: 'catNapPick', card: card });
+            } else {
+                // Session 43 (playtest fix, Adam): a new Gnome Rule shouldn't just slide
+                // silently into the corner — announce it like an event reveal too.
+                this.state.hankReveals.push({ kind: 'gnomeRule', card: card });
             }
             this.render.gnomeRule();
             return;
