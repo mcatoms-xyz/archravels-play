@@ -315,7 +315,19 @@ var Story = {
     this.open();
     this.goTypes();
   },
-  account: function(){ this.open(); this.goSignIn(); },   // sign-in from the landing/front door
+  // Session 44 (Adam): no Account middleman — the landing link goes STRAIGHT to the
+  // profile when there's anything to show: signed in, OR a guest with device-stored
+  // stats (free & paid both play + save locally without an account). Only a truly
+  // blank guest lands on the sign-in screen.
+  account: function(){ this.open(); if(this.currentUser || this._hasLocalStats()) this.goStats(); else this.goSignIn(); },
+  _hasLocalStats: function(){
+    if(this.profile){ var p=this.profile; return !!(p._totalWins || (p.matches&&p.matches.length) || (p.crafters&&Object.keys(p.crafters).length) || p.handle || p.lifetimeStoryScore || p.bank); }
+    try{
+      var raw=localStorage.getItem('ar_story_profile'); if(!raw) return false;
+      var q=JSON.parse(raw);
+      return !!(q && (q._totalWins || (q.matches&&q.matches.length) || (q.crafters&&Object.keys(q.crafters).length) || q.handle || q.lifetimeStoryScore || q.bank));
+    }catch(e){ return false; }
+  },
   // Session 36: DEV — drop straight into the Hank boss face-off (skips the climb).
   // Usage: Story.testHank() or Story.testHank('mauro'), or the ?boss URL flag.
   testHank: function(crafterId){
@@ -424,11 +436,13 @@ var Story = {
           '<a class="landing-link" href="#" onclick="Story.account();return false;">View your stats →</a>'+
           '<a class="landing-link landing-signout" href="#" onclick="Story.signOut();return false;">Sign out</a>'+
         '</div>';
+    } else if(this._hasLocalStats()){
+      el.innerHTML = '<a class="landing-link" href="#" onclick="Story.account();return false;">View your stats →</a>';
     } else {
       el.innerHTML = '<a class="landing-link" href="#" onclick="Story.account();return false;">Sign in / view your stats →</a>';
     }
   },
-  openIdentity: function(){ if(this.currentUser) this.goStats(); else this.goSignIn(); },
+  openIdentity: function(){ if(this.currentUser || this._hasLocalStats()) this.goStats(); else this.goSignIn(); },
   goSignIn: function(){
     var html;
     if(this.currentUser){
