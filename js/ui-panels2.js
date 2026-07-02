@@ -68,6 +68,20 @@ Object.assign(UI, {
             overlay.appendChild(slot);
         }
 
+        // Session 43: persistent Urgent Request reminder pill — the physical card sits
+        // "in front of you"; digitally it hangs above the project row. Click = detail.
+        // (_snagBlocksFinish also auto-CLEARS the reminder if already satisfied, so the
+        // pill disappears as soon as the requirement is met.)
+        if (Game.state.enforceSnagReminder && Game.state.activeSnagReminder && Game._snagBlocksFinish()) {
+            var snag = document.createElement('div');
+            snag.className = 'snag-pill';
+            snag.innerHTML = '⚠️ <b>' + Game.state.activeSnagReminder.name + '</b> — finish blocked';
+            snag.setAttribute('role', 'button');
+            snag.setAttribute('tabindex', '0');
+            snag.addEventListener('click', function(e) { e.stopPropagation(); UI._showSnagBlockWarning(); });
+            overlay.appendChild(snag);
+        }
+
         // Session 15c: Single deck count — on the card back only (removed redundant deckBadge text)
         if (deckBadge) deckBadge.textContent = '';
         var projDeckCount = document.getElementById('projectDeckCount');
@@ -119,7 +133,14 @@ Object.assign(UI, {
         var project = Game.state.projectDisplay.find(function(p) { return p.uid === projectUid; });
 
         var pts = Game.finishProject(projectUid);
-        if (pts === null) return;
+        if (pts === null) {
+            // Session 43: if the Urgent Request snag blocked the finish, SAY so.
+            if (Game.state.enforceSnagReminder && Game.state.activeSnagReminder && Game._snagBlocksFinish()) {
+                this.els.finishProjectModal.style.display = 'none';
+                UI._showSnagBlockWarning();
+            }
+            return;
+        }
 
         this.els.finishProjectModal.style.display = 'none';
 
@@ -133,13 +154,17 @@ Object.assign(UI, {
             desc: UI._getProjectDesc(project, projPlayer.name, projPlayer.isAI),
             points: pts
         }, function() {
-            // Session 10: Full re-render after finishing project
-            UI.renderFinishedObjects();
-            UI.renderProjectStrip();
-            UI.renderCraftGrid();
-            UI.renderSpecialRequests();
-            UI.renderYarnBowl();
-            UI.renderActionBar();
+            // Session 42: any Snagged Project revealed on the refill draw plays now.
+            UI.playHankReveals(function() {
+                // Session 10: Full re-render after finishing project
+                UI.renderFinishedObjects();
+                UI.renderProjectStrip();
+                UI.renderCraftGrid();
+                UI.renderSpecialRequests();
+                UI.renderYarnBowl();
+                UI.renderGnomeRule();
+                UI.renderActionBar();
+            });
         });
     },
 
@@ -367,6 +392,11 @@ Object.assign(UI, {
             var hex = CARDS.COLOR_HEX[color];
             var cn = color.charAt(0).toUpperCase() + color.slice(1);
             var sub = opts.sub ? opts.sub(color) : null;
+            // Session 43: Cat Nap — GAIN flows pass lockCatNap; napped colors can't be collected.
+            if (opts.lockCatNap && Game.catNapLocked && Game.catNapLocked(color)) {
+                disabled = true;
+                sub = '🐱 napping';
+            }
             var h = '<span class="xc-chip-wrap">';
             h += '<button class="xc-chip' + (cur > 0 ? ' active' : '') + '" ' + (disabled ? 'disabled' : '') +
                  ' onclick="' + opts.addFn + '(\'' + color + '\')" data-cb-color="' + color + '" aria-label="' + cn + '">';
@@ -599,7 +629,9 @@ Object.assign(UI, {
         // Standard yarn-chip grid, single-pick (any color, ROYGBP). Covers every
         // showColorPicker use: Friendly Clerk, Spinner Take 3 (pick 1 → gain 3),
         // wild picks, etc. Picking a chip → UI.onColorPick(color) → the caller's cb.
-        grid.innerHTML = UI._yarnChips({ single: true, rule: 'any', addFn: 'UI.onColorPick' });
+        // Session 43: every showColorPicker use is a GAIN flow (clerk, take-3, wild picks) →
+        // Cat Nap locks apply here.
+        grid.innerHTML = UI._yarnChips({ single: true, rule: 'any', addFn: 'UI.onColorPick', lockCatNap: true });
     },
 
     /**
