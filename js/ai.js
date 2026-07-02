@@ -800,6 +800,10 @@ var AI = {
             return;
         }
 
+        // Session 43: Urgent Request enforcement is human-only (AI seats are exempt in
+        // game.js finishProject — they can't strategize toward the requirement and
+        // deadlock the sim). No AI-side guard needed.
+
         // Pick highest-point project
         completable.sort(function(a, b) { return b.points - a.points; });
         var project = completable[0];
@@ -964,6 +968,21 @@ var AI = {
         switch (result.inputType) {
 
             case 'tangledCat': {
+                // Session 43 Hank automa: solo rule — Tangled Cat ALWAYS affects the
+                // active (non-Hank) player, even when the AI is driving the seat.
+                if (Game.state.hankAutoma) {
+                    var selfIdx = Game.state.activePlayerIndex;
+                    Game.applyTangledCat(selfIdx);
+                    var selfName = Game.state.players[selfIdx].name;
+                    UI.showGameMoment({
+                        badge: 'Event',
+                        badgeClass: 'moment-event',
+                        img: 'Square Cards PNG/AR_YarnEvents_Final_0000_Tangled-Cat.png',
+                        title: 'Tangled Cat',
+                        desc: 'The cat\'s got <span class="player-name">' + selfName + '</span>\'s yarn!<br>No crafting next turn.'
+                    }, callback);
+                    break;
+                }
                 // Target the player with the most items (strongest opponent)
                 var activeIdx = Game.state.activePlayerIndex;
                 var bestTarget = -1;
@@ -995,6 +1014,8 @@ var AI = {
                     colors.push(self._pickMostNeededColor());
                 }
                 Game.applyYarnSale(colors);
+                // Session 43 Hank automa: solo rule — BOTH shop the sale. Hank +3.
+                if (Game.state.hankAutoma) Game.hankEventYarn(3, 'Yarn Sale');
                 var summary = self._summarizeColors(colors);
                 self.showAction('Yarn Sale! Took ' + summary, function() {
                     UI.renderYarnBowl();
@@ -1069,6 +1090,15 @@ var AI = {
 
         var player = Game.state.players[playerIdx];
 
+        // Session 43 Hank automa: Hank's +1 piles onto his most-stocked color.
+        if (player.isAutoma) {
+            Game.hankEventYarn(1, 'Friendly Clerk');
+            self.showAction('Hank gained 1 yarn (Clerk)', function() {
+                self._handleFriendlyClerkAI(playerIdx + 1, callback);
+            });
+            return;
+        }
+
         if (player.isAI) {
             // AI picks the most needed color for this player
             var color = self._pickMostNeededColorForPlayer(player);
@@ -1101,6 +1131,17 @@ var AI = {
         }
 
         var player = Game.state.players[playerIdx];
+
+        // Session 43 Hank automa: solo rule — Hank crafts a Blanket for FREE
+        // (no yarn spent), never a normal AI craft.
+        if (player.isAutoma) {
+            Game.hankCraftFreeBlanket();
+            self.showAction('Hank crafted a Blanket — free! (Craft Circle)', function() {
+                UI.renderFinishedObjects();
+                self._handleCraftCircleAI(playerIdx + 1, callback);
+            });
+            return;
+        }
 
         if (player.isAI) {
             // Try to find a craftable item for this AI player
@@ -1188,6 +1229,25 @@ var AI = {
         if (Game.state.playerCount <= 1) {
             Game.takeSpecialRequest(card);
             showAwardMoment(player.name);
+            return;
+        }
+
+        // Session 42: Hank automa boss match — the rulebook keep-or-give-to-Hank choice.
+        // Hank is NOT a normal opponent to "burden": giving him an SR HELPS him (free
+        // end-game completion). So you keep the ones you can finish and hand Hank the rest
+        // to avoid your own unfinished-SR penalty. Gnome Rules (High Demand / Emergency) can
+        // force you to keep it.
+        if (Game.state.hankAutoma) {
+            var cap = (Game.HANK_SR_KEEP_CAP != null) ? Game.HANK_SR_KEEP_CAP : 2;
+            var heldUncompleted = player.specialRequests.length;
+            var keep = Game.srMustKeep() || isFav || canAfford || heldUncompleted < cap;
+            if (keep) {
+                Game.takeSpecialRequest(card);
+                showAwardMoment(player.name);
+            } else {
+                Game.giveSRToHank(card);
+                showAwardMoment('Hank');
+            }
             return;
         }
 
