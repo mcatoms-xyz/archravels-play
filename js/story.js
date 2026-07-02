@@ -28,20 +28,155 @@ var Story = {
     expert:         { name:'The Expert',      color:'#7E5BC0', dark:'#46326f', tag:'Fewer, stronger moves',  desc:'You get fewer actions, but they hit harder: take five yarn of any color and craft ignoring color rules.' },
   },
   // intro = pre-match taunt; win = their line when YOU win; lose = their line when you lose
+  /* Session 43 (Adam): win/lose line POOLS per character (3–5 each) so results stay
+     fresh — `win` = the rival conceding when YOU win; `lose` = the rival's victory lap.
+     The original lines live on as pool members; `intro` is unchanged (picker + face-off).
+     Hank gets history-aware intro pools below (see hankIntroLine). */
   DIALOG: {
-    rebecca:{intro:'I may have bought a little extra. Don’t judge my basket.', win:'You beat me with way less stash. Teach me your restraint, oh wise one.', lose:'Eee, I won?! That’s the yarn talking, I had SO much to work with. Go again?'},
-    theo:{intro:'I already know which stall has the best value today.', win:'Huh. You out-valued me. I’m annoyed and a little impressed. Mostly annoyed.', lose:'Good game. I just bought smarter. It’s not personal, it’s arithmetic.'},
-    derrick:{intro:'I make four before most folks make one.', win:'Now THAT was a finish. Clean, fast, smart. I’m stealing whatever you just did.', lose:'Output, my friend. That’s the whole secret. Come back, I’ll show you the rhythm.'},
-    amara:{intro:'I was just gonna make stuff and see what happens.', win:'Okay, you actually pushed me. Respect. That basically never happens.', lose:'See? Didn’t even try that hard. That’s kind of my thing.'},
-    neeha:{intro:'Color has no rules, child. Only conversations.', win:'You didn’t fight the colors, you let them lead. That is the whole art.', lose:'The colors simply listened to me today. Next time, perhaps, they’ll whisper to you.'},
-    alex:{intro:'Color requirements? Never met ’em.', win:'Ohhh you broke the rules better than me. I’m equal parts proud and furious.', lose:'Rules are fake and I’m gonna prove it again. GG though, genuinely.'},
-    ted:{intro:'I’ll spin what I need while you’re still picking through the bins.', win:'You found your rhythm faster than I found mine. That’s the trick.', lose:'Slow and steady, friend. Made every bit of that myself. Felt good.'},
-    eliza:{intro:'I plan three turns ahead, and I don’t improvise.', win:'You disrupted my plan. I did not account for you. Recalculating. Rematch.', lose:'Executed exactly as planned. I do love when that happens.'},
-    jo:{intro:'I make ’em two at a time, so my cat always gets one.', win:'You beat me AND the cat? That’s a big deal in this house. Well done, truly.', lose:'Double the output, double the fun! Here, the cat made you a mouse.'},
-    noah:{intro:'Two items a craft, two pigs, one crate of yarn. Let’s go.', win:'You did more with less?? That’s basically witchcraft. The pigs respect you now.', lose:'MORE STUFF WINS, baby! The pigs are very proud. Run it back?'},
-    irene:{intro:'I’ve been crafting since before you were a stitch.', win:'You beat an old woman at her own game. I’m so proud I could just pinch you.', lose:'Don’t feel bad, dear. Experience just has a way of winning. More tea?'},
-    mauro:{intro:'Three moves, all of ’em count. I don’t waste motion.', win:'Tight game. You didn’t waste a move either. I see you. Good one.', lose:'Less is more, you know? Played the right notes, that’s all.'},
-    hank:{intro:'So. You climbed the whole circle to reach my nook. Spin your own yarn yet, little stitch? I do. Every turn. Let’s see what you’ve got.', win:'…Well now. You out-crafted the Stitchmeister himself. The circle is yours. I’ll put the kettle on — you’ve earned a proper sit.', lose:'Ho ho — the gnome keeps his crown a while longer. Don’t fret, the yarn never runs out. Climb back up and try me again.'},
+    rebecca:{intro:'I may have bought a little extra. Don’t judge my basket.',
+      wins:['You beat me with way less stash. Teach me your restraint, oh wise one.',
+            'I bought HALF the bazaar and still lost?! Okay. Okay. I have questions.',
+            'Ugh, fine, you win. But have you SEEN my haul? I win at shopping.',
+            'My basket was fuller. Your scorecard was fuller-er. Rude, honestly.'],
+      losses:['Eee, I won?! That’s the yarn talking, I had SO much to work with. Go again?',
+            'Turns out buying everything IS a strategy! Who knew! (Me. I knew.)',
+            'Don’t be sad — here, I have extra yarn. I always have extra yarn.',
+            'That felt like a shopping spree with a trophy at the end. Rematch?'] },
+    theo:{intro:'I already know which stall has the best value today.',
+      wins:['Huh. You out-valued me. I’m annoyed and a little impressed. Mostly annoyed.',
+            'I ran the numbers twice. You still won. The numbers and I need a moment.',
+            'Statistically, that shouldn’t have happened. Well played. Recalculating.',
+            'You got more per stitch than me. That stings in a very specific way.'],
+      losses:['Good game. I just bought smarter. It’s not personal, it’s arithmetic.',
+            'Value per yarn: maximized. Feelings: irrelevant. Nice match though.',
+            'I told you which stall was best. You didn’t listen. The math did.',
+            'Cheapest win I ever bought. And I do mean cheapest — did you see those prices?'] },
+    derrick:{intro:'I make four before most folks make one.',
+      wins:['Now THAT was a finish. Clean, fast, smart. I’m stealing whatever you just did.',
+            'You out-produced ME? Check the scoreboard again— no, that’s real. Respect.',
+            'Fast hands. Faster brain. I like your workshop energy, friend.',
+            'I blinked and you had a finished pile. That’s usually MY trick.'],
+      losses:['Output, my friend. That’s the whole secret. Come back, I’ll show you the rhythm.',
+            'Four to your one. Told you. The hands remember what the heart believes.',
+            'Volume! VOLUME! Ha! Good game — now watch this stack of mittens.',
+            'You crafted well. I just crafted MORE. There’s always more.'] },
+    amara:{intro:'I was just gonna make stuff and see what happens.',
+      wins:['Okay, you actually pushed me. Respect. That basically never happens.',
+            'Huh. You won. Cool cool cool. I’m gonna go lie down about it.',
+            'That was… effort? From me? Wild. You earned that one.',
+            'Nice. I’d be mad if I believed in being mad about craft games.'],
+      losses:['See? Didn’t even try that hard. That’s kind of my thing.',
+            'Vibes-based crafting strikes again. Don’t overthink it, that’s my secret.',
+            'I just made stuff and it… worked out? It usually does. GG.',
+            'Winning’s more fun when you’re relaxed. You should try it sometime.'] },
+    neeha:{intro:'Color has no rules, child. Only conversations.',
+      wins:['You didn’t fight the colors, you let them lead. That is the whole art.',
+            'Today the palette chose you. I bow to its judgment — and yours.',
+            'Beautiful. Truly. Your work sang louder than mine, and I listened.',
+            'A student surpasses the conversation. The colors are pleased.'],
+      losses:['The colors simply listened to me today. Next time, perhaps, they’ll whisper to you.',
+            'You forced the hues, child. They resist force. Sit with them a while.',
+            'Orange forgives, but purple remembers. Study that, and return.',
+            'The bazaar spoke, and I answered. Do not fret — it speaks to everyone eventually.'] },
+    alex:{intro:'Color requirements? Never met ’em.',
+      wins:['Ohhh you broke the rules better than me. I’m equal parts proud and furious.',
+            'Wait, YOU’RE the chaos agent now? I feel weirdly proud. And dethroned.',
+            'That was illegal in at least three craft circles and I LOVED it.',
+            'Fine! You win! The system remains broken and I remain delighted.'],
+      losses:['Rules are fake and I’m gonna prove it again. GG though, genuinely.',
+            'See?! No color rules, no problem. Anarchy: 1, Everyone else: 0.',
+            'I substituted every color and NOBODY stopped me. What a world.',
+            'The requirements were more like… suggestions. Great game, sucker.'] },
+    ted:{intro:'I’ll spin what I need while you’re still picking through the bins.',
+      wins:['You found your rhythm faster than I found mine. That’s the trick.',
+            'Well spun, friend. You made the quiet kind of win. Those are the best kind.',
+            'I spun plenty. You just used yours better. Fair’s fair.',
+            'That’s a homestead-quality victory right there. Tip of the hat.'],
+      losses:['Slow and steady, friend. Made every bit of that myself. Felt good.',
+            'Never bought a skein I didn’t need. Never will. Good match.',
+            'The wheel turns, the yarn comes. Patience beats panic every time.',
+            'You shop. I spin. Today, spinning won. Most days, honestly.'] },
+    eliza:{intro:'I plan three turns ahead, and I don’t improvise.',
+      wins:['You disrupted my plan. I did not account for you. Recalculating. Rematch.',
+            'My projections had me winning by six. Reality disagreed. Noted for next time.',
+            'Impressive. Unplanned, chaotic, effective. I hate it. Well done.',
+            'You have introduced variance into my model. I will now study you.'],
+      losses:['Executed exactly as planned. I do love when that happens.',
+            'Turn nine, exactly as forecast. You were never behind — you were on schedule to lose.',
+            'The plan accounted for your best move. You made it. Thank you for cooperating.',
+            'Flawless execution. I permitted myself one (1) celebratory nod.'] },
+    jo:{intro:'I make ’em two at a time, so my cat always gets one.',
+      wins:['You beat me AND the cat? That’s a big deal in this house. Well done, truly.',
+            'The cat is sulking. I’m sulking. We’ll get over it. Great game.',
+            'Two at a time wasn’t enough today?! Extraordinary. The cat demands a rematch.',
+            'You win! The cat still gets a mitten though. House rules.'],
+      losses:['Double the output, double the fun! Here, the cat made you a mouse.',
+            'Me and the cat make a good team. Mostly me. Don’t tell the cat.',
+            'Pairs, friend! Everything in pairs! One to score, one to snuggle.',
+            'The cat supervised this entire victory. All credit to management.'] },
+    noah:{intro:'Two items a craft, two pigs, one crate of yarn. Let’s go.',
+      wins:['You did more with less?? That’s basically witchcraft. The pigs respect you now.',
+            'The pigs have discussed it and they’re switching to YOUR team. Traitors.',
+            'BIG win! Huge! I love it! I mean I hate it! But I LOVE it!',
+            'You out-stuffed the stuff-master. The barn will hear about this.'],
+      losses:['MORE STUFF WINS, baby! The pigs are very proud. Run it back?',
+            'Two at a time, every time! The pigs called it in the first round.',
+            'Quantity has a quality all its own, friend! HA! More yarn!',
+            'The crate is empty, the board is FULL, and the pigs are dancing.'] },
+    irene:{intro:'I’ve been crafting since before you were a stitch.',
+      wins:['You beat an old woman at her own game. I’m so proud I could just pinch you.',
+            'Well! Sixty years of crafting and you still surprised me. Have a cookie.',
+            'Oh, lovely work, dear. I let you win, of course. (I did not.)',
+            'My my. The student out-stitched the century. Don’t let it go to your head.'],
+      losses:['Don’t feel bad, dear. Experience just has a way of winning. More tea?',
+            'That trick? Learned it in ’62. You’ll get there, sweetheart.',
+            'Age and treachery, dear. Mostly treachery. Biscuit?',
+            'I’ve dropped more stitches than you’ve knitted. That’s not an insult, it’s a résumé.'] },
+    mauro:{intro:'Three moves, all of ’em count. I don’t waste motion.',
+      wins:['Tight game. You didn’t waste a move either. I see you. Good one.',
+            'Clean. Efficient. Nothing extra. You played MY game and won it. Respect.',
+            'I counted your wasted moves. Zero. That’s the whole compliment.',
+            'Somebody finally out-economized me. Noted, studied, respected.'],
+      losses:['Less is more, you know? Played the right notes, that’s all.',
+            'Three moves. All of them counted. That’s the tune.',
+            'You did a lot. I did enough. Enough wins.',
+            'Minimalism, friend: I didn’t beat you by much because I didn’t need to.'] },
+    hank:{intro:'So. You climbed the whole circle to reach my nook. Spin your own yarn yet, little stitch? I do. Every turn. Let’s see what you’ve got.',
+      // Session 43: history-aware intro pools — hankIntroLine() picks the pool from
+      // your record (agg.hank) + the chosen red count. First meeting = the classic above.
+      intros:{
+        afterLosses:[
+          'Back again, little stitch? Ho ho. The kettle hasn’t even cooled from last time.',
+          'The circle whispers you’ve been practicing. The circle also whispers you keep losing. Gnomes hear everything.',
+          'Persistence! I respect it. I’ll still bury you in yarn, but I respect it.',
+          'You again! Wonderful. My leftover pile was getting lonely.'],
+        rematch:[
+          'Ah, the champion returns. Beat me once, did you? The yarn remembers. So do I.',
+          'Back for more, crown-chaser? I’ve been spinning all week. Literally. It’s all I do.',
+          'You’ve tangled with me before and lived to knit about it. Bold of you to return.',
+          'The nook’s been quiet since you left. Come — let’s make it loud.'],
+        deepReds:[
+          'THIS many red cards? Ho HO. You’re either very brave or very tired of winning.',
+          'The hard cards, then. No more gentle gnome. I hope your bowl is deep, little stitch.',
+          'Red suits me, don’t you think? Matches my hat. And your impending scorecard.',
+          'Few climbers ask for this. Fewer walk away with the win. Kettle’s on — for one of us.'],
+        crown:[
+          'Thirteen reds. THE WOOLEN CROWN. No one has taken it from me. Not once. Not ever. Show me the crafter who dares.',
+          'So it comes to this — every hard card in the box, and you, and me. Win, and the crown is yours forever. Lose… and the circle will sing of how close you came.'],
+      },
+      wins:['…Well now. You out-crafted the Stitchmeister himself. The circle is yours. I’ll put the kettle on — you’ve earned a proper sit.',
+            'Beaten! By needle and thread and sheer nerve. Take your bow, champion — the nook salutes you.',
+            'Ho… ho. The gnome concedes. Your stitches were truer than mine today, and I don’t say that twice.',
+            'The yarn chose you today, little stitch. No — not little. Not anymore.',
+            'You’ve unraveled me fair and square. Sit, sit — victory tea is the sweetest brew.'],
+      losses:['Ho ho — the gnome keeps his crown a while longer. Don’t fret, the yarn never runs out. Climb back up and try me again.',
+            'A fine tangle you gave me! But the nook is mine, and the kettle whistles for one.',
+            'Close! Closer than most. The crown wobbled — it did not fall.',
+            'Every loss is a lesson in disguise, little stitch. This one wore a very good disguise.',
+            'The Stitchmeister stands. Come back when your yarn is angrier.'],
+      crownWin:[
+        'THE CROWN… is yours. Thirteen reds, and you stitched through every one. I am not weeping — gnomes don’t weep. We felt. WE FELT, LITTLE STITCH. Wear it well, Champion of Champions.'],
+    },
   },
   // Two waves through the types (easy->hard); each type's pair sits 6 apart so you
   // never face the same type back-to-back regardless of which crafter you pick.
@@ -531,14 +666,39 @@ var Story = {
     var port = '<img class="dlg-port'+(this.isBoss(c)?' boss':'')+'" src="'+this.portrait(c)+'">';
     return '<div class="dlg" style="--tc:'+col+'">'+port+'<div class="bubble"><b>'+who+'</b><p>“'+line+'”</p></div></div>';
   },
+  /* Session 43: random line pools. kind='win' (you won — rival concedes) or 'lose'.
+     Falls back to the legacy single-string keys so nothing ever renders blank. */
+  _pickLine: function(arr){ return arr[Math.floor(Math.random()*arr.length)]; },
+  dlgLine: function(c, kind){
+    var dlg=this.DIALOG[c]||{};
+    // Hank crown win gets its once-in-a-lifetime line
+    if(this.isBoss(c) && kind==='win' && this._lastBossReds===13 && dlg.crownWin) return this._pickLine(dlg.crownWin);
+    var pool = kind==='win' ? dlg.wins : dlg.losses;
+    if(pool && pool.length) return this._pickLine(pool);
+    return kind==='win' ? (dlg.win||'Well played.') : (dlg.lose||'Got you this time.');
+  },
+  /* Session 43: Hank's intro reads your history (agg.hank) + the chosen red count. */
+  hankIntroLine: function(){
+    var dlg=this.DIALOG.hank, pools=dlg.intros||{};
+    var h=this._hankAgg()||{faced:0,beaten:0,lost:0};
+    var reds=this.bossRedsForMatch();
+    if(reds===13 && pools.crown) return this._pickLine(pools.crown);
+    if(!h.faced) return dlg.intro;                                    // first meeting — the classic
+    if(h.beaten===0 && h.lost>0 && pools.afterLosses) return this._pickLine(pools.afterLosses);
+    if(reds>=5 && pools.deepReds) return this._pickLine(pools.deepReds);
+    if(pools.rematch) return this._pickLine(pools.rematch);
+    return dlg.intro;
+  },
+
   goPreMatch: function(){
     var c=this.currentOpp(), dlg=this.DIALOG[c]||{};
     // Session 43 (difficulty v2): the boss face-off carries the red-card scale once
     // you've beaten Hank anywhere. First-ever fight = all green, no picker.
     var scale = this.isBoss(c) ? this.hankScaleHTML() : '';
+    var introLine = this.isBoss(c) ? this.hankIntroLine() : (dlg.intro||'Let’s craft.');
     this.screen('<div class="crumb">Match · Face-Off</div><h1 class="st-h1">Before the match</h1>'+
       '<div class="vs-stage"><div>'+this.fighterHTML(this.picked,'You')+'</div><div class="vs-badge">VS</div><div>'+this.fighterHTML(c,'Challenger')+'</div></div>'+
-      '<div class="dialogbox">'+this.dialogHTML(c, dlg.intro||'Let’s craft.')+'</div>'+
+      '<div class="dialogbox">'+this.dialogHTML(c, introLine)+'</div>'+
       scale+
       '<div class="match-actions"><button class="btn btn-gold" onclick="Story.beginMatch()">Begin Match</button>'+
       '<button class="btn btn-ghost" onclick="Story.renderLadder()">Back</button></div>');
@@ -620,6 +780,7 @@ var Story = {
     // Session 43 (difficulty v2): red count comes from the face-off picker — default
     // = highest-beaten+1 (the ceiling), adjustable down, first-ever fight forced R0.
     var hankReds = isBossMatch ? this.bossRedsForMatch() : 0;
+    this._lastBossReds = isBossMatch ? hankReds : null;   // crown-win line check (dlgLine)
     Game.init({
         players: rivalFirst ? [oppP, youP] : [youP, oppP],
         srEnabledIds: this.srEnabledIds(),
@@ -778,7 +939,7 @@ var Story = {
       actions = '<button class="btn btn-gold" onclick="Story.goPreMatch()">Rematch</button><button class="btn btn-ghost" onclick="Story.renderLadder()">Back to the climb</button>';
     }
     this.screen('<div class="crumb">Match · Result</div><div class="result-banner '+(win?'win':'loss')+'">'+banner+'</div>'+
-      '<div class="dialogbox">'+this.dialogHTML(c, win?(dlg.win||'Well played.'):(dlg.lose||'Got you this time.'))+'</div>'+
+      '<div class="dialogbox">'+this.dialogHTML(c, this.dlgLine(c, win?'win':'lose'))+'</div>'+
       details+'<div class="match-actions">'+actions+'</div>');
   },
   nextChallenger: function(){
@@ -818,6 +979,7 @@ var Story = {
       {ico:'⏱',num:this.fmtTime(p.totalPlayTimeMs||0),lbl:'Total Time'},
       {ico:'🏅',num:(Object.keys(p.achievements||{}).length)+' / '+this.ACH.length,lbl:'Achievements'},
     ].map(function(t){ return '<div class="stat-tile"><div class="st-ico">'+t.ico+'</div><div class="st-num">'+t.num+'</div><div class="st-lbl">'+t.lbl+'</div></div>'; }).join('');
+    var records=this._recordsHTML(p);
     var order=Object.keys(CARDS.characters).filter(function(c){ return c!=='hank'; }).sort(function(a,b){ return (crafters[b]?1:0)-(crafters[a]?1:0); });
     var board=order.map(function(c){
       var s=crafters[c], col=Story.color(c);
@@ -836,11 +998,51 @@ var Story = {
           : '<button class="btn btn-gold stats-signout" onclick="Story.goSignIn()">Sign in</button>')+
       '</div>'+
       '<div class="stat-tiles">'+tiles+'</div>'+
+      records+
       '<div class="ach-cta-row"><button class="btn btn-ghost" onclick="Story.goAchievements()">🏅 View all achievements →</button><button class="btn btn-ghost" onclick="Story.goSRBoard()">🧶 Special Request Board →</button></div>'+
       '<div class="section-h">Your Crafters</div><div class="crafter-board">'+board+'</div>'+
       this.backBar('Story.goTypes()','← Back to start'));
   },
   fmtTime: function(ms){ var m=Math.round(ms/60000); if(m<60) return m+'m'; return Math.floor(m/60)+'h '+(m%60)+'m'; },
+
+  /* Session 43: match-history records — surfaces profile.agg (streaks, W/L, fastest
+     win, most-crafted, the Hank record + red-scale progress). Renders nothing until
+     the first recorded match, so legacy profiles see no empty shell. */
+  _recordsHTML: function(p){
+    var a=p&&p.agg;
+    if(!a || !a.played) return '';
+    var winPct=Math.round(100*(a.wins||0)/a.played);
+    var avg=Math.round((a.sumScore||0)/a.played);
+    var fw=a.fastestWinSec!=null ? (Math.floor(a.fastestWinSec/60)+':'+String(a.fastestWinSec%60).padStart(2,'0')) : '—';
+    // most-crafted item
+    var topItem=null, topN=0, ic=a.itemCounts||{};
+    Object.keys(ic).forEach(function(id){ if(ic[id]>topN){ topN=ic[id]; topItem=id; } });
+    var topDef=topItem&&CARDS.getItem?CARDS.getItem(topItem):null;
+    var tiles=[
+      {ico:'⚔️', num:(a.wins||0)+'–'+(a.losses||0), lbl:'Record ('+winPct+'%)'},
+      {ico:'🔥', num:(a.streak&&a.streak.cur||0)+' <span class="rec-sub">best '+(a.streak&&a.streak.best||0)+'</span>', lbl:'Win Streak'},
+      {ico:'⚡', num:fw, lbl:'Fastest Win'},
+      {ico:'📈', num:avg, lbl:'Avg Score'},
+    ];
+    if(topDef) tiles.push({ico:'<img class="rec-item-img" src="'+topDef.img+'" alt="">', num:'×'+topN, lbl:'Most Crafted: '+topDef.name});
+    var tHtml=tiles.map(function(t){ return '<div class="stat-tile rec-tile"><div class="st-ico">'+t.ico+'</div><div class="st-num">'+t.num+'</div><div class="st-lbl">'+t.lbl+'</div></div>'; }).join('');
+    // Hank record card + mini red scale
+    var hk='';
+    var h=a.hank;
+    if(h && h.faced){
+      var hi=(h.highestRedBeaten==null)?-1:h.highestRedBeaten;
+      var dots='';
+      for(var i=1;i<=13;i++){ dots+='<span class="hkm-dot'+(i<=hi?' red':'')+'"></span>'; }
+      hk='<div class="hank-record" style="--tc:#7E5BC0">'+
+        '<img class="hr-port" src="'+this.portrait('hank')+'" alt="Hank">'+
+        '<div class="hr-body"><div class="hr-title">Hank the Stitchmeister</div>'+
+        '<div class="hr-line">Faced <b>'+h.faced+'</b> · Beaten <b>'+h.beaten+'</b> · Lost <b>'+h.lost+'</b></div>'+
+        '<div class="hr-scale">'+dots+'</div>'+
+        '<div class="hr-sub">'+(hi>=0 ? (hi===13?'👑 THE WOOLEN CROWN IS YOURS':'Best: '+hi+' red'+(hi===1?'':'s')+' beaten — '+(13-hi)+' to the crown') : 'Beat him to start the red-card climb')+'</div>'+
+        '</div></div>';
+    }
+    return '<div class="section-h">Records</div><div class="stat-tiles rec-tiles">'+tHtml+'</div>'+hk;
+  },
 
   /* ---- achievement board ---- */
   goAchievements: async function(){
