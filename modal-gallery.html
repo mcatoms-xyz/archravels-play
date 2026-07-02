@@ -126,6 +126,9 @@
     });
     ['eventModal','yarnSaleModal','donateModal','srTakeModal','gameMomentModal','gameOverModal','colorModal','craftConfirmModal','tangledCatModal','finishProjectModal','learnPatternModal','frogItModal','take5Modal']
       .forEach(function(id){ var el=d.getElementById(id); if(el) el.style.display='none'; });
+    // Session 43: dynamically-created warning modals — remove them entirely
+    ['snagWarnModal','emergencyWarnModal','catNapPairModal','endActionsWarnModal']
+      .forEach(function(id){ var el=d.getElementById(id); if(el) el.remove(); });
   }
 
   function run(label, fn){
@@ -165,6 +168,91 @@
 
     { grp:'Special Requests' },
     { label:'SR Take (found an SR)', run:function(w){ w.UI.showSRTakeModal(w.CARDS.specialRequests[0], noop); } },
+
+    { grp:'Hank Automa (S43)' },
+    { label:'SR Take — keep or Give to Hank', run:function(w){
+        w.Game.state.hankAutoma = true;
+        w.UI.showSRTakeModal(w.CARDS.specialRequests[0], noop);
+      } },
+    { label:'SR Take — gnome-forced keep (High Demand)', run:function(w){
+        w.Game.state.hankAutoma = true;
+        w.Game.state.activeGnomeRule = { fx:'highDemand', name:'High Demand' };
+        w.UI.showSRTakeModal(w.CARDS.specialRequests[0], noop);
+      } },
+    { label:'Snagged! block modal (green: items)', run:function(w){
+        var d = w.CARDS.snaggedProjects.filter(function(x){return x.id==='urgentRequest';})[0];
+        w.Game.state.activeSnagReminder = w.CARDS.makeSnaggedCard(d, 'easy');
+        w.UI._showSnagBlockWarning();
+      } },
+    { label:'Snagged! block modal (hard: SR)', run:function(w){
+        var d = w.CARDS.snaggedProjects.filter(function(x){return x.id==='urgentRequest';})[0];
+        w.Game.state.activeSnagReminder = w.CARDS.makeSnaggedCard(d, 'hard');
+        w.Game.state._snagSRdone = false;
+        w.UI._showSnagBlockWarning();
+      } },
+    { label:'Urgent Request pill (on project row)', run:function(w){
+        var d = w.CARDS.snaggedProjects.filter(function(x){return x.id==='urgentRequest';})[0];
+        w.Game.state.hankAutoma = true;
+        w.Game.state.enforceSnagReminder = true;
+        w.Game.state.activeSnagReminder = w.CARDS.makeSnaggedCard(d, 'hard');
+        w.Game.state._snagSRdone = false;
+        w.UI.renderProjectStrip();
+      } },
+    { label:'Emergency! block modal', run:function(w){
+        var sr = w.CARDS.specialRequests[0];
+        var p = activePlayer(w);
+        p.specialRequests.push({ uid:'gal_em', name:sr.name, img:sr.img, points:sr.points });
+        w.Game.state.hankAutoma = true;
+        w.Game.state.activeGnomeRule = { fx:'emergency', name:'Emergency!' };
+        w.Game.state.emergencySRUid = 'gal_em';
+        w.UI._showEmergencyBlockWarning();
+      } },
+    { label:'Cat Nap — place (1 color, Light)', run:function(w){
+        w.Game.state.hankAutoma = true;
+        var d = w.CARDS.tangledYarn.filter(function(x){return x.id==='catNap';})[0];
+        w.Game.state.hankReveals = [{ kind:'catNapPick', card:w.CARDS.makeTangledCard(d,'light') }];
+        w.UI.playHankReveals(noop);
+      } },
+    { label:'Cat Nap — place (2 adjacent, Hard)', run:function(w){
+        w.Game.state.hankAutoma = true;
+        var d = w.CARDS.tangledYarn.filter(function(x){return x.id==='catNap';})[0];
+        w.Game.state.hankReveals = [{ kind:'catNapPick', card:w.CARDS.makeTangledCard(d,'hard') }];
+        w.UI.playHankReveals(noop);
+      } },
+    { label:'Cat Nap — bowl badges + locked pickers', run:function(w){
+        var d = w.CARDS.tangledYarn.filter(function(x){return x.id==='catNap';})[0];
+        w.Game.state.hankAutoma = true;
+        w.Game.state.activeGnomeRule = w.CARDS.makeTangledCard(d,'hard');
+        w.Game.state.catNapColors = ['red','orange'];
+        w.UI.renderYarnBowl();
+        w.UI.showColorPicker(noop, 'Gain 1 yarn (red + orange napped 🐱)', activePlayer(w), true);
+      } },
+    { label:'Gnome Rule board slot', run:function(w){
+        var d = w.CARDS.tangledYarn.filter(function(x){return x.id==='yarnRation';})[0];
+        w.Game.state.hankAutoma = true;
+        w.Game.state.activeGnomeRule = w.CARDS.makeTangledCard(d,'hard');
+        if(w.UI.renderGnomeRule) w.UI.renderGnomeRule();
+      } },
+    { label:'Tangled Yarn reveal (confetti + meow)', run:function(w){
+        var d = w.CARDS.tangledYarn.filter(function(x){return x.id==='blazingNeedles';})[0];
+        w.Game.state.hankAutoma = true;
+        w.Game.state.hankReveals = [{ kind:'tangledYarn', card:w.CARDS.makeTangledCard(d,'hard') }];
+        w.UI.playHankReveals(noop);
+      } },
+    { label:'Craft Circle — Hank free Blanket moment', run:function(w){
+        w.Game.state.hankAutoma = true;
+        w.Game.state.players.push({ name:'Hank', isAutoma:true, isAI:false, yarnBowl:{red:0,orange:0,yellow:0,green:0,blue:0,purple:0}, items:[], specialRequests:[], craftedSpecialRequests:[], patternTiles:[], projects:[] });
+        w.Game.state.playerCount = w.Game.state.players.length;
+        w.UI.showCraftCircleModal(w.Game.state.players.length - 1, noop);
+      } },
+    { label:'Event — Donate (to Hank copy)', run:function(w){
+        w.Game.state.hankAutoma = true;
+        w.UI.showEventModal(evt(w,'donate'), noop);
+      } },
+    { label:'Event — Tangled Cat (hits YOU copy)', run:function(w){
+        w.Game.state.hankAutoma = true;
+        w.UI.showEventModal(evt(w,'tangledCat'), noop);
+      } },
 
     { grp:'Crafting' },
     { label:'Craft Confirm',         run:function(w){
