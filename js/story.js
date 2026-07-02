@@ -687,17 +687,26 @@ var Story = {
           '<div class="cc-ma"><img src="'+Story.portrait('hank')+'" alt=""><span>Hank</span></div>'+
           '<div class="cc-ml">🔒 Full Game</div></div>';
       }
-      var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">Swipe or tap to browse</span></div><div class="cc-scout-row">'+minis+'</div></div>';
-      body='<div class="cc-nextlabel">'+label+'</div>'+hero+scout;
+      // Session 43 (desktop climb fix): on wide/mouse viewports the rail is a browsable
+      // two-column list beside the hero, not a swipe carousel. Copy tweaks per mode.
+      var wide=this._wideView();
+      var scoutHint=wide?'Click any Raveler to preview':'Swipe or tap to browse';
+      var scout='<div class="cc-scout"><div class="cc-scout-h"><span>The Craft Circle</span><span class="cc-togo">'+scoutHint+'</span></div><div class="cc-scout-row">'+minis+'</div></div>';
+      body='<div class="cc-nextlabel">'+label+'</div>'+(wide?('<div class="cc-desk">'+hero+scout+'</div>'):(hero+scout));
     }
     this.screen('<div class="crumb">Your Craft Circle</div>'+top+body+
       this.backBar('Story.goTypes()','↺ Change Raveler'));
-    var _sr=document.getElementById('story-root'); if(_sr) _sr.classList.add('cc-mode');
+    // Fixed-height carousel lock is MOBILE-only; desktop scrolls the page naturally.
+    var _sr=document.getElementById('story-root'); if(_sr) _sr.classList.toggle('cc-mode', !this._wideView());
     var hw=document.getElementById('ccHero');
-    if(hw){ var sy=null;
+    if(hw && !this._wideView()){ var sy=null;
       hw.addEventListener('touchstart',function(e){ sy=e.touches[0].clientY; },{passive:true});
       hw.addEventListener('touchend',function(e){ if(sy===null)return; var dy=e.changedTouches[0].clientY-sy; sy=null; if(dy<-35) Story.climbStep(1); else if(dy>35) Story.climbStep(-1); });
     }
+  },
+  /** Wide (desktop/mouse) vs. narrow (phone/touch) climb layout. */
+  _wideView: function(){
+    try{ return window.matchMedia('(min-width: 860px) and (pointer: fine)').matches; }catch(e){ return window.innerWidth>=860; }
   },
   climbStep: function(d){ var total=this.ladder.length; var v=(typeof this._climbView==='number')?this._climbView:this.beaten; this._climbView=Math.max(0,Math.min(v+d,total-1)); this.renderLadder(); },
   climbView: function(i){ this._climbView=i; this.renderLadder(); },
@@ -1663,3 +1672,13 @@ async function SaveAPISafe(S){
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var lb=document.getElementById('srlightbox'); if(lb) lb.classList.remove('open'); } });
 window.addEventListener('resize', function(){ if(Story.root && Story.root.style.display!=='none' && Story.picked && document.getElementById('opptrack')) Story.renderLadder(); });
+// Session 43: re-render the Craft Circle when crossing the desktop/mobile breakpoint
+// so the layout (two-column list ↔ carousel) matches the current width.
+(function(){ var t, was=null;
+  window.addEventListener('resize', function(){
+    if(!(Story.root && Story.root.style.display!=='none' && Story.picked && document.getElementById('ccHero'))) return;
+    clearTimeout(t); t=setTimeout(function(){
+      var now=Story._wideView(); if(now!==was){ was=now; Story.renderLadder(); }
+    }, 160);
+  });
+})();
