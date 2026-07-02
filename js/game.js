@@ -59,6 +59,7 @@ var Game = {
         navTimer:         function() {},   // Session 15: nav bar game clock update
         actionFeed:       function() {},   // Session 22: action feed ticker update
         gameOver:         function() {},   // Session 35: fired once when a match ends (Story Mode hook)
+        gnomeRule:        function() {},   // Session 42: active Gnome Rule slot on the bazaar board
     },
 
     /* ----- Game state ----- */
@@ -161,8 +162,11 @@ var Game = {
                 name:                  pc.name || character.name,
                 characterId:           pc.characterId,
                 characterType:         character.type,
-                isAI:                  !!pc.isAI,  // Session 9b: AI opponent flag
+                // Session 42 (P1 automa): Hank is no longer an AI turn-taker — he's a
+                // score-only automa. Force isAI off for him so AI.takeTurn never runs.
+                isAI:                  !!pc.isAI && !(character && character.isHank),  // Session 9b: AI opponent flag
                 isHank:                !!(character && character.isHank),  // Session 36: boss rule-hook flag
+                isAutoma:              !!(character && character.isHank),  // Session 42: score-only automa (skipped in turn rotation)
                 yarnBowl:              startBowl,
                 patternTiles:          CARDS.dealPatternTiles(),
                 items:                 [],
@@ -187,6 +191,23 @@ var Game = {
         this.state.endGameTriggerPlayer = -1;
         this.state.finalCraftQueue = null;
         this.state.finalCraftIndex = 0;
+
+        // Session 42 (P2 automa): Hank final-boss card layer.
+        this.state.hankAutoma     = !!config.hankAutoma;   // is this the Hank automa match?
+        this.state.hankReds       = config.hankReds || 0;  // difficulty = # of Hard(red) cards
+        this.state.activeGnomeRule = null;                 // single ongoing Gnome Rule (enforcement = P3)
+        this.state.pendingRemodeling = false;              // Remodeling: empty bazaar at end of restock
+        this.state.activeSnagReminder = null;              // Urgent Request: persistent finish constraint (P4)
+        this.state._snagSRdone = false;                    // tracks an SR completion for Urgent Request (Hard)
+        // Urgent Request HARD-BLOCK enforcement is deferred (fiddly player-behavior
+        // constraint, like Cat Nap / Emergency). The reminder still installs + displays;
+        // flip this true once UI + real-player flow can satisfy it without stalling.
+        this.state.enforceSnagReminder = true;   // Session 43: Urgent Request enforcement ON (spec decision #3)
+        this.state.emergencySRUid = null;        // Session 43: Emergency! craft-order — the tagged must-craft-first SR
+        this.state._emergencyTagged = false;     // has Emergency! already tagged its "next SR revealed"?
+        this.state.catNapColors = [];            // Session 43: Cat Nap — colors the cat is sleeping on (locked)
+        // Session 42: queue of tangle/snag reveals for the UI to animate (instants + snagged).
+        this.state.hankReveals = [];
 
         // --- Build Yarn Deck (Yarn + Events) ---
         var deck = CARDS.buildDeck();
@@ -266,6 +287,473 @@ var Game = {
         this.state._timerInterval = setInterval(function() {
             self.render.navTimer();
         }, 1000);
+
+        // Session 42 (P2): seed the Hank automa's Tangled Yarn cards through the yarn deck.
+        // (Snagged Projects seeding + resolution lands in P4.)
+        if (this.state.hankAutoma) {
+            this.seedHankAutomaDecks(this.state.hankReds);
+        }
+    },
+
+    /* =========================================================
+       HANK AUTOMA — deck seeding + Tangled Yarn resolution (P2)
+       ========================================================= */
+
+    /** The score-only automa player record (or null). */
+    _automaPlayer: function() {
+        return this.state.players.filter(function(p) { return p.isAutoma; })[0] || null;
+    },
+    /** The human seat (non-automa). In the solo boss match there's exactly one. */
+    _humanPlayer: function() {
+        return this.state.players.filter(function(p) { return !p.isAutoma; })[0] || this.state.player;
+    },
+
+    /**
+     * Session 42: rulebook solo SR rule — "you may keep a revealed Special Request or give
+     * it to Hank." Giving it to Hank means he claims it and completes it FREE at end of game
+     * (calculateFinalScore already scores every SR he holds + a +5 favorite bonus each).
+     * You give away SRs you can't finish (dodging YOUR unfinished-SR penalty) — but it feeds
+     * Hank's pile, so it's a real trade-off.
+     */
+    giveSRToHank: function(card) {
+        var hank = this._automaPlayer();
+        if (!hank) { this.takeSpecialRequest(card); return; }   // safety: no automa → just keep
+        var sr = {
+            uid: card.uid, id: card.id, name: card.name, img: card.img, points: card.points,
+            isFavorite: true, favoriteOf: card.favoriteOf || null,
+            colorRule: card.colorRule || 'specific',
+        };
+        if (card.yarn)      sr.yarn      = Object.assign({}, card.yarn);
+        if (card.yarnCount) sr.yarnCount = card.yarnCount;
+        if (card.anyCount)  sr.anyCount  = card.anyCount;
+        if (card.plusYarn)  sr.plusYarn  = Object.assign({}, card.plusYarn);
+        if (card.sameCount) sr.sameCount = card.sameCount;
+        hank.specialRequests.push(sr);
+        this._logAction('Gave Special Request ' + card.name + ' to Hank');
+    },
+
+    /** A Gnome Rule can force you to KEEP a revealed SR (no give-to-Hank option). */
+    srMustKeep: function() {
+        var r = this.state.activeGnomeRule;
+        return !!(r && (r.fx === 'highDemand' || r.fx === 'emergency'));
+    },
+
+    /**
+     * Session 43: Cat Nap — is this color locked for the HUMAN right now?
+     * True only while Cat Nap is the displayed rule and the cat sits on the color.
+     * AI/sim seats are exempt (same scoping as the other fiddly constraints).
+     */
+    catNapLocked: function(color) {
+        var r = this.state.activeGnomeRule;
+        if (!r || r.fx !== 'catNap') return false;
+        if (!this.state.catNapColors || !this.state.catNapColors.length) return false;
+        var p = this.state.player;
+        if (p && (p.isAI || p.isAutoma)) return false;
+        return this.state.catNapColors.indexOf(color) !== -1;
+    },
+
+    /** Session 43: Cat Nap placement — the player chose where the cat sleeps. */
+    placeCatNap: function(colors) {
+        this.state.catNapColors = (colors || []).slice();
+        this._logAction('Cat Nap — the cat is sleeping on ' + this.state.catNapColors.join(' + ') +
+            ' (can\'t shop or collect ' + (this.state.catNapColors.length > 1 ? 'those colors' : 'that color') + ')', 'event');
+    },
+
+    /**
+     * Session 43: Emergency! craft-order — is the tagged SR still an outstanding
+     * obligation? Lives only while Emergency! is the displayed rule AND the human
+     * still holds the tagged SR uncrafted. Self-clears otherwise.
+     * @param {string} [craftingUid] — the SR the player is trying to craft (crafting
+     *                                 the emergency SR itself is always allowed)
+     * @returns {Object|null} the outstanding SR, or null if nothing blocks
+     */
+    emergencyBlocks: function(craftingUid) {
+        var r = this.state.activeGnomeRule;
+        if (!r || r.fx !== 'emergency' || !this.state.emergencySRUid) return null;
+        if (craftingUid && craftingUid === this.state.emergencySRUid) return null;
+        var you = this._humanPlayer();
+        var held = (you.specialRequests || []).find(function(sr) { return sr.uid === Game.state.emergencySRUid; });
+        if (!held) { this.state.emergencySRUid = null; return null; }   // crafted/gone → clear
+        return held;
+    },
+
+    /**
+     * Session 43: solo Event resolutions — Hank's share of an event's yarn.
+     * Gains n tokens of his most-stocked color (same pile-on logic as
+     * applyHankAutoYarn, but with an event-flavored log line).
+     * Used by Friendly Clerk (+1) and Yarn Sale (+3).
+     */
+    hankEventYarn: function(n, eventName) {
+        var hank = this._automaPlayer();
+        if (!hank) return null;
+        var bowl = hank.yarnBowl;
+        var best = CARDS.COLORS[0], bestN = -1;
+        CARDS.COLORS.forEach(function(c) {
+            var cnt = bowl[c] || 0;
+            if (cnt > bestN) { bestN = cnt; best = c; }
+        });
+        bowl[best] += n;
+        this._logAction('Event: ' + eventName + ' → Hank gained ' + n + ' ' + best + ' yarn', 'event');
+        return best;
+    },
+
+    /**
+     * Session 43: Craft Circle solo resolution (rulebook) — Hank crafts a
+     * Blanket for FREE (no yarn spent, no action used).
+     * @returns {Object|null} the blanket item def for the UI announcement
+     */
+    hankCraftFreeBlanket: function() {
+        var hank = this._automaPlayer();
+        if (!hank) return null;
+        var itemDef = CARDS.getItem('blanket');
+        if (!itemDef) return null;
+        hank.items.push({
+            id:             itemDef.id,
+            name:           itemDef.name,
+            img:            itemDef.img,
+            points:         itemDef.points,
+            yarnSpent:      {},
+            patternLearned: true,
+            colorRule:      itemDef.colorRule,
+            yarnCount:      itemDef.yarnCount,
+        });
+        this._logAction('Event: Craft Circle → Hank crafted a Blanket (free!)', 'event');
+        return itemDef;
+    },
+
+    /**
+     * Seed the Hank automa cards into the decks.
+     * P2: 8 Tangled Yarn cards distributed evenly through the yarn deck (mirrors the
+     * rulebook's 8-piles rule). Snagged Projects are held for P4.
+     */
+    seedHankAutomaDecks: function(redCount) {
+        var built = CARDS.buildHankAutomaCards(redCount);
+        this.state.hankCards = built;                 // keep a reference for UI/debug
+        // Shuffle the tangle ORDER before distributing — otherwise array order maps to
+        // deck depth (segment k), systematically burying the last cards in the deck's
+        // tail where a project-list-timed game never reaches them.
+        var tangles = built.tangles.slice();
+        this.shuffle(tangles);
+        // Front-load the tangles into the FRONT portion of the yarn deck so more of them
+        // surface before the project-list timer ends the game (a project-timed solo game
+        // only draws ~half the yarn deck). HANK_TANGLE_FRONTLOAD = 1.0 → spread across the
+        // whole deck (old behavior); 0.5 → concentrate in the front half.
+        this._seedIntoDeck(this.state.deck, tangles, this.HANK_TANGLE_FRONTLOAD);
+
+        // Session 42 (P4): seed the 4 Snagged Projects into the face-down Project deck
+        // (the initial 3 face-up were already dealt in initProjects, so they stay clean).
+        var snagged = built.snagged.slice();
+        this.shuffle(snagged);
+        this._seedIntoDeck(this.state.projectDeck, snagged);
+    },
+
+    /**
+     * Draw the next real Project from the deck, resolving (and discarding) any Snagged
+     * Projects revealed on top along the way (rulebook Step 3). Returns a project or null.
+     */
+    _drawNextProjectCard: function() {
+        var guard = 0;
+        while (this.state.projectDeck.length > 0 && guard < 60) {
+            guard++;
+            var card = this.state.projectDeck.shift();
+            if (card && card.type === 'snaggedProject') {
+                this.resolveSnaggedProject(card);
+                continue;   // discard (resolved) and keep drawing for a real project
+            }
+            return card;
+        }
+        return null;
+    },
+
+    /**
+     * Resolve a Snagged Project revealed on top of the Project deck.
+     * Instants resolve immediately; the Urgent Request "reminder" installs a persistent
+     * finish constraint on the player.
+     */
+    resolveSnaggedProject: function(card) {
+        this._logAction('Snagged Project — ' + card.name + (card.hard ? ' (Hard)' : '') + ': ' + card.text);
+        this.state.hankReveals.push({ kind: 'snaggedProject', card: card });
+        if (card.kind === 'reminder') {
+            this.state.activeSnagReminder = card;   // enforced in finishProject
+            this.state._snagSRdone = false;
+            return;
+        }
+        switch (card.fx) {
+            case 'shenaniGnomes':  this.applyShenaniGnomes(card.arg); break;
+            case 'yarnballWizard': this.applyYarnballWizard(card.arg); break;
+            case 'yarnEnvy':       this.applyYarnEnvy(card.arg); break;
+            default:
+                this._logAction('  (snagged effect "' + card.fx + '" not implemented)');
+                break;
+        }
+    },
+
+    /** Shenani-gnomes: Hank gains (ratio × your stash count) yarn from supply. */
+    applyShenaniGnomes: function(arg) {
+        var you = this._humanPlayer(), hank = this._automaPlayer();
+        if (!you || !hank) return;
+        var ratio = arg.ratio || 1, stash = 0;
+        CARDS.COLORS.forEach(function(c) { stash += (you.yarnBowl[c] || 0); });
+        var give = stash * ratio;
+        hank.yarnBowl.red = (hank.yarnBowl.red || 0) + give;   // color-agnostic for Hank's scoring
+        this._logAction('Shenani-gnomes — Hank gained ' + give + ' yarn (' + ratio + '× your stash of ' + stash + ')');
+    },
+
+    /** Yarnball Wizard: Hank crafts the most valuable item he can afford (any colors);
+     *  'asMany' repeats until he can't afford the cheapest. */
+    applyYarnballWizard: function(arg) {
+        var hank = this._automaPlayer();
+        if (!hank) return;
+        var self = this, crafted = 0;
+        var craftOne = function() {
+            var total = 0;
+            CARDS.COLORS.forEach(function(c) { total += (hank.yarnBowl[c] || 0); });
+            var best = null;
+            CARDS.items.forEach(function(it) { if (it.yarnCount <= total && (!best || it.points > best.points)) best = it; });
+            if (!best) return false;
+            var need = best.yarnCount;
+            for (var i = 0; i < CARDS.COLORS.length && need > 0; i++) {
+                var col = CARDS.COLORS[i], take = Math.min(need, hank.yarnBowl[col] || 0);
+                hank.yarnBowl[col] -= take; need -= take;
+            }
+            hank.items.push({ id: best.id, name: best.name, img: best.img, points: best.points, yarnCount: best.yarnCount });
+            return true;
+        };
+        if ((arg.mode || 'mostValuable') === 'asMany') {
+            var guard = 0;
+            while (craftOne() && guard < 30) { crafted++; guard++; }
+        } else if (craftOne()) { crafted++; }
+        if (crafted) this._logAction('Yarnball Wizard — Hank crafted ' + crafted + ' item(s) for free');
+    },
+
+    /** Yarn Envy: easy = Hank shops the whole bazaar; hard = discard bazaar + transfer your stash to Hank. */
+    applyYarnEnvy: function(arg) {
+        var hank = this._automaPlayer(), you = this._humanPlayer();
+        if (!hank) return;
+        if (arg.mode === 'shopAll') {
+            for (var i = 0; i < 6; i++) {
+                var c = this.state.bazaar[i];
+                if (c && c.type === 'yarn') {
+                    for (var col in c.yarn) {
+                        if (!c.yarn.hasOwnProperty(col)) continue;
+                        var dest = (col === 'any') ? 'red' : col;
+                        hank.yarnBowl[dest] = (hank.yarnBowl[dest] || 0) + c.yarn[col];
+                    }
+                    this.state.discard.push(c);
+                    this.state.bazaar[i] = null;
+                }
+            }
+            this._logAction('Yarn Envy — Hank shopped the entire bazaar');
+        } else {
+            for (var j = 0; j < 6; j++) {
+                if (this.state.bazaar[j]) { this.state.discard.push(this.state.bazaar[j]); this.state.bazaar[j] = null; }
+            }
+            var moved = 0;
+            if (you) CARDS.COLORS.forEach(function(cc) {
+                var n = you.yarnBowl[cc] || 0;
+                hank.yarnBowl[cc] = (hank.yarnBowl[cc] || 0) + n;
+                moved += n; you.yarnBowl[cc] = 0;
+            });
+            this._logAction('Yarn Envy (Hard) — bazaar discarded, your stash of ' + moved + ' yarn given to Hank');
+        }
+        this.render.bazaar();
+    },
+
+    /** Urgent Request enforcement: does the active snag reminder currently block a finish?
+     *  Clears the reminder once satisfied. */
+    _snagBlocksFinish: function() {
+        var rem = this.state.activeSnagReminder;
+        if (!rem) return false;
+        var you = this._humanPlayer();
+        if (rem.arg.mode === 'oneEachItem') {
+            var types = ['hat', 'bear', 'mittens', 'scarf', 'blanket'];
+            var hasAll = types.every(function(t) { return you.items.some(function(it) { return it.id === t; }); });
+            if (hasAll) { this.state.activeSnagReminder = null; return false; }   // satisfied → clear
+            return true;
+        }
+        if (rem.arg.mode === 'completeSR') {
+            if (this.state._snagSRdone) { this.state.activeSnagReminder = null; this.state._snagSRdone = false; return false; }
+            return true;
+        }
+        return false;
+    },
+
+    // Fraction of the deck's front to spread tangles across (1.0 = whole deck).
+    HANK_TANGLE_FRONTLOAD: 0.6,
+
+    // Session 43 (P5 tuning): Hank's auto-yarn per turn ramps with red count.
+    // Once the solo events landed (they're a net Hank buff), the all-green first
+    // fight simmed at ~43% — too hard for the "first fight is beatable" intent.
+    // Index = hankReds (clamped): reds 0 → +1/turn, 1–2 → +2, 3+ → full rulebook +3.
+    HANK_AUTOYARN_RAMP: [1, 2, 2],   // beyond the array = 3
+
+    /**
+     * Spread `inserts` at randomized positions within even segments of the deck.
+     * frontFraction (0–1] limits seeding to the FRONT portion of the deck (default whole).
+     */
+    _seedIntoDeck: function(deck, inserts, frontFraction) {
+        var n = inserts.length;
+        if (!n || !deck) return;
+        var region = (frontFraction && frontFraction > 0 && frontFraction < 1)
+            ? Math.max(n, Math.floor(deck.length * frontFraction))
+            : deck.length;
+        var seg = Math.max(1, Math.floor(region / n));
+        for (var k = 0; k < n; k++) {
+            var lo = k * seg;
+            var hi = (k === n - 1) ? region : lo + seg;
+            var span = Math.max(1, hi - lo);
+            var pos = Math.min(deck.length, lo + Math.floor(Math.random() * span));
+            deck.splice(pos, 0, inserts[k]);
+        }
+    },
+
+    /**
+     * Resolve a Tangled Yarn card revealed during Restock.
+     * Instants resolve immediately (+ discard). Gnome Rules install into the single
+     * active-rule slot (ongoing enforcement is P3). The card never occupies a bazaar slot.
+     */
+    resolveTangledYarn: function(card) {
+        this._logAction('Tangled Yarn — ' + card.name + (card.hard ? ' (Hard)' : '') + ': ' + card.text);
+
+        if (card.kind === 'gnome') {
+            // One Gnome Rule active at a time; a new one replaces the old (P3 enforces effects).
+            // It slides into the board slot (with a pulse) rather than popping a modal.
+            this.state.activeGnomeRule = card;
+            // Session 43: Emergency craft-order bookkeeping resets on ANY rule install —
+            // "the next SR revealed" is relative to when Emergency! goes up, and the
+            // obligation only lives while Emergency! is the displayed rule.
+            this.state.emergencySRUid = null;
+            this.state._emergencyTagged = false;
+            // Session 43: Cat Nap — "remove the cat when this rule is discarded" (card
+            // text): ANY new rule install clears the lock. A fresh Cat Nap queues a
+            // placement pick for the human (the reveal queue plays it after restock).
+            this.state.catNapColors = [];
+            if (card.fx === 'catNap') {
+                this.state.hankReveals.push({ kind: 'catNapPick', card: card });
+            }
+            this.render.gnomeRule();
+            return;
+        }
+
+        // Instants announce themselves like an event (UI plays the reveal queue).
+        this.state.hankReveals.push({ kind: 'tangledYarn', card: card });
+
+        // Instants (P2 implements the finish-project family + Lessons Learned + Remodeling)
+        switch (card.fx) {
+            case 'hankFinishProject': this.hankFinishProject(card.arg); break;
+            case 'flipPatterns':      this.applyFlipPatterns(card.arg); break;
+            case 'remodeling':        this.state.pendingRemodeling = true; break;
+            default:
+                this._logAction('  (effect "' + card.fx + '" not yet implemented — P3/P4)');
+                break;
+        }
+    },
+
+    /**
+     * Hank Finishes a Project from the market for free (no yarn), scoring it.
+     * arg.which: 'lowest' | 'highest'. arg.thenMarket: 'shuffleBack' | 'discard' | undefined.
+     */
+    hankFinishProject: function(arg) {
+        arg = arg || {};
+        var disp = this.state.projectDisplay;
+        if (!disp.length) return;
+        var idx = 0;
+        for (var i = 1; i < disp.length; i++) {
+            var better = (arg.which === 'highest')
+                ? (disp[i].points > disp[idx].points)
+                : (disp[i].points < disp[idx].points);
+            if (better) idx = i;
+        }
+        var proj = disp.splice(idx, 1)[0];
+        var hank = this._automaPlayer();
+        if (hank) {
+            hank.projects.push(proj);
+            this._logAction('Hank Finished ' + proj.name + ' (' + proj.points + ' pts) for free');
+        }
+        // The rest of the market
+        if (arg.thenMarket === 'shuffleBack') {
+            this.state.projectDeck = this.state.projectDeck.concat(disp.splice(0));
+            this.shuffle(this.state.projectDeck);
+        } else if (arg.thenMarket === 'discard') {
+            disp.splice(0);   // projects have no discard pile; removing them may end the game
+        }
+        // Refill the display up to 3 (resolving any Snagged Projects revealed on top)
+        while (this.state.projectDisplay.length < 3) {
+            var next = this._drawNextProjectCard();
+            if (!next) break;
+            this.state.projectDisplay.push(next);
+        }
+        this.render.projectStrip();
+        this.checkEndGameTrigger();
+    },
+
+    /**
+     * Lessons Learned: flip the human's learned Pattern(s) back to their original side.
+     * arg.count: 'one' | 'all'.
+     */
+    applyFlipPatterns: function(arg) {
+        arg = arg || {};
+        var you = this._humanPlayer();
+        if (!you) return;
+        var learned = you.patternTiles.filter(function(t) { return t.learned; });
+        if (!learned.length) return;
+        var toFlip = (arg.count === 'all') ? learned : [learned[0]];
+        toFlip.forEach(function(t) { t.learned = false; });
+        this._logAction('Lessons Learned — flipped ' + toFlip.length + ' Pattern(s) back to original');
+        this.render.craftGrid();
+    },
+
+    /** Total yarn tokens a yarn card grants (any-color counts its magnitude). */
+    _yarnCardTotal: function(card) {
+        if (!card || !card.yarn) return 0;
+        var t = 0, y = card.yarn;
+        for (var k in y) { if (y.hasOwnProperty(k)) t += y[k]; }
+        return t;
+    },
+
+    /**
+     * Session 42 (P3): apply the active Gnome Rule to a card drawn during Restock.
+     * Returns 'place' (normal), 'discardRedraw' (card gone, draw again for this slot),
+     * or 'skipEmpty' (leave this bazaar slot empty this Restock).
+     * Enforced here: Grumpy Shopper, Yarn Ration, ArchRivals. High Demand / Emergency /
+     * Cat Nap are installed but enforced elsewhere / deferred (see notes).
+     */
+    _applyGnomeToDraw: function(card) {
+        var rule = this.state.activeGnomeRule;
+        if (!rule || !card) return 'place';
+
+        // Yarn Ration — discard each N-yarn card drawn; leave the slot empty.
+        if (rule.fx === 'yarnRation' && card.type === 'yarn') {
+            if (this._yarnCardTotal(card) === rule.arg.deny) {
+                this.state.discard.push(card);
+                this._logAction('Yarn Ration — discarded a ' + rule.arg.deny + '-yarn card; slot left empty');
+                return 'skipEmpty';
+            }
+        }
+
+        // Grumpy Shopper — discard Friendly Clerk / Yarn Sale / Craft Circle unresolved.
+        if (rule.fx === 'grumpyShopper' && card.type === 'event') {
+            if (card.id === 'friendlyClerk' || card.id === 'yarnSale' || card.id === 'craftCircle') {
+                this.state.discard.push(card);
+                this._logAction('Grumpy Shopper — discarded ' + card.name + ' (unresolved)');
+                return 'discardRedraw';
+            }
+        }
+
+        // ArchRivals — each SR drawn during Restock is discarded (Light) or taken by Hank (Hard).
+        if (rule.fx === 'archRivals' && card.type === 'specialRequest') {
+            if (rule.arg.mode === 'hankTakesSR') {
+                var hank = this._automaPlayer();
+                if (hank) { hank.specialRequests.push(card); }
+                this._logAction('ArchRivals — Hank took the Special Request ' + card.name);
+            } else {
+                this.state.discard.push(card);
+                this._logAction('ArchRivals — discarded the Special Request ' + card.name);
+            }
+            return 'discardRedraw';
+        }
+
+        return 'place';
     },
 
     /**
@@ -617,7 +1105,8 @@ var Game = {
             if (!this.state.finalCraftQueue) {
                 this.state.finalCraftQueue = [];
                 for (var p = 0; p < this.state.playerCount; p++) {
-                    if (p !== this.state.endGameTriggerPlayer) {
+                    // Session 42 (P1 automa): automa players get no final craft (they never craft).
+                    if (p !== this.state.endGameTriggerPlayer && !this.state.players[p].isAutoma) {
                         this.state.finalCraftQueue.push(p);
                     }
                 }
@@ -653,7 +1142,7 @@ var Game = {
                     });
                 } else if (this.state.playerCount > 1) {
                     // Session 10: Skip pass-device when only 1 human among AI players
-                    var humanCount = this.state.players.filter(function(p) { return !p.isAI; }).length;
+                    var humanCount = this.state.players.filter(function(p) { return !p.isAI && !p.isAutoma; }).length;
                     if (humanCount > 1) {
                         this.render.showPassDevice();
                     } else {
@@ -683,8 +1172,23 @@ var Game = {
             return;
         }
 
-        // Advance to next player
-        var nextIdx = (this.state.activePlayerIndex + 1) % this.state.playerCount;
+        // Session 42 (P1 automa): "Hank goes shopping" — the automa banks +3 yarn at the
+        // end of each real (non-automa) turn. This replaces his old turn-start auto-yarn,
+        // since the automa no longer takes turns of his own.
+        if (!this.state.player.isAutoma) {
+            for (var ap = 0; ap < this.state.playerCount; ap++) {
+                if (this.state.players[ap].isAutoma) this.applyHankAutoYarn(this.state.players[ap]);
+            }
+        }
+
+        // Advance to next player — skip any automa (score-only) players so they never
+        // take a turn. In a solo boss match (you + Hank-automa) this lands back on you.
+        var nextIdx = this.state.activePlayerIndex;
+        var _skipGuard = 0;
+        do {
+            nextIdx = (nextIdx + 1) % this.state.playerCount;
+            _skipGuard++;
+        } while (this.state.players[nextIdx].isAutoma && _skipGuard <= this.state.playerCount);
 
         // --- Switch active player ---
         this.state.activePlayerIndex = nextIdx;
@@ -705,11 +1209,8 @@ var Game = {
         this.state.turn.previousSpace = this.state.player._previousSpace;
         this.state.turn.number++;
 
-        // Session 36: Hank boss — auto-gain +3 yarn of one color at the start of every turn,
-        // before he evaluates his action (so the new yarn informs his craft choice).
-        if (this.state.player.isHank) {
-            this.applyHankAutoYarn(this.state.player);
-        }
+        // Session 42 (P1 automa): the automa's +3 yarn now fires at the END of your turn
+        // (see "Hank goes shopping" above), not here — he no longer takes turns himself.
 
         // Back to choosing a space
         this.state.phase = 'chooseSpace';
@@ -729,7 +1230,7 @@ var Game = {
         } else if (this.state.playerCount > 1) {
             // Session 10: Skip pass-device when only 1 human among AI players.
             // Pass-device is only needed in hot-seat with multiple humans.
-            var humanCount2 = this.state.players.filter(function(p) { return !p.isAI; }).length;
+            var humanCount2 = this.state.players.filter(function(p) { return !p.isAI && !p.isAutoma; }).length;
             if (humanCount2 > 1) {
                 this.render.showPassDevice();
             } else {
@@ -759,6 +1260,15 @@ var Game = {
 
         // Session 9: Empty slots are selectable only in multiplayer (empty bazaar rule)
         if (this.state.bazaar[index] === null && this.state.playerCount <= 1) return;
+
+        // Session 43: Cat Nap — can't SHOP a yarn card that grants a napped-on color.
+        // (Wild picks are locked at the color picker instead.)
+        var cnCard = this.state.bazaar[index];
+        if (cnCard && cnCard.type === 'yarn' && cnCard.yarn) {
+            var self = this;
+            var lockedHit = CARDS.COLORS.some(function(c) { return cnCard.yarn[c] && self.catNapLocked(c); });
+            if (lockedHit) { this.state._lastShopBlock = 'catNap'; return; }
+        }
 
         var sel = this.state.selectedSlots;
 
@@ -831,14 +1341,37 @@ var Game = {
         var revealed = [];
 
         for (var i = 0; i < 6; i++) {
-            if (this.state.bazaar[i] === null && this.state.deck.length > 0) {
+            // Session 42 (P2 automa): keep drawing for this slot, resolving any Tangled
+            // Yarn reveals along the way — tangles don't occupy a slot and don't count
+            // toward the restock (they're extra reveals). Guard against a runaway loop.
+            var guard = 0;
+            while (this.state.bazaar[i] === null && this.state.deck.length > 0 && guard < 60) {
+                guard++;
                 var card = this.drawCard();
+                if (card && card.type === 'tangledYarn') {
+                    this.resolveTangledYarn(card);
+                    continue;   // draw again to actually fill this slot
+                }
+                // Session 42 (P3): an active Gnome Rule may intercept the drawn card.
+                var g = this._applyGnomeToDraw(card);
+                if (g === 'discardRedraw') { continue; }  // discarded → draw again for this slot
+                if (g === 'skipEmpty')     { break; }     // leave this slot empty, move on
                 this.state.bazaar[i] = card;
-
                 if (card && (card.type === 'event' || card.type === 'specialRequest')) {
                     revealed.push({ slot: i, card: card });
                 }
             }
+        }
+
+        // Remodeling (Basic Tangled Yarn): discard all yarn from the bazaar at the END of
+        // this Restock Phase; slots stay empty until the next Restock.
+        if (this.state.pendingRemodeling) {
+            for (var b = 0; b < 6; b++) {
+                var c2 = this.state.bazaar[b];
+                if (c2 && c2.type === 'yarn') { this.state.discard.push(c2); this.state.bazaar[b] = null; }
+            }
+            this.state.pendingRemodeling = false;
+            this._logAction('Remodeling — the bazaar was cleared out');
         }
 
         try{ if(window.Sound && revealed && revealed.length) Sound.play('restock'); }catch(e){}
@@ -879,6 +1412,14 @@ var Game = {
             case 'tangledCat':
                 // Active player CHOOSES another player who can't craft next turn.
                 // SP: auto-targets the only player.
+                // Session 43 Hank automa: solo rule — it ALWAYS affects you.
+                if (this.state.hankAutoma) {
+                    return {
+                        status: 'needsInput',
+                        inputType: 'tangledCat',
+                        msg: "Tangled Cat! The cat's got YOUR yarn — you can't Craft on your next turn.",
+                    };
+                }
                 return {
                     status: 'needsInput',
                     inputType: 'tangledCat',
@@ -896,10 +1437,13 @@ var Game = {
             case 'donate':
                 // Active player gives 1 yarn from their stash to another player.
                 // SP: yarn goes back to the supply (no valid recipient).
+                // Session 43 Hank automa: solo rule — the donated yarn goes to Hank's bowl.
                 return {
                     status: 'needsInput',
                     inputType: 'donate',
-                    msg: 'Donation Drive! Give 1 Yarn token from your stash to another player.',
+                    msg: this.state.hankAutoma
+                        ? 'Donation Drive! Give 1 Yarn token from your stash to Hank.'
+                        : 'Donation Drive! Give 1 Yarn token from your stash to another player.',
                 };
 
             case 'friendlyClerk':
@@ -1019,6 +1563,13 @@ var Game = {
     craftCircleItem: function(itemId, srUid, yarnToSpend, playerIndex) {
         var player = this.state.players[playerIndex];
         if (!player) return null;
+
+        // Session 43: Emergency! craft-order — even a free Craft Circle craft counts as
+        // "crafting anything else." Human seats only; crafting the tagged SR is allowed.
+        if (!player.isAI && !player.isAutoma && this.emergencyBlocks(srUid)) {
+            this.state._lastCraftBlock = 'emergency';
+            return null;
+        }
 
         var bowl = player.yarnBowl;
 
@@ -1178,8 +1729,11 @@ var Game = {
             var n = bowl[c] || 0;
             if (n > bestN) { bestN = n; best = c; }
         });
-        bowl[best] += 3;
-        this._logAction(player.name + ' auto-spun +3 ' + best + ' yarn');
+        // P5 tuning: soft spin at low red counts (see HANK_AUTOYARN_RAMP).
+        var reds = this.state.hankReds || 0;
+        var amount = (reds < this.HANK_AUTOYARN_RAMP.length) ? this.HANK_AUTOYARN_RAMP[reds] : 3;
+        bowl[best] += amount;
+        this._logAction(player.name + ' auto-spun +' + amount + ' ' + best + ' yarn');
         return best;
     },
 
@@ -1245,6 +1799,18 @@ var Game = {
         if (card.sameCount) sr.sameCount = card.sameCount;
         player.specialRequests.push(sr);
 
+        // Session 43: Emergency! craft-order — the FIRST SR revealed while Emergency! is
+        // the active Gnome Rule must be crafted before crafting anything else. Tag it.
+        // Human seats only (AI/sim seats can't strategize toward it — same scoping as
+        // the Urgent Request block).
+        var egr = this.state.activeGnomeRule;
+        if (this.state.hankAutoma && egr && egr.fx === 'emergency' && !this.state._emergencyTagged &&
+            !player.isAI && !player.isAutoma) {
+            this.state.emergencySRUid = sr.uid;
+            this.state._emergencyTagged = true;
+            this._logAction('Emergency! — ' + card.name + ' must be crafted before anything else', 'event');
+        }
+
         // Session 18: Detailed SR taken log for turn history
         var srTakeLog = 'Took SR: ' + card.name + ' (' + card.points + ' pts)';
         if (sr.isFavorite) srTakeLog += ' ★ Favorite!';
@@ -1264,6 +1830,12 @@ var Game = {
         // Guard: must be in a phase that allows crafting
         if (this.state.phase !== 'playerActions' && this.state.phase !== 'finalCraft') {
             console.error('craftSpecialRequest: wrong phase "' + this.state.phase + '"');
+            return null;
+        }
+
+        // Session 43: Emergency! craft-order — must craft the tagged SR before any OTHER SR.
+        if (!this.state.player.isAI && !this.state.player.isAutoma && this.emergencyBlocks(srUid)) {
+            this.state._lastCraftBlock = 'emergency';
             return null;
         }
 
@@ -1317,6 +1889,8 @@ var Game = {
         // Move from specialRequests to craftedSpecialRequests
         srList.splice(srIdx, 1);
         this.state.player.craftedSpecialRequests.push(sr);
+        // Session 42 (P4): completing an SR satisfies an Urgent Request (Hard) reminder.
+        if (!this.state.player.isAutoma) this.state._snagSRdone = true;
 
         // Session 18: Log SR craft for turn history
         var srLogMsg = 'Completed SR: ' + sr.name + ' (' + sr.points + ' pts)';
@@ -1591,6 +2165,12 @@ var Game = {
         // Guard: check craft limit
         if (this.state.phase === 'playerActions' && this.state.turn.craftUsed >= this.state.craftLimit) {
             console.error('craft: craft limit reached (' + this.state.turn.craftUsed + '/' + this.state.craftLimit + ')');
+            return null;
+        }
+
+        // Session 43: Emergency! craft-order — items count as "crafting anything else."
+        if (!this.state.player.isAI && !this.state.player.isAutoma && this.emergencyBlocks()) {
+            this.state._lastCraftBlock = 'emergency';
             return null;
         }
 
@@ -2002,23 +2582,32 @@ var Game = {
         var srCardDetails = [];
         var srCraftedCount = 0;
         var srTotalCount = player.craftedSpecialRequests.length + player.specialRequests.length;
+        var isAutoma = player.isHank || player.isAutoma;
         player.craftedSpecialRequests.forEach(function(sr) {
             srPoints += sr.points;
-            // Session 36: Hank boss — EVERY SR is his favorite → +5 for each one he completes.
-            // Normal players get the +5 once if their single favorite SR is among the crafted.
-            if (player.isHank) favoriteBonus += 5;
-            else if (sr.isFavorite) favoriteBonus = 5;
+            // Rulebook (Session 42 fix): Hank scores each SR's face points only — NO per-SR
+            // favorite bonus (that was an old juiced-Hank over-implementation). Human players
+            // still get +5 once if their single favorite SR is among the crafted.
+            if (!isAutoma && sr.isFavorite) favoriteBonus = 5;
             srCraftedCount++;
             srCardDetails.push({
                 name: sr.name, img: sr.img, points: sr.points,
-                completed: true, isFavorite: player.isHank ? true : sr.isFavorite,
+                completed: true, isFavorite: sr.isFavorite,
             });
         });
         player.specialRequests.forEach(function(sr) {
-            srCardDetails.push({
-                name: sr.name, img: sr.img, points: -(sr.points || 0),
-                completed: false, isFavorite: sr.isFavorite,
-            });
+            if (isAutoma) {
+                // Rulebook: at end of game Hank COMPLETES and scores every SR he holds, free
+                // (no yarn) — so held SRs score positively for the automa, never a penalty.
+                srPoints += (sr.points || 0);
+                srCraftedCount++;
+                srCardDetails.push({ name: sr.name, img: sr.img, points: sr.points, completed: true, isFavorite: false });
+            } else {
+                srCardDetails.push({
+                    name: sr.name, img: sr.img, points: -(sr.points || 0),
+                    completed: false, isFavorite: sr.isFavorite,
+                });
+            }
         });
 
         // Session 15: Build project detail
@@ -2047,11 +2636,14 @@ var Game = {
             });
         });
 
-        // Unfinished SR penalty (lose the SR's own point value for each uncrafted)
+        // Unfinished SR penalty (lose the SR's own point value for each uncrafted).
+        // The automa (Hank) is NEVER penalized — he free-completes his held SRs (scored above).
         var srPenalty = 0;
-        player.specialRequests.forEach(function(sr) {
-            srPenalty -= (sr.points || 0);
-        });
+        if (!isAutoma) {
+            player.specialRequests.forEach(function(sr) {
+                srPenalty -= (sr.points || 0);
+            });
+        }
 
         // Leftover yarn penalty (-1 per yarn).
         // Session 36: Hank boss inverts this — leftover yarn SCORES +1 per 2 (odd one rounds
@@ -2150,6 +2742,17 @@ var Game = {
             return null;
         }
 
+        // Session 42 (P4) / Session 43 (enforced): Urgent Request snag — a persistent
+        // constraint blocks the HUMAN from finishing a project until satisfied (holds 1 of
+        // each item type / completed an SR). Scoped to real human seats only: AI proxy seats
+        // (sim harness) can't strategize toward the requirement and deadlock the game to the
+        // 200-turn hang-guard (sim-proven: scores ballooned 4-6x). Humans have the agency
+        // the rulebook assumes.
+        if (this.state.enforceSnagReminder && this.state.activeSnagReminder &&
+            !this.state.player.isAutoma && !this.state.player.isAI && this._snagBlocksFinish()) {
+            return null;
+        }
+
         var display = this.state.projectDisplay;
         var projIdx = display.findIndex(function(p) { return p.uid === projectUid; });
         if (projIdx === -1) {
@@ -2184,10 +2787,11 @@ var Game = {
             points: project.points,
         });
 
-        // Remove project from display, draw replacement if available
+        // Remove project from display, draw replacement (resolving any Snagged on top)
         display.splice(projIdx, 1);
-        if (this.state.projectDeck.length > 0) {
-            display.splice(projIdx, 0, this.state.projectDeck.shift());
+        var replacement = this._drawNextProjectCard();
+        if (replacement) {
+            display.splice(projIdx, 0, replacement);
         }
 
         // Session 18: Log project completion for turn history
