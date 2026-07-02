@@ -673,4 +673,190 @@ const CARDS = {
 
         return deck;
     },
+
+    /* =========================================================
+       AWARDS SEASON SOLO AUTOMA — Tangled Yarn + Snagged Projects
+       Session 42 (P2). Spec: zAR Digital Test/HANK_AUTOMA_SPEC.md,
+       source: ARME Awards Season SOLO Rulebook v7.
+       These drive the Hank final-boss automa. Each card carries a
+       machine-readable `fx` (effect id) + `arg` the game.js resolver
+       reads, plus human `text`. Themed tangles + snagged projects are
+       double-sided: Light(green)/Hard(red) tangles, Easy(green)/Hard(red)
+       snagged — the side chosen at seed time sets the difficulty.
+       ========================================================= */
+    TANGLED_ART: 'Other Assets/ARME/Awards Season/Tangled Yarn (Square Cards)/',
+    SNAGGED_ART: 'Other Assets/ARME/Awards Season/Snagged Projects/',
+
+    // kind: 'instant' (resolve + discard) | 'gnome' (ongoing rule, one active) | 'reminder' (persistent snag)
+    tangledYarn: [
+        /* ----- Basic (yellow, single-sided) — always the same ----- */
+        { id:'remodeling', code:'B4', name:'Remodeling', tier:'basic', kind:'instant',
+          file:'AR_ME_AwSea_TangledYarn_B4---Remodeling---Basic.png',
+          fx:'remodeling',
+          text:'Discard all yarn cards from the bazaar at end of this Restock Phase. Don’t refill until next Restock Phase.' },
+        { id:'highDemand', code:'B1', name:'High Demand', tier:'basic', kind:'gnome',
+          file:'AR_ME_AwSea_TangledYarn_B1---High-Demand---Basic.png',
+          fx:'highDemand',
+          text:'You must keep all Special Requests revealed during Restock.' },
+        { id:'emergency', code:'B2', name:'Emergency!', tier:'basic', kind:'gnome',
+          file:'AR_ME_AwSea_TangledYarn_B2---Emergency---Basic.png',
+          fx:'emergency',
+          text:'You must take the next Special Request revealed, and craft it before crafting anything else.' },
+        { id:'grumpyShopper', code:'B3', name:'Grumpy Shopper', tier:'basic', kind:'gnome',
+          file:'AR_ME_AwSea_TangledYarn_B3---Grumpy-Shopper---Basic.png',
+          fx:'grumpyShopper',
+          text:'Discard the events Friendly Clerk, Yarn Sale, Craft Circle as soon as revealed, without resolving.' },
+
+        /* ----- Themed (double-sided Light green / Hard red) ----- */
+        { id:'blazingNeedles', code:'T1', name:'Blazing Needles', tier:'themed', kind:'instant',
+          fileLight:'AR_ME_AwSea_TangledYarn_T1---Blazing-Needles---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T1---Blazing-Needles---Heavy.png',
+          light:{ fx:'hankFinishProject', arg:{ which:'lowest' },  text:'Hank Finishes the lowest-value Project in the market.' },
+          hard: { fx:'hankFinishProject', arg:{ which:'highest' }, text:'Hank Finishes the highest-value Project in the market.' } },
+        { id:'whereItGo', code:'T2', name:'Where’d it go?', tier:'themed', kind:'instant',
+          fileLight:'AR_ME_AwSea_TangledYarn_T2---WhereItGo---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T2---WhereItGo---Heavy.png',
+          light:{ fx:'hankFinishProject', arg:{ which:'lowest',  thenMarket:'shuffleBack' }, text:'Hank Finishes the lowest Project; shuffle the rest back into the deck.' },
+          hard: { fx:'hankFinishProject', arg:{ which:'highest', thenMarket:'shuffleBack' }, text:'Hank Finishes the highest Project; shuffle the rest back into the deck.' } },
+        { id:'itsGone', code:'T3', name:'It’s Gone!?', tier:'themed', kind:'instant',
+          fileLight:'AR_ME_AwSea_TangledYarn_T3---Its-Gone---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T3---Its-Gone---Heavy.png',
+          light:{ fx:'hankFinishProject', arg:{ which:'lowest',  thenMarket:'discard' }, text:'Hank Finishes the lowest Project; discard the others (may end the game).' },
+          hard: { fx:'hankFinishProject', arg:{ which:'highest', thenMarket:'discard' }, text:'Hank Finishes the highest Project; discard the others (may end the game).' } },
+        { id:'lessonsLearned', code:'T4', name:'Lessons Learned', tier:'themed', kind:'instant',
+          fileLight:'AR_ME_AwSea_TangledYarn_T4---Lessons-Learned---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T4---Lessons-Learned---Heavy.png',
+          light:{ fx:'flipPatterns', arg:{ count:'one' }, text:'Flip one Pattern you’ve learned back to its original side.' },
+          hard: { fx:'flipPatterns', arg:{ count:'all' }, text:'Flip all learned Patterns back to their original side.' } },
+        { id:'archRivals', code:'T6', name:'ArchRivals', tier:'themed', kind:'gnome',
+          fileLight:'AR_ME_AwSea_TangledYarn_T6---ArchRivals---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T6---ArchRivals---Heavy.png',
+          light:{ fx:'archRivals', arg:{ mode:'discardSR' }, text:'Discard each Special Request drawn during Restock.' },
+          hard: { fx:'archRivals', arg:{ mode:'hankTakesSR' }, text:'Hank takes each Special Request drawn during Restock.' } },
+        { id:'yarnRation', code:'T7', name:'Yarn Ration', tier:'themed', kind:'gnome',
+          fileLight:'AR_ME_AwSea_TangledYarn_T7---Yarn-Ration---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T7---Yarn-Ration---Heavy.png',
+          light:{ fx:'yarnRation', arg:{ deny:3 }, text:'Discard each “3-yarn” card drawn in Restock; leave that bazaar slot empty.' },
+          hard: { fx:'yarnRation', arg:{ deny:2 }, text:'Discard each “2-yarn” card drawn in Restock; leave that bazaar slot empty.' } },
+        { id:'catNap', code:'T5', name:'Cat Nap', tier:'themed', kind:'gnome',
+          fileLight:'AR_ME_AwSea_TangledYarn_T5---Cat-Nap---Light.png',
+          fileHard: 'AR_ME_AwSea_TangledYarn_T5---Cat-Nap---Heavy.png',
+          light:{ fx:'catNap', arg:{ colors:1 }, text:'Place the cat on 1 color — you can’t shop/collect it while there.' },
+          hard: { fx:'catNap', arg:{ colors:2 }, text:'Place the cat across 2 adjacent colors — you can’t shop/collect them.' } },
+    ],
+
+    snaggedProjects: [
+        { id:'urgentRequest', name:'Urgent Request', kind:'reminder',
+          fileEasy:'AR_ME_AwSea_SnagProj_Urgent-Request---Easy.png',
+          fileHard:'AR_ME_AwSea_SnagProj_Urgent-Request---Hard.png',
+          easy:{ fx:'urgentRequest', arg:{ mode:'oneEachItem' }, text:'Before Finishing another Project, you must hold 1 of each Item-token type.' },
+          hard:{ fx:'urgentRequest', arg:{ mode:'completeSR' },  text:'Before Finishing any other Project, you must Complete a Special Request.' } },
+        { id:'shenaniGnomes', name:'Shenani-gnomes', kind:'instant',
+          fileEasy:'AR_ME_AwSea_SnagProj_Shenani-gnomes---Easy.png',
+          fileHard:'AR_ME_AwSea_SnagProj_Shenani-gnomes---Hard.png',
+          easy:{ fx:'shenaniGnomes', arg:{ ratio:1 }, text:'Give Hank 1 yarn per 1 yarn in your stash.' },
+          hard:{ fx:'shenaniGnomes', arg:{ ratio:2 }, text:'Give Hank 2 yarn per 1 yarn in your stash.' } },
+        { id:'yarnballWizard', name:'Yarnball Wizard', kind:'instant',
+          fileEasy:'AR_ME_AwSea_SnagProj_Yarnball-Wizard---Easy.png',
+          fileHard:'AR_ME_AwSea_SnagProj_Yarnball-Wizard---Hard.png',
+          easy:{ fx:'yarnballWizard', arg:{ mode:'mostValuable' }, text:'Hank crafts the most valuable Item possible with his current yarn.' },
+          hard:{ fx:'yarnballWizard', arg:{ mode:'asMany' },       text:'Hank crafts as many Items as possible with his current yarn (any colors).' } },
+        { id:'yarnEnvy', name:'Yarn Envy', kind:'instant',
+          fileEasy:'AR_ME_AwSea_SnagProj_Yarn-Envy---Easy.png',
+          fileHard:'AR_ME_AwSea_SnagProj_Yarn-Envy---Hard.png',
+          easy:{ fx:'yarnEnvy', arg:{ mode:'shopAll' },              text:'Hank Shops all cards in the bazaar.' },
+          hard:{ fx:'yarnEnvy', arg:{ mode:'discardAndGiveStash' }, text:'Discard all bazaar cards, then give all your stash yarn to Hank (don’t refill until next restock).' } },
+    ],
+
+    /**
+     * Instantiate one Tangled Yarn card on a given side.
+     * @param {object} def  — an entry from CARDS.tangledYarn
+     * @param {string} side — 'light' | 'hard' (ignored for basic/single-sided)
+     */
+    makeTangledCard: function(def, side) {
+        var basic = (def.tier === 'basic');
+        var s = basic ? null : (side === 'hard' ? 'hard' : 'light');
+        var eff = basic ? { fx:def.fx, arg:def.arg || {}, text:def.text } : def[s];
+        var file = basic ? def.file : (s === 'hard' ? def.fileHard : def.fileLight);
+        return {
+            uid:  'tangle_' + def.id + '_' + (s || 'basic'),
+            type: 'tangledYarn',
+            id:   def.id,
+            code: def.code,
+            name: def.name,
+            tier: def.tier,
+            kind: def.kind,          // instant | gnome
+            side: s || 'basic',      // basic | light | hard
+            hard: (s === 'hard'),
+            fx:   eff.fx,
+            arg:  Object.assign({}, eff.arg || {}),
+            text: eff.text,
+            img:  this.TANGLED_ART + file,
+        };
+    },
+
+    /**
+     * Instantiate one Snagged Project on a given side.
+     * @param {string} side — 'easy' | 'hard'
+     */
+    makeSnaggedCard: function(def, side) {
+        var s = (side === 'hard') ? 'hard' : 'easy';
+        var eff = def[s];
+        return {
+            uid:  'snag_' + def.id + '_' + s,
+            type: 'snaggedProject',
+            id:   def.id,
+            name: def.name,
+            kind: def.kind,          // instant | reminder
+            side: s,                 // easy | hard
+            hard: (s === 'hard'),
+            fx:   eff.fx,
+            arg:  Object.assign({}, eff.arg || {}),
+            text: eff.text,
+            img:  this.SNAGGED_ART + (s === 'hard' ? def.fileHard : def.fileEasy),
+        };
+    },
+
+    // Which themed tangles seed at the base game (4 of 7). A balanced default mix: 2 that
+    // score Hank (finish-project instants) + 2 that pressure the player (Gnome Rules).
+    // Cat Nap, Where'd It Go, Lessons Learned are defined + ready; which 4 seed is a P5
+    // tuning knob (the difficulty ladder will rotate/expand the set).
+    HANK_BASE_THEMED: ['blazingNeedles', 'itsGone', 'archRivals', 'yarnRation'],
+    // Greenest-first flip order: as red-count R climbs, these flip to Hard in order.
+    HANK_FLIP_ORDER:  ['blazingNeedles', 'itsGone', 'archRivals', 'yarnRation',
+                       'urgentRequest', 'yarnballWizard', 'shenaniGnomes', 'yarnEnvy'],
+
+    /**
+     * Assemble the Hank automa card set for a match.
+     * @param {number} redCount — number of Hard(red) cards in play (0 = first fight, all green).
+     * @returns {{ tangles: object[], snagged: object[] }}
+     *   tangles: 4 basic + 4 themed (8 total). snagged: 4.
+     * Difficulty selection is intentionally simple for P2; the full ladder is P5.
+     */
+    buildHankAutomaCards: function(redCount) {
+        var self = this;
+        redCount = Math.max(0, redCount || 0);
+        var byId = {};
+        this.tangledYarn.forEach(function(d){ byId[d.id] = d; });
+        this.snaggedProjects.forEach(function(d){ byId[d.id] = d; });
+
+        // Cards eligible to be flipped Hard, greenest-first.
+        var hardSet = {};
+        this.HANK_FLIP_ORDER.slice(0, redCount).forEach(function(id){ hardSet[id] = true; });
+
+        var tangles = [];
+        // 4 basics (always yellow / single-sided)
+        this.tangledYarn.filter(function(d){ return d.tier === 'basic'; })
+            .forEach(function(d){ tangles.push(self.makeTangledCard(d)); });
+        // 4 base themed
+        this.HANK_BASE_THEMED.forEach(function(id){
+            tangles.push(self.makeTangledCard(byId[id], hardSet[id] ? 'hard' : 'light'));
+        });
+
+        var snagged = this.snaggedProjects.map(function(d){
+            return self.makeSnaggedCard(d, hardSet[d.id] ? 'hard' : 'easy');
+        });
+
+        return { tangles: tangles, snagged: snagged };
+    },
 };
