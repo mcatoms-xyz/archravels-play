@@ -496,6 +496,57 @@ Object.assign(UI, {
         if (Game.state.phase !== 'restock') return;
         this._restockDone = false;
         Game.endTurn();
+        // Session 43: after a Hank match turn, dramatize his response (the "Hank Goes
+        // Shopping" beat) before the player takes over.
+        if (Game.state.hankAutoma && Game.state._hankBeat) UI.showHankTurnBeat();
+    },
+
+    /**
+     * Session 43: "Hank's Turn" modal — a 6s beat after you end your turn so the boss
+     * feels ALIVE (his +3 was invisible before). Shows his shopping haul, running score,
+     * a dramatic turn counter, an auto-countdown ring, and a "Your Turn →" button.
+     */
+    _hankBeatTimer: null,
+    showHankTurnBeat: function() {
+        var beat = Game.state._hankBeat; Game.state._hankBeat = null;
+        if (!beat) return;
+        this._dismissHankTurnBeat();
+        try { if (window.Sound) Sound.play('restock'); } catch(e) {}
+        var SECS = 6;
+        var YARN3 = { orange:'0000', blue:'0001', green:'0002', purple:'0003', red:'0004', yellow:'0005' };
+        var colors = (beat.colors && beat.colors.length) ? beat.colors : (beat.color ? [beat.color] : []);
+        // one Yarn3 token per gained yarn, staggered pop-in
+        var tokens = colors.map(function(c, i){
+            var code = YARN3[c] || '0001';
+            return '<img class="hb-tok" style="animation-delay:'+(0.15+i*0.5)+'s" '+
+              'src="Yarn 3 Tokens PNG/AR_Yarn3_Tokens_'+code+'_'+c+'.png" alt="'+c+' yarn">';
+        }).join('');
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay hank-beat-overlay';
+        overlay.id = 'hankBeatModal';
+        overlay.style.display = 'flex';
+        overlay.innerHTML =
+          '<div class="hank-beat">'+
+            '<div class="hb-turn">Hank’s Turn <b>#'+beat.turn+'</b></div>'+
+            '<div class="hb-portrait"><img src="story-assets/portraits/hank.jpg" alt="Hank">'+
+              '<svg class="hb-ring" viewBox="0 0 100 100"><circle class="hb-ring-bg" cx="50" cy="50" r="46"/>'+
+              '<circle class="hb-ring-fg" cx="50" cy="50" r="46"/></svg></div>'+
+            '<div class="hb-title">Hank Goes Shopping</div>'+
+            '<div class="hb-toks">'+tokens+'</div>'+
+            '<div class="hb-haul">Banked <b>+'+beat.amount+'</b> yarn for his stash</div>'+
+            '<div class="hb-score">His score so far: <b>'+beat.score+'</b></div>'+
+            '<button class="btn btn-gold hb-go" onclick="UI._dismissHankTurnBeat(true)">Your Turn →</button>'+
+          '</div>';
+        document.body.appendChild(overlay);
+        try { if (window.Sound) colors.forEach(function(c,i){ setTimeout(function(){ Sound.play('draw-card'); }, 150+i*500); }); } catch(e) {}
+        // Kick the countdown ring (CSS transition over SECS)
+        var fg = overlay.querySelector('.hb-ring-fg');
+        if (fg) { fg.style.transition = 'stroke-dashoffset '+SECS+'s linear'; requestAnimationFrame(function(){ fg.style.strokeDashoffset = '289'; }); }
+        this._hankBeatTimer = setTimeout(function(){ UI._dismissHankTurnBeat(true); }, SECS*1000);
+    },
+    _dismissHankTurnBeat: function(){
+        if (this._hankBeatTimer) { clearTimeout(this._hankBeatTimer); this._hankBeatTimer = null; }
+        var m = document.getElementById('hankBeatModal'); if (m) m.remove();
     },
 
     /**
