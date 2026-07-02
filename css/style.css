@@ -21,18 +21,43 @@
     font-style: normal;
 }
 
+/* Session 43: display font switched from SantElia (YDS desktop license — can't embed
+   in web/app) to Baloo 2 (OFL, self-hosted so the offline app works). Averia Serif
+   Libre added as the storybook/dialog accent. The `'SantElia'` family name is kept as
+   an ALIAS (now serving Baloo 2) so every existing rule keeps working untouched. */
 @font-face {
-    font-family: 'SantElia';
-    src: url('../Other Images Textures Details/Fonts - Final/SantElia/SantEliaRough-Line.otf') format('opentype');
+    font-family: 'SantElia';   /* alias → Baloo 2 SemiBold */
+    src: url('../webfonts/Baloo2-SemiBold.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
-
 @font-face {
-    font-family: 'SantElia';
-    src: url('../Other Images Textures Details/Fonts - Final/SantElia/SantEliaRoughAlt-BoldThrDEMO.otf') format('opentype');
+    font-family: 'SantElia';   /* alias → Baloo 2 ExtraBold */
+    src: url('../webfonts/Baloo2-ExtraBold.woff2') format('woff2');
     font-weight: 800;
     font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Baloo2';
+    src: url('../webfonts/Baloo2-SemiBold.woff2') format('woff2');
+    font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'Baloo2';
+    src: url('../webfonts/Baloo2-ExtraBold.woff2') format('woff2');
+    font-weight: 800; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'AveriaSerif';
+    src: url('../webfonts/AveriaSerifLibre-Regular.woff2') format('woff2');
+    font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'AveriaSerif';
+    src: url('../webfonts/AveriaSerifLibre-Bold.woff2') format('woff2');
+    font-weight: 700; font-style: normal; font-display: swap;
 }
 
 /* =====================================================================
