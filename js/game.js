@@ -1199,7 +1199,24 @@ var Game = {
         // since the automa no longer takes turns of his own.
         if (!this.state.player.isAutoma) {
             for (var ap = 0; ap < this.state.playerCount; ap++) {
-                if (this.state.players[ap].isAutoma) this.applyHankAutoYarn(this.state.players[ap]);
+                if (this.state.players[ap].isAutoma) {
+                    var _gainColor = this.applyHankAutoYarn(this.state.players[ap]);
+                    // Session 43: stash a "Hank's Turn" beat so the UI can dramatize his
+                    // response (the +3 was invisible — turn just snapped back to you).
+                    if (this.state.hankAutoma) {
+                        var hank = this.state.players[ap];
+                        this.state.hankTurns = (this.state.hankTurns || 0) + 1;
+                        var amt = (this.state.hankReds >= (this.HANK_AUTOYARN_RAMP.length))
+                            ? 3 : this.HANK_AUTOYARN_RAMP[this.state.hankReds || 0];
+                        this.state._hankBeat = {
+                            amount: amt, color: _gainColor,
+                            colors: (this.state._hankGainColors || []).slice(),
+                            score: this.calculateFinalScore(hank).total,
+                            turn: this.state.hankTurns,
+                            bowl: Object.assign({}, hank.yarnBowl)
+                        };
+                    }
+                }
             }
         }
 
@@ -1737,26 +1754,33 @@ var Game = {
     },
 
     /**
-     * Session 36: Hank boss auto-yarn — at the start of every Hank turn he
-     * gains +3 yarn of a SINGLE color of his choosing. Snowballs the color he
-     * already holds the most of (he hoards; leftovers score for him). Automatic,
-     * in ADDITION to his action that turn.
-     * @param {Object} player — the Hank player object
-     * @returns {string} the color chosen
+     * Hank's per-turn "shopping" yarn. Session 43 (Adam): distribute the tokens
+     * ROUND-ROBIN — one per color, filling the colors he holds LEAST of first, so
+     * he trends toward one-of-each, then two-of-each. This is balance-NEUTRAL (Hank
+     * crafts any-color and scores leftovers 2:1 by count, so color spread is purely
+     * cosmetic) but reads as an intentional, animatable "collect the set" moment.
+     * @param {Object} player — the Hank automa
+     * @returns {string} the FIRST/primary color gained (back-compat), or ''
+     * @sideeffect sets state._hankGainColors = full ordered list for the UI animation
      */
     applyHankAutoYarn: function(player) {
         var bowl = player.yarnBowl;
-        var best = CARDS.COLORS[0], bestN = -1;
-        CARDS.COLORS.forEach(function(c) {
-            var n = bowl[c] || 0;
-            if (n > bestN) { bestN = n; best = c; }
-        });
-        // P5 tuning: soft spin at low red counts (see HANK_AUTOYARN_RAMP).
         var reds = this.state.hankReds || 0;
         var amount = (reds < this.HANK_AUTOYARN_RAMP.length) ? this.HANK_AUTOYARN_RAMP[reds] : 3;
-        bowl[best] += amount;
-        this._logAction(player.name + ' auto-spun +' + amount + ' ' + best + ' yarn');
-        return best;
+        var gained = [];
+        for (var i = 0; i < amount; i++) {
+            // pick the color he has the fewest of (ties → canonical COLORS order)
+            var pick = CARDS.COLORS[0], low = Infinity;
+            CARDS.COLORS.forEach(function(c) {
+                var n = bowl[c] || 0;
+                if (n < low) { low = n; pick = c; }
+            });
+            bowl[pick] = (bowl[pick] || 0) + 1;
+            gained.push(pick);
+        }
+        this.state._hankGainColors = gained;
+        this._logAction(player.name + ' went shopping: +' + amount + ' yarn (' + gained.join(', ') + ')');
+        return gained[0] || '';
     },
 
     /**
