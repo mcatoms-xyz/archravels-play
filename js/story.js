@@ -1190,7 +1190,8 @@ var Story = {
     var whole=Math.floor(n), frac=Math.round((n-whole)*100)/100;
     var glyph={0.25:'¼',0.5:'½',0.75:'¾'}[frac];
     if(!glyph) return String(n);
-    return (whole>0?whole:'')+glyph;
+    // Adam: space before the fraction, ~50% size, raised (superscript-ish).
+    return (whole>0?whole:'')+'<span class="pf-frac">'+glyph+'</span>';
   },
   // The in-game Pts tag (real PointTag art, value counter-rotated level).
   ptagHTML: function(v, sm){ return '<span class="pf-ptag'+(sm?' sm':'')+'"><span class="pf-pv">'+this.fmtPts(v)+'</span></span>'; },
@@ -1220,9 +1221,10 @@ var Story = {
       '<div class="pf-id"><div class="pf-name" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="pf-pen">✎</span></div>'+
         '<div class="pf-sub">'+(this.currentUser?'Synced to your account':'Playing as a guest')+' · <span class="pf-editlink" onclick="Story.goEditName()">Change name</span></div></div>'+
       '<div class="pf-herocta">'+
+        '<button class="btn btn-gold" onclick="Story.goTypes()">Play Story →</button>'+
         (this.currentUser
           ? '<button class="btn btn-ghost" onclick="Story.signOut()">Sign out</button>'
-          : '<button class="btn btn-gold" onclick="Story.goSignIn()">Sign in</button>')+
+          : '<button class="btn btn-ghost" onclick="Story.goSignIn()">Sign in</button>')+
       '</div></div>';
 
     // ---- headline stat band ----
@@ -1276,7 +1278,8 @@ var Story = {
       var s=crafters[c], locked=self.crafterLocked(c);
       var sub = locked ? self.meta(c).name : (s ? (s.furthest||'') : 'Not played yet');
       var score = s ? (s.best||0) : null;
-      return '<div class="pf-craf stitch'+(locked?' locked':'')+'" onclick="'+(locked?'Story.goUpgrade(\'crafter\')':'Story.goLadder(\''+c+'\')')+'">'+
+      var played = !!s;   // gold border for crafters you've run Story with
+      return '<div class="pf-craf stitch'+(locked?' locked':'')+(played?' played':'')+'" onclick="'+(locked?'Story.goUpgrade(\'crafter\')':'Story.goLadder(\''+c+'\')')+'">'+
         '<div class="pf-cp"><img src="'+Story.portrait(c)+'" alt="">'+
           (locked?'<div class="pf-lockpill">🔒 Full Game</div>':(score!=null?self.ptagHTML(score,true):''))+'</div>'+
         '<div class="pf-cb"><div class="pf-cn">'+Story.char(c).name+'</div><div class="pf-cx">'+sub+'</div></div></div>';
@@ -1285,8 +1288,7 @@ var Story = {
     this.screen('<div class="pf-nav pf-nav-top">'+
         '<button class="pf-navpill on" onclick="Story.goStats()">Profile</button>'+
         '<button class="pf-navpill" onclick="Story.goAchievements()">Achievements</button>'+
-        '<button class="pf-navpill" onclick="Story.goSRBoard()">SR Board</button>'+
-        '<button class="pf-navpill alt" onclick="Story.goTypes()">Play Story →</button></div>'+
+        '<button class="pf-navpill" onclick="Story.goSRBoard()">SR Board</button></div>'+
       hero+band+recBlock+links+
       '<div class="pf-h">Your Crafters</div><div class="pf-roster">'+roster+'</div>'+
       this.backBar('Story.goTypes()','← Back to Story'));
