@@ -1183,39 +1183,88 @@ var Story = {
   },
 
   /* ---- stats ---- */
+  // Session 43: the in-game Pts tag (real PointTag art, value counter-rotated level).
+  ptagHTML: function(v, sm){ return '<span class="pf-ptag'+(sm?' sm':'')+'"><span class="pf-pv">'+v+'</span></span>'; },
+
   goStats: async function(){
     this._setHash('profile');
     await this.ensureProfile();
-    var p=this.profile||{}, crafters=p.crafters||{};
-    var tiles=[
-      {ico:'🏆',num:(p.lifetimeStoryScore||0),lbl:'Lifetime Story Score'},
-      {ico:'⭐',num:((p.perGameHigh&&p.perGameHigh.score)||0),lbl:'Best Game'},
-      {ico:'⏱',num:this.fmtTime(p.totalPlayTimeMs||0),lbl:'Total Time'},
-      {ico:'🏅',num:(Object.keys(p.achievements||{}).length)+' / '+this.ACH.length,lbl:'Achievements'},
-    ].map(function(t){ return '<div class="stat-tile"><div class="st-ico">'+t.ico+'</div><div class="st-num">'+t.num+'</div><div class="st-lbl">'+t.lbl+'</div></div>'; }).join('');
-    var records=this._recordsHTML(p);
-    var order=Object.keys(CARDS.characters).filter(function(c){ return c!=='hank'; }).sort(function(a,b){ return (crafters[b]?1:0)-(crafters[a]?1:0); });
-    var board=order.map(function(c){
-      var s=crafters[c], col=Story.color(c);
-      var sub = s ? (s.furthest||'') : 'Not played yet';
-      var score = s ? (s.best||0) : '—';
-      var cta = !s ? 'Start climb →' : (/champion/i.test(s.furthest||'') ? 'Replay →' : 'Resume →');
-      return '<div class="cb-card playable'+(s?'':' unplayed')+'" style="--tc:'+col+'" onclick="Story.goLadder(\''+c+'\')" title="Play '+Story.char(c).name+'’s Story Mode">'+
-        '<img src="'+Story.portrait(c)+'"><div class="cb-meta"><b>'+Story.char(c).name+'</b><span>'+sub+'</span><span class="cb-cta">'+cta+'</span></div>'+
-        '<div class="cb-score">'+score+'</div></div>';
-    }).join('');
-    this.screen('<div class="crumb">Story Mode · Stats</div>'+
-      '<div class="stats-id"><div class="big-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="big-av-edit">✎</span></div><div class="who2"><div class="nm nm-edit" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="nm-pen">✎</span></div>'+
-        '<div class="sub2">'+(this.currentUser?'Synced to your account':'Sign in to save across devices')+'</div></div>'+
+    var p=this.profile||{}, crafters=p.crafters||{}, a=p.agg||{}, self=this;
+    var achCount=Object.keys(p.achievements||{}).length;
+    var rec = a.played ? ((a.wins||0)+'–'+(a.losses||0)) : '—';
+
+    // ---- hero header ----
+    var hero='<div class="pf-hero">'+
+      '<div class="pf-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="pf-av-edit">✎</span></div>'+
+      '<div class="pf-id"><div class="pf-name" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="pf-pen">✎</span></div>'+
+        '<div class="pf-sub">'+(this.currentUser?'Synced to your account':'Playing as a guest')+' · <span class="pf-editlink" onclick="Story.goEditName()">Change name</span></div></div>'+
+      '<div class="pf-herocta">'+
         (this.currentUser
-          ? '<button class="btn btn-ghost stats-signout" onclick="Story.signOut()">Sign out</button>'
-          : '<button class="btn btn-gold stats-signout" onclick="Story.goSignIn()">Sign in</button>')+
-      '</div>'+
-      '<div class="stat-tiles">'+tiles+'</div>'+
-      records+
-      '<div class="ach-cta-row"><button class="btn btn-ghost" onclick="Story.goAchievements()">🏅 View all achievements →</button><button class="btn btn-ghost" onclick="Story.goSRBoard()">🧶 Special Request Board →</button></div>'+
-      '<div class="section-h">Your Crafters</div><div class="crafter-board">'+board+'</div>'+
-      this.backBar('Story.goTypes()','← Back to start'));
+          ? '<button class="btn btn-ghost" onclick="Story.signOut()">Sign out</button>'
+          : '<button class="btn btn-gold" onclick="Story.goSignIn()">Sign in</button>')+
+      '</div></div>';
+
+    // ---- headline stat band ----
+    var band='<div class="pf-band">'+
+      '<div class="pf-stat stitch"><div class="pf-tagwrap">'+this.ptagHTML(p.lifetimeStoryScore||0)+'</div><div class="pf-l">Story Score</div></div>'+
+      '<div class="pf-stat stitch"><div class="pf-tagwrap">'+this.ptagHTML((p.perGameHigh&&p.perGameHigh.score)||0)+'</div><div class="pf-l">Best Game</div></div>'+
+      '<div class="pf-stat stitch"><div class="pf-n">'+rec+'</div><div class="pf-l">'+(a.played?('Record · '+Math.round(100*(a.wins||0)/a.played)+'%'):'Record')+'</div></div>'+
+      '<div class="pf-stat stitch"><div class="pf-n">'+achCount+'<span class="pf-of">/'+this.ACH.length+'</span></div><div class="pf-l">Achievements</div></div>'+
+    '</div>';
+
+    // ---- Hank record + Records grid (only once there's match history) ----
+    var recBlock='';
+    if(a.played){
+      var winPct=Math.round(100*(a.wins||0)/a.played), avg=Math.round((a.sumScore||0)/a.played);
+      var fw=a.fastestWinSec!=null ? (Math.floor(a.fastestWinSec/60)+':'+String(a.fastestWinSec%60).padStart(2,'0')) : '—';
+      var topItem=null, topN=0, ic=a.itemCounts||{};
+      Object.keys(ic).forEach(function(id){ if(ic[id]>topN){ topN=ic[id]; topItem=id; } });
+      var topDef=topItem&&CARDS.getItem?CARDS.getItem(topItem):null;
+      var recs='<div class="pf-recs">'+
+        '<div class="pf-rec stitch"><span class="pf-ic">🔥</span><div><div class="pf-rn">'+(a.streak&&a.streak.cur||0)+' <small>best '+(a.streak&&a.streak.best||0)+'</small></div><div class="pf-rl">Win Streak</div></div></div>'+
+        '<div class="pf-rec stitch"><span class="pf-ic">⚡</span><div><div class="pf-rn">'+fw+'</div><div class="pf-rl">Fastest Win</div></div></div>'+
+        '<div class="pf-rec stitch"><span class="pf-ic">📈</span><div><div class="pf-rn">'+avg+'</div><div class="pf-rl">Avg Score</div></div></div>'+
+        (topDef?('<div class="pf-rec stitch"><img class="pf-itk" src="'+topDef.img+'" alt=""><div><div class="pf-rn">×'+topN+'</div><div class="pf-rl">Most Crafted: '+topDef.name+'</div></div></div>'):
+                ('<div class="pf-rec stitch"><span class="pf-ic">⏱</span><div><div class="pf-rn">'+this.fmtTime(p.totalPlayTimeMs||0)+'</div><div class="pf-rl">Total Time</div></div></div>'))+
+      '</div>';
+      var hankCard='';
+      var h=a.hank;
+      if(h && h.faced){
+        var hi=(h.highestRedBeaten==null)?-1:h.highestRedBeaten, dots='';
+        for(var i=1;i<=13;i++){ dots+='<span class="pf-hcard'+(i<=hi?' red':'')+'"></span>'; }
+        hankCard='<div class="pf-hankcard stitch" style="--stc:rgba(126,91,192,.5)">'+
+          '<div class="pf-hanktop"><img src="'+this.portrait('hank')+'" alt="Hank"><div><div class="pf-hankt">The Stitchmeister</div><div class="pf-hanks">Faced '+h.faced+' · Beaten '+h.beaten+' · Lost '+h.lost+'</div></div></div>'+
+          '<div class="pf-hankscale">'+dots+'</div>'+
+          '<div class="pf-hanknote">'+(hi>=0 ? (hi===13?'<b>👑 The Woolen Crown is yours</b>':'Best beaten: <b>'+hi+' red'+(hi===1?'':'s')+'</b> — '+(13-hi)+' to the crown'):'Beat him to begin the red-card climb')+'</div>'+
+        '</div>';
+      }
+      recBlock = (hankCard
+        ? '<div class="pf-two"><div><div class="pf-h">Hank the Stitchmeister</div>'+hankCard+'</div><div><div class="pf-h">Records</div>'+recs+'</div></div>'
+        : '<div class="pf-h">Records</div>'+recs);
+    }
+
+    // ---- board shortcuts ----
+    var links='<div class="pf-links">'+
+      '<div class="pf-rec pf-link stitch" onclick="Story.goAchievements()"><span class="pf-ic">🏅</span><div><div class="pf-rn" style="font-size:1.05rem">Achievement Board</div><div class="pf-rl">'+achCount+' of '+this.ACH.length+' earned →</div></div></div>'+
+      '<div class="pf-rec pf-link stitch" onclick="Story.goSRBoard()"><span class="pf-ic">🧶</span><div><div class="pf-rn" style="font-size:1.05rem">Special Request Board</div><div class="pf-rl">Collect &amp; curate cards →</div></div></div>'+
+    '</div>';
+
+    // ---- crafter roster ----
+    var order=Object.keys(CARDS.characters).filter(function(c){ return c!=='hank'; }).sort(function(x,y){ return (crafters[y]?1:0)-(crafters[x]?1:0); });
+    var roster=order.map(function(c){
+      var s=crafters[c], locked=self.crafterLocked(c);
+      var sub = locked ? self.meta(c).name : (s ? (s.furthest||'') : 'Not played yet');
+      var score = s ? (s.best||0) : null;
+      return '<div class="pf-craf stitch'+(locked?' locked':'')+'" onclick="'+(locked?'Story.goUpgrade(\'crafter\')':'Story.goLadder(\''+c+'\')')+'">'+
+        '<div class="pf-cp"><img src="'+Story.portrait(c)+'" alt="">'+
+          (locked?'<div class="pf-lockpill">🔒 Full Game</div>':(score!=null?self.ptagHTML(score,true):''))+'</div>'+
+        '<div class="pf-cb"><div class="pf-cn">'+Story.char(c).name+'</div><div class="pf-cx">'+sub+'</div></div></div>';
+    }).join('');
+
+    this.screen('<div class="crumb">Your Profile</div>'+
+      hero+band+recBlock+links+
+      '<div class="pf-h">Your Crafters</div><div class="pf-roster">'+roster+'</div>'+
+      this.backBar('Story.goTypes()','← Back to Story'));
   },
   fmtTime: function(ms){ var m=Math.round(ms/60000); if(m<60) return m+'m'; return Math.floor(m/60)+'h '+(m%60)+'m'; },
 
