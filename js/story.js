@@ -711,6 +711,7 @@ var Story = {
      the ladder. Replaces the hero/carousel (climbStep/_climbView retired). */
   renderLadder: function(){
     this._rematchOpp=null;                       // leaving a rematch flow resets it
+    this._setHash('');                           // S44: the climb is un-routed — drop any stale #/profile etc. so the URL never lies
     var total=this.ladder.length, champ=this.beaten>=total;
     var pickedName=this.char(this.picked).name, pct=Math.round(this.beaten/total*100);
     if(champ && !this.entitled()){
