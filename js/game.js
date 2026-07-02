@@ -1767,20 +1767,19 @@ var Game = {
         var bowl = player.yarnBowl;
         var reds = this.state.hankReds || 0;
         var amount = (reds < this.HANK_AUTOYARN_RAMP.length) ? this.HANK_AUTOYARN_RAMP[reds] : 3;
-        var gained = [];
-        for (var i = 0; i < amount; i++) {
-            // pick the color he has the fewest of (ties → canonical COLORS order)
-            var pick = CARDS.COLORS[0], low = Infinity;
-            CARDS.COLORS.forEach(function(c) {
-                var n = bowl[c] || 0;
-                if (n < low) { low = n; pick = c; }
-            });
-            bowl[pick] = (bowl[pick] || 0) + 1;
-            gained.push(pick);
-        }
-        this.state._hankGainColors = gained;
-        this._logAction(player.name + ' went shopping: +' + amount + ' yarn (' + gained.join(', ') + ')');
-        return gained[0] || '';
+        // Session 43 (Adam): Hank grabs one full "Yarn3" bundle — `amount` of a SINGLE
+        // color — picking the color he holds LEAST of (still trends toward a balanced
+        // hoard, but as one satisfying 3-token grab we can show with the Yarn3 art).
+        // Balance-neutral: he crafts any-color + scores leftovers 2:1 by count.
+        var pick = CARDS.COLORS[0], low = Infinity;
+        CARDS.COLORS.forEach(function(c) {
+            var n = bowl[c] || 0;
+            if (n < low) { low = n; pick = c; }
+        });
+        bowl[pick] = (bowl[pick] || 0) + amount;
+        this.state._hankGainColors = [pick];
+        this._logAction(player.name + ' went shopping: +' + amount + ' ' + pick + ' yarn');
+        return pick;
     },
 
     /**
