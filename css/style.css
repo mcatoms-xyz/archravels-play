@@ -8178,3 +8178,9 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 #story-root .up-perk .up-ico { font-size: 20px; line-height: 1.3; }
 #story-root .up-perk b { display: block; font-size: .92rem; }
 #story-root .up-perk span { font-size: .78rem; opacity: .75; }
+
+/* Session 43: player handle edit */
+#story-root .nm-edit { cursor: pointer; }
+#story-root .nm-pen { font-size: .7em; opacity: .55; }
+#story-root .nm-edit:hover .nm-pen { opacity: 1; }
+#story-root #handleInput { width: 100%; font-size: 1.05rem; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,.25); margin-bottom: 10px; text-align: center; }
