@@ -8725,3 +8725,25 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 /* Session 47b: cancel row on entry-gain pickers */
 .cp-cancel-row { margin-top: 12px; text-align: center; }
 .cp-cancel-row .btn { font-size: 13px; }
+
+/* ============================================================================
+   Session 47d: SR give-picker was a full-height phone tower on desktop (Adam,
+   6-player game). Wide screens get a grid + capped card art; the modal stops
+   growing past the viewport. Mobile keeps the stacked column.
+   ============================================================================ */
+.modal-content { max-height: 92dvh; overflow-y: auto; }
+@media (min-width: 700px) {
+    .sr-take-content { max-width: 560px; }
+    .sr-give-player-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .sr-take-card-img { max-height: 30vh; width: auto; }
+}
+@media (min-width: 1000px) {
+    .sr-give-player-list { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-height: 900px) {
+    .sr-take-card-img { max-height: 26vh; width: auto; }
+}
