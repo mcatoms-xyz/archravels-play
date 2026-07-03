@@ -1106,7 +1106,7 @@ var UI = {
             clone.style.cssText = 'position:fixed;margin:0;transform:none;z-index:960;pointer-events:none;' +
                 'left:' + from.left + 'px;top:' + from.top + 'px;width:' + from.width + 'px;height:' + from.height + 'px;' +
                 'filter:drop-shadow(0 12px 10px rgba(0,0,0,.35));' +
-                'transition:left .28s cubic-bezier(.34,1.2,.64,1), top .28s cubic-bezier(.34,1.2,.64,1), width .28s, height .28s;';
+                'transition:left .28s cubic-bezier(.34,1.45,.64,1), top .28s cubic-bezier(.34,1.45,.64,1), width .28s, height .28s;';
             mk.style.visibility = 'hidden';
             document.body.appendChild(clone);
             void clone.offsetWidth;
@@ -1117,7 +1117,8 @@ var UI = {
             setTimeout(function(){
                 if (clone.parentNode) clone.parentNode.removeChild(clone);
                 mk.style.visibility = '';
-                mk.classList.add('am-drop');    // landing bounce
+                // No landing bounce — the flight's springy curve IS the settle
+                // (mockup-faithful: smooth pick-up-and-glide, nothing extra).
             }, 290);
         } catch (e) { if (mk) mk.style.visibility = ''; }
     },
