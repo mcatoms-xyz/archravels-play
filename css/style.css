@@ -8558,3 +8558,147 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 @media (max-height: 700px) {
     .opp-portrait { height: 150px; }
 }
+
+/* ============================================================================
+   Session 46: ACTION MARKERS + HOW-TO-PLAY + COACH MARK (Adam-blessed designs)
+   ============================================================================ */
+
+/* --- Archetype action markers: dropped onto the chosen space each turn --- */
+.action-grid-btn { position: relative; }
+.am-marker {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-40%, -50%);
+    height: 76%; max-width: none; z-index: 3;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.4));
+}
+.am-masterCrafter  { height: 59%; }                                     /* Fiber Artist hank (tall) */
+.am-colorSpecialist{ height: 67%; transform: translate(-42%, -50%); }
+.am-yarnSpinner    { height: 61%; transform: translate(-42%, -50%); }
+.am-maker  { height: 62%; left: auto; right: 4%;  transform: translateY(-50%); }
+.am-expert { height: 60%; left: auto; right: 1%;  transform: translateY(-50%); }
+.am-drop { animation: amDrop .38s cubic-bezier(.34,1.56,.64,1); }
+@keyframes amDrop {
+    0%   { margin-top: -26px; scale: 1.18; filter: drop-shadow(0 16px 12px rgba(0,0,0,.3)); }
+    100% { margin-top: 0;     scale: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .am-drop { animation: none; } }
+
+/* --- How-to-Play overlay --- */
+.htp46-back {
+    display: none; position: fixed; inset: 0; z-index: 940;
+    background: rgba(20,14,8,.88);
+    align-items: center; justify-content: center; padding: 14px;
+}
+.htp46-back.open { display: flex; }
+.htp46 {
+    background: #fdf6e8; color: #30261a; border-radius: 18px;
+    max-width: 620px; width: 100%; max-height: calc(100dvh - 28px); overflow-y: auto;
+    padding: 22px 24px; box-shadow: 0 16px 50px rgba(0,0,0,.6); position: relative;
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+}
+.htp46-x {
+    position: absolute; top: 10px; right: 12px; background: none; border: none;
+    font-size: 26px; line-height: 1; color: #8a7a68; cursor: pointer; z-index: 2;
+}
+.htp46-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; padding-right: 26px; }
+.htp46-head h3 { font-size: 1.35rem; margin: 0; }
+.htp46-sub { color: #8a7a68; font-size: .85rem; }
+.htp46-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+@media (max-width: 560px) { .htp46-grid { grid-template-columns: 1fr; } }
+.htp46-card {
+    background: rgba(201,168,76,.12); border: 1.5px solid rgba(201,168,76,.35);
+    border-radius: 12px; padding: 14px; position: relative; overflow: hidden;
+}
+.htp46-card::before, .htp46-win::before {
+    content: ""; position: absolute; inset: 5px;
+    border: 2px dashed rgba(164,136,74,.45); border-radius: 9px; pointer-events: none;
+}
+.htp46-ghost { position: absolute; right: -8px; bottom: -6px; height: 78%; opacity: .14; pointer-events: none; }
+.htp46-h { font-weight: 800; font-size: .9rem; margin-bottom: 3px; position: relative; }
+.htp46-d { font-size: .72rem; color: #6b5c48; line-height: 1.35; text-align: center; margin-bottom: 8px; position: relative; }
+.htp46-art { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 74px; position: relative; }
+.htp46-cardimg { height: 64px; border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.htp46-tall { height: 74px; }
+.htp46-sr { height: 96px; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+.htp46-stack { position: relative; display: inline-block; height: 68px; width: 72px; flex-shrink: 0; }
+.htp46-stack .htp46-cardimg { position: absolute; left: 0; top: 2px; height: 58px; transform: rotate(-6deg); }
+.htp46-stack .htp46-over { left: 16px; top: 7px; transform: rotate(5deg); }
+.htp46-tri { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.htp46-trow { display: flex; gap: 4px; justify-content: center; }
+.htp46-tri img { height: 24px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.htp46-token { height: 44px; object-fit: contain; }
+.htp46-istack { position: relative; display: inline-block; width: 56px; height: 90px; flex-shrink: 0; }
+.htp46-istack .htp46-token { position: absolute; left: 6px; top: 0; height: 42px; }
+.htp46-istack .htp46-under { left: 0; top: 46px; height: 44px; }
+.htp46-flip { height: 24px; opacity: .85; flex-shrink: 0; }
+.htp46-hone { gap: 30px; }
+.htp46-vcol { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.htp46-tile { height: 42px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,.2); }
+.htp46-fliptxt { font-weight: 800; font-size: 1.1rem; color: #a4884a; line-height: 1; }
+.htp46-win {
+    display: flex; gap: 12px; align-items: center; position: relative;
+    background: rgba(201,168,76,.22); border: 1.5px solid #c9a84c; border-radius: 10px;
+    padding: 10px 16px; margin: 0 auto 12px; width: 86%;
+}
+.htp46-wintext { flex: 4; text-align: left; font-size: .98rem; font-weight: 800; }
+.htp46-wintext b { color: #a4642a; }
+.htp46-tag { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; }
+.htp46-tag img { height: 50px; }
+.htp46-tag span { position: absolute; left: 50%; top: 50%; transform: translate(-80%, -58%) rotate(-9deg); font-weight: 800; font-size: 1.15rem; color: #30261a; }
+.htp46-cta {
+    display: block; width: 100%; background: #c9a84c; border: none; border-radius: 10px;
+    font-family: inherit; font-weight: 800; font-size: 1.15rem; color: #30261a;
+    padding: 12px; cursor: pointer; box-shadow: 0 3px 0 #9a7c30;
+}
+.htp46-foot { display: flex; align-items: center; justify-content: center; gap: 7px; font-size: .72rem; font-weight: 400; color: #8a7a68; font-style: italic; margin-top: 9px; }
+.htp46-foot img { height: 22px; }
+.htp46-again { text-align: center; font-size: .72rem; color: #8a7a68; margin-top: 5px; }
+
+/* --- Coach mark #1 --- */
+.cm46-dim { position: fixed; inset: 0; z-index: 930; cursor: pointer; }
+.cm46-hole {
+    position: absolute; border-radius: 14px;
+    box-shadow: 0 0 0 3px #e8c86a, 0 0 0 4000px rgba(20,14,8,.6);
+    animation: cm46pulse 1.6s ease-in-out infinite;
+}
+@keyframes cm46pulse {
+    0%,100% { box-shadow: 0 0 0 3px #e8c86a, 0 0 0 4000px rgba(20,14,8,.6); }
+    50%     { box-shadow: 0 0 0 7px #e8c86a, 0 0 0 4000px rgba(20,14,8,.6); }
+}
+.cm46-marker { position: absolute; height: 54px; z-index: 2; filter: drop-shadow(0 8px 10px rgba(0,0,0,.5)); animation: cm46bob 1.4s ease-in-out infinite; }
+@keyframes cm46bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.cm46-label {
+    position: absolute; background: #fdf6e8; color: #30261a; border-radius: 12px;
+    padding: 12px 14px; font-size: .9rem; font-weight: 600; line-height: 1.4;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 2;
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+}
+.cm46-label b { color: #a4642a; }
+.cm46-tap { display: block; margin-top: 7px; font-size: .7rem; font-weight: 400; color: #8a7a68; font-style: italic; }
+
+/* --- Beat chip (coach follow-up: what the chosen space grants) --- */
+.am46-chip {
+    position: fixed; left: 50%; bottom: 170px; transform: translateX(-50%) translateY(14px);
+    background: #fdf6e8; color: #30261a; font-weight: 800; font-size: .95rem;
+    border-radius: 24px; padding: 9px 18px; box-shadow: 0 6px 18px rgba(0,0,0,.45);
+    z-index: 920; opacity: 0; transition: opacity .3s, transform .3s;
+    font-family: 'Baloo2', var(--font-system, sans-serif); pointer-events: none;
+}
+.am46-chip.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* --- Craft Circle polish (audit items, blessed) --- */
+/* Rail-peek fade: rows dissolve at the frame's bottom edge instead of hard-cutting */
+#story-root .cc2-lad {
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent 99%);
+    mask-image: linear-gradient(180deg, #000 0, #000 86%, transparent 99%);
+}
+/* Step-2 twin-pick portraits: cap at short-landscape so the pick button stays above the fold */
+@media (max-height: 900px) and (orientation: landscape) {
+    #story-root .char .port { aspect-ratio: auto; height: min(34vh, 300px); }
+    #story-root .char .port img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+}
+/* Craft Circle uses more of the height on short-landscape (iPad) */
+@media (max-height: 900px) and (orientation: landscape) {
+    #story-root .cc2-frame { height: min(72vh, 600px); }
+}
