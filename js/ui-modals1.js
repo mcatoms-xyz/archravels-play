@@ -11,7 +11,20 @@ Object.assign(UI, {
         if (Game.state.player && Game.state.player.isAI) return;
         Game.chooseActionSpace(spaceIndex);
         // Game.chooseActionSpace already triggers UI re-renders
+        UI._afterSpaceEntered();
+    },
 
+    /* Session 47: hop the marker to another legal space while the choice is soft. */
+    onSwitchSpace: function(spaceIndex) {
+        if (Game.state.phase !== 'playerActions') return;
+        if (Game.state.player && Game.state.player.isAI) return;
+        UI._amDroppedTurn = null;               // replay the drop animation on the hop
+        if (!Game.switchActionSpace(spaceIndex)) return;
+        UI._afterSpaceEntered();
+    },
+
+    /* Shared post-entry hook: entry-gain uniques pop their pickers. */
+    _afterSpaceEntered: function() {
         // Session 8c: take3Yarn — show color picker to gain 3 yarn before actions
         if (Game.state.pendingTake3Yarn) {
             UI.showColorPicker(function(color) {
