@@ -429,16 +429,31 @@ Object.assign(UI, {
         }
 
         // Show yarn requirement — handle all colorRules
+        // Session 47j: compound rules (specificPlusSame / specificPlusAny /
+        // sameColorPlus) fell through to "No yarn required" (Dog Bandana bug).
         var yarnHtml = '';
         var srRule = card.colorRule || 'specific';
-        if (srRule === 'specific' && card.yarn) {
+        var _chips = function(yarnObj) {
+            var h = '';
             CARDS.COLORS.forEach(function(color) {
-                if (!card.yarn[color]) return;
-                var amount = card.yarn[color];
+                if (!yarnObj || !yarnObj[color]) return;
                 var hex = CARDS.COLOR_HEX[color];
-                yarnHtml += '<span class="confirm-yarn-tag" style="background:' + hex + '">' +
-                    amount + ' ' + color.charAt(0).toUpperCase() + color.slice(1) + '</span>';
+                h += '<span class="confirm-yarn-tag" style="background:' + hex + '">' +
+                    yarnObj[color] + ' ' + color.charAt(0).toUpperCase() + color.slice(1) + '</span>';
             });
+            return h;
+        };
+        if (srRule === 'specific' && card.yarn) {
+            yarnHtml = _chips(card.yarn);
+        } else if (srRule === 'specificPlusSame' && card.yarn) {
+            yarnHtml = _chips(card.yarn) +
+                '<span class="sr-cost-desc">+ ' + card.sameCount + ' of one color</span>';
+        } else if (srRule === 'specificPlusAny' && card.yarn) {
+            yarnHtml = _chips(card.yarn) +
+                '<span class="sr-cost-desc">+ ' + card.anyCount + ' other color' + (card.anyCount > 1 ? 's' : '') + '</span>';
+        } else if (srRule === 'sameColorPlus') {
+            yarnHtml = '<span class="sr-cost-desc">' + card.yarnCount + ' of the same color</span>' +
+                _chips(card.plusYarn);
         } else if (card.yarnCount) {
             var ruleDesc = {
                 any:       'Any ' + card.yarnCount + ' yarn',
