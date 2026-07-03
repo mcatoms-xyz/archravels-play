@@ -8721,3 +8721,7 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
     opacity: 1;
     filter: drop-shadow(0 4px 6px rgba(0,0,0,.4)) !important;
 }
+
+/* Session 47b: cancel row on entry-gain pickers */
+.cp-cancel-row { margin-top: 12px; text-align: center; }
+.cp-cancel-row .btn { font-size: 13px; }
