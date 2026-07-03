@@ -1005,6 +1005,33 @@ Object.assign(UI, {
         document.body.appendChild(dim);
     },
 
+    /* Session 47b: back out of an entry-gain picker (take3/take5) — the gain
+       was never confirmed, so the space choice reverts to soft/unchosen. */
+    _cancelEntryGain: function(modalId) {
+        var m = document.getElementById(modalId);
+        if (m) m.style.display = 'none';
+        Game.state.pendingTake3Yarn = false;
+        Game.state.pendingTake5Any = false;
+        Game.state.pendingTake3Any = false;
+        UI._colorPickerCallback = null;
+        Game.undoSpaceChoice();
+    },
+    onTake5Cancel: function() { UI._cancelEntryGain('take5Modal'); },
+    /* Inject a cancel row into a picker modal (removed on next open by showColorPicker). */
+    _addEntryGainCancel: function(modalId) {
+        var m = document.getElementById(modalId);
+        if (!m) return;
+        var host = m.querySelector('.modal-content') || m;
+        var row = host.querySelector('.cp-cancel-row');
+        if (!row) {
+            row = document.createElement('div');
+            row.className = 'cp-cancel-row';
+            host.appendChild(row);
+        }
+        row.innerHTML = '<button class="btn btn-secondary" type="button">Cancel — pick a different space</button>';
+        row.firstChild.addEventListener('click', function(){ UI._cancelEntryGain(modalId); });
+    },
+
     _amBeatChip: function(label) {
         var chip = document.createElement('div');
         chip.className = 'am46-chip';
