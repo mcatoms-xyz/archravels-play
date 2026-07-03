@@ -1070,6 +1070,19 @@ var UI = {
      */
     _actionIconBase: 'Other Images Textures Details/Icons - Action/',
 
+    // Session 46: archetype ACTION MARKERS — the physical wooden markers, digital.
+    // Dropped onto the chosen action space each turn (tabletop feel). Spec: changelog S45.
+    _actionMarkers: {
+        thriftyShopper:  'marker-thrifty.png',
+        masterCrafter:   'marker-fiber.png',
+        colorSpecialist: 'marker-color.png',
+        yarnSpinner:     'marker-spin.png',
+        maker:           'marker-maker.png',
+        expert:          'marker-expert.png'
+    },
+    _amDroppedTurn: null,   // turn # whose marker drop already animated
+    _cm1Beat: false,        // coach-mark just dismissed → show the beat chip on next drop
+
     /**
      * Session 20: Map an action space definition to one or two icon filenames.
      * Returns an array of 1-2 icon filenames (for combo spaces, top icon first).
@@ -1214,12 +1227,40 @@ var UI = {
                 btn.disabled = true;
                 if (space.index === currentSpace) {
                     btn.classList.add('action-grid-selected');
+                    // Session 46: drop the archetype's wooden action marker onto the chosen space
+                    var mkFile = character && self._actionMarkers[character.type];
+                    if (mkFile) {
+                        var mk = document.createElement('img');
+                        mk.src = 'story-assets/markers/' + mkFile;
+                        mk.alt = ''; mk.draggable = false;
+                        mk.className = 'am-marker am-' + character.type;
+                        var tn = Game.state.turn.number;
+                        if (self._amDroppedTurn !== tn) {
+                            mk.classList.add('am-drop');
+                            self._amDroppedTurn = tn;
+                            if (self._cm1Beat) { self._cm1Beat = false; if (self._amBeatChip) self._amBeatChip(space.label); }
+                        }
+                        btn.appendChild(mk);
+                    }
                 } else {
                     btn.classList.add('action-grid-other');
                 }
             }
             overlay.appendChild(btn);
         });
+
+        // Session 46: first-game helpers — How-to-Play offer, then the action coach mark.
+        if (mode === 'choose') {
+            try {
+                if (!localStorage.getItem('ar_htp_seen')) {
+                    localStorage.setItem('ar_htp_seen', '1');
+                    setTimeout(function(){ if (UI.showHowToPlay) UI.showHowToPlay(true); }, 400);
+                } else if (!localStorage.getItem('ar_cm1_seen')) {
+                    localStorage.setItem('ar_cm1_seen', '1');
+                    setTimeout(function(){ if (UI.showCoachMark1) UI.showCoachMark1(); }, 300);
+                }
+            } catch (e) {}
+        }
     },
 
     /**
