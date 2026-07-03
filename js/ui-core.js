@@ -1084,8 +1084,8 @@ var UI = {
     // Session 47b: marker size = fraction of the ACTION AREA (overlay) height —
     // NOT the button, whose height varies (Expert's 3-row layout shrank markers).
     _amSizeFactors: {
-        thriftyShopper: .38, masterCrafter: .29, colorSpecialist: .34,
-        yarnSpinner: .33, maker: .31, expert: .29
+        thriftyShopper: .50, masterCrafter: .38, colorSpecialist: .44,
+        yarnSpinner: .43, maker: .40, expert: .38
     },
     _amApplySize: function(img, type, overlay) {
         var f = this._amSizeFactors[type];
