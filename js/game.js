@@ -259,13 +259,11 @@ var Game = {
         this.state.hasExchange = false;
         this.state.pendingTake3Yarn = false;
         this.state.pendingTake3Any = false;
-        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
         this.state.craftAnyColors = false;
 
         // Session 13: Maker & Expert unique ability flags
         this.state.makeTwoItems = false;
         this.state.pendingTake5Any = false;
-        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
 
         // Session 13: Turn history log
         this.state.turnHistory = [];
@@ -1787,6 +1785,7 @@ var Game = {
             if (changed.indexOf(c) === -1) changed.push(c);
         }
         this.state.pendingTake3Any = false;
+        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
         this._logAction('Took 3 yarn: ' + changed.join(', '));
         return changed;
     },
@@ -1844,6 +1843,7 @@ var Game = {
             if (changed.indexOf(c) === -1) changed.push(c);
         }
         this.state.pendingTake5Any = false;
+        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
         // Session 13: Log for turn history
         this._logAction('Took 5 yarn: ' + changed.join(', '));
         return changed;
