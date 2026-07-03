@@ -8544,3 +8544,17 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
   #story-root .cc2-hint{display:none}
   #story-root .cc2-dot{width:26px;height:26px}
 }
+
+/* ===== Session 45: short-viewport (iPad landscape / laptop) modal fixes =====
+   1) Game Over scorecard: the 100px top margin + height cap pushed the card to the
+      bottom edge (clipped at 820px-tall iPad landscape). At short heights, sit it
+      near the top and let it use the full height minus breathing room.
+   2) Opponent/player drawer: the 300px key-art header ate half a short screen;
+      shrink it so boards/stats are visible without a big scroll. Panel scrolls. */
+@media (max-height: 900px) {
+    .go-modal-wide { margin-top: 16px !important; max-height: calc(100dvh - 48px) !important; }
+    .opp-portrait { height: 200px; }
+}
+@media (max-height: 700px) {
+    .opp-portrait { height: 150px; }
+}
