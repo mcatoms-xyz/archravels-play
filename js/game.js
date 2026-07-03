@@ -259,11 +259,13 @@ var Game = {
         this.state.hasExchange = false;
         this.state.pendingTake3Yarn = false;
         this.state.pendingTake3Any = false;
+        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
         this.state.craftAnyColors = false;
 
         // Session 13: Maker & Expert unique ability flags
         this.state.makeTwoItems = false;
         this.state.pendingTake5Any = false;
+        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
 
         // Session 13: Turn history log
         this.state.turnHistory = [];
@@ -982,6 +984,7 @@ var Game = {
     undoSpaceChoice: function() {
         if (this.state.phase !== 'playerActions') return;
         if (this.state.turn.shopDone || this.state.turn.craftUsed > 0 || this.state.turn.exchangeDone) return;
+        if (this.state.turn.entryGainDone) return;   // Session 47: yarn already gained on entry — no take-backs
 
         this.state.phase = 'chooseSpace';
         this.state.turn.currentSpace = null;
@@ -991,6 +994,39 @@ var Game = {
         this.render.actionBar();
         this.render.craftGrid();
         this.render.specialRequests();
+    },
+
+    /**
+     * Session 47: FREE-ROAMING ACTION MARKER (Adam's design).
+     * Until the first CONFIRMED state change this turn (yarn take confirmed,
+     * item crafted, exchange done, or an entry-gain unique applied), the
+     * space choice stays soft — the player can hop the marker to any other
+     * legal space. Cancelling a confirm modal does NOT lock.
+     */
+    canRoamSpace: function() {
+        if (this.state.phase !== 'playerActions') return false;
+        var t = this.state.turn;
+        if (t.shopDone || t.craftUsed > 0 || t.exchangeDone || t.entryGainDone) return false;
+        if (this.state.player && (this.state.player.isAI || this.state.player.isHank)) return false;
+        return true;
+    },
+
+    /**
+     * Session 47: hop the marker to a different legal space (soft re-choose).
+     * @returns {boolean} true if the switch happened
+     */
+    switchActionSpace: function(spaceIndex) {
+        if (!this.canRoamSpace()) return false;
+        if (spaceIndex === this.state.turn.currentSpace) return false;
+        var character = this.getCharacter();
+        if (!character) return false;
+        if (typeof spaceIndex !== 'number' || spaceIndex < 0 || spaceIndex >= character.actionSpaces.length) return false;
+        if (this.state.turn.previousSpace !== null && spaceIndex === this.state.turn.previousSpace) return false;
+        // silent revert (no intermediate renders), then choose the new space
+        this.state.phase = 'chooseSpace';
+        this.state.turn.currentSpace = null;
+        this.state.selectedSlots = new Set();
+        return this.chooseActionSpace(spaceIndex);
     },
 
     /**
@@ -1246,6 +1282,7 @@ var Game = {
 
         // Load this player's previous space for the "can't repeat" rule
         this.state.turn.previousSpace = this.state.player._previousSpace;
+        this.state.turn.entryGainDone = false;   // Session 47: entry-gain uniques lock roaming once applied
         this.state.turn.number++;
 
         // Session 42 (P1 automa): the automa's +3 yarn now fires at the END of your turn
@@ -1720,6 +1757,7 @@ var Game = {
         if (bowl[color] === undefined) return [];
         bowl[color] += 3;
         this.state.pendingTake3Yarn = false;
+        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
         // Session 13: Log for turn history
         this._logAction('Took 3 ' + color + ' yarn');
         return [color];
