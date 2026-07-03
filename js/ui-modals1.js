@@ -26,6 +26,8 @@ Object.assign(UI, {
     /* Shared post-entry hook: entry-gain uniques pop their pickers. */
     _afterSpaceEntered: function() {
         // Session 8c: take3Yarn — show color picker to gain 3 yarn before actions
+        // Session 47b: cancelable — nothing is confirmed yet, so backing out
+        // returns the choice to soft (marker back to resting, re-choose freely).
         if (Game.state.pendingTake3Yarn) {
             UI.showColorPicker(function(color) {
                 var changed = Game.applyTake3Yarn(color);
@@ -34,6 +36,7 @@ Object.assign(UI, {
                 UI.renderSpecialRequests();
                 UI.renderActionBar();
             }, 'Take 3 Yarn — Choose a Color', Game.state.player, true);
+            UI._addEntryGainCancel('colorPickerModal');
         }
 
         // Session 13: take5AnyCraft1Any — show Take5 picker modal
