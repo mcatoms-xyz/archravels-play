@@ -424,6 +424,8 @@ Object.assign(UI, {
         if (isFav) {
             this.els.srTakeFavorite.textContent = '♥ ' + Game.state.player.name + '\'s Favorite!';
             this.els.srTakeFavorite.style.display = 'flex';
+            // Session 47k: revealing YOUR favorite deserves the WOW
+            if (window.Sound) { try { Sound.play('fav-wow'); } catch (e) {} }
         } else {
             this.els.srTakeFavorite.style.display = 'none';
         }
@@ -549,11 +551,14 @@ Object.assign(UI, {
 
         // Build a button for each OTHER player
         var activeIdx = Game.state.activePlayerIndex;
+        var giveCard = this._srTakeCard;   // Session 47k: flag each player's favorite
         Game.state.players.forEach(function(p, i) {
             if (i === activeIdx) return;
             var btn = document.createElement('button');
             btn.className = 'sr-give-player-btn';
-            btn.innerHTML = UI._playerAvatar(p) + '<span>' + p.name + (p.isAI ? ' (CPU)' : '') + '</span>';
+            var favTag = (giveCard && giveCard.favoriteOf === p.characterId)
+                ? '<span class="sr-give-fav">\u2665 Their Favorite!</span>' : '';
+            btn.innerHTML = UI._playerAvatar(p) + '<span>' + p.name + (p.isAI ? ' (CPU)' : '') + '</span>' + favTag;
             (function(idx) {
                 btn.addEventListener('click', function() {
                     UI.onSRGiveTo(idx);
@@ -583,6 +588,10 @@ Object.assign(UI, {
         // Session 21: Show confirmation with target player's name
         var card = this._srTakeCard;
         var targetPlayer = Game.state.players[targetPlayerIndex];
+        // Session 47k: handing someone their FAVORITE = WOW moment
+        if (card && targetPlayer && card.favoriteOf === targetPlayer.characterId && window.Sound) {
+            try { Sound.play('fav-wow'); } catch (e) {}
+        }
         this._showSRAssignConfirm(
             card ? card.name : 'Special Request',
             targetPlayer ? targetPlayer.name : 'Player'
