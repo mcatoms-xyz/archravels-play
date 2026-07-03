@@ -1028,7 +1028,7 @@ Object.assign(UI, {
             row.className = 'cp-cancel-row';
             host.appendChild(row);
         }
-        row.innerHTML = '<button class="btn btn-secondary" type="button">Cancel — pick a different space</button>';
+        row.innerHTML = '<button class="btn btn-link" type="button" style="font-size:13px">\u21A9 Pick a different space</button>';
         row.firstChild.addEventListener('click', function(){ UI._cancelEntryGain(modalId); });
     },
 
