@@ -877,3 +877,143 @@ window.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
 })();
+
+
+/* =========================================================================
+   Session 46: How-to-Play overlay + first-game coach mark + beat chip.
+   Adam-blessed designs (b46 mockup rounds 1-8 + marker review rounds 1-7).
+   ========================================================================= */
+Object.assign(UI, {
+
+    showHowToPlay: function(firstGame) {
+        var ov = document.getElementById('howToPlayModal');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'howToPlayModal';
+            ov.className = 'htp46-back';
+            ov.innerHTML =
+              '<div class="htp46">' +
+                '<button class="htp46-x" aria-label="Close">&times;</button>' +
+                '<div class="htp46-head"><h3>🧶 How to Play</h3><div class="htp46-sub">Out-craft your rivals at the Yarn Bazaar!</div></div>' +
+                '<div class="htp46-grid">' +
+                  '<div class="htp46-card">' +
+                    '<img class="htp46-ghost" src="Other Images Textures Details/Icons - Action/Shop2.png" alt="">' +
+                    '<div class="htp46-h">Shop for Yarn</div>' +
+                    '<div class="htp46-d">Pick an action space &amp; take yarn from the Bazaar</div>' +
+                    '<div class="htp46-art">' +
+                      '<span class="htp46-stack"><img class="htp46-cardimg" src="Square Cards PNG/AR_YarnEvents_Final_0014_Orange2.png" alt=""><img class="htp46-cardimg htp46-over" src="Square Cards PNG/AR_YarnEvents_Final_0025_RedOrgYel.png" alt=""></span>' +
+                      '<img class="htp46-flip" src="Other Assets/flip-arrow.svg" alt="">' +
+                      '<span class="htp46-tri"><span class="htp46-trow"><img src="Wood Yarn Tokens PNG/red.png" alt=""><img src="Wood Yarn Tokens PNG/orange.png" alt=""></span><span class="htp46-trow"><img src="Wood Yarn Tokens PNG/yellow.png" alt=""><img src="Wood Yarn Tokens PNG/orange.png" alt=""><img src="Wood Yarn Tokens PNG/orange.png" alt=""></span></span>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="htp46-card">' +
+                    '<img class="htp46-ghost" src="Other Images Textures Details/Icons - Action/Craft1.png" alt="">' +
+                    '<div class="htp46-h">Craft Cozy Items</div>' +
+                    '<div class="htp46-d">Spend yarn on patterns to craft items</div>' +
+                    '<div class="htp46-art">' +
+                      '<span class="htp46-tri"><span class="htp46-trow"><img src="Wood Yarn Tokens PNG/yellow.png" alt=""></span><span class="htp46-trow"><img src="Wood Yarn Tokens PNG/orange.png" alt=""><img src="Wood Yarn Tokens PNG/orange.png" alt=""></span></span>' +
+                      '<img class="htp46-flip" src="Other Assets/flip-arrow.svg" alt="">' +
+                      '<img class="htp46-token" src="Item Token PNG/Item_Tokens_Final_0002_mittens.png" alt="">' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="htp46-card">' +
+                    '<div class="htp46-h">Race to Finish Projects</div>' +
+                    '<div class="htp46-d">Trade items to finish Projects before your rivals</div>' +
+                    '<div class="htp46-art">' +
+                      '<span class="htp46-istack"><img class="htp46-token" src="Item Token PNG/Item_Tokens_Final_0001_bear.png" alt=""><img class="htp46-token htp46-under" src="Item Token PNG/Item_Tokens_Final_0004_blanket.png" alt=""></span>' +
+                      '<img class="htp46-flip" src="Other Assets/flip-arrow.svg" alt="">' +
+                      '<img class="htp46-cardimg htp46-tall" src="Project Cards PNG/AR_ProjectCards_Mask_0013_Naptime.png" alt="">' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="htp46-card">' +
+                    '<div class="htp46-h">Hone Your Skills for Points!</div>' +
+                    '<div class="htp46-d">Learn Patterns &amp; finish Special Requests</div>' +
+                    '<div class="htp46-art htp46-hone">' +
+                      '<span class="htp46-vcol"><img class="htp46-tile" src="Pattern Tiles PNG/AR_Pattern_Tiles_000_scarf-back.png" alt=""><span class="htp46-fliptxt">⟳</span><img class="htp46-tile" src="Pattern Tiles PNG/AR_Pattern_Tiles_0003_scarf-rogb.png" alt=""></span>' +
+                      '<img class="htp46-cardimg htp46-sr" src="Square Cards PNG/AR_Special_Requests_Octopus.png" alt="">' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="htp46-win"><div class="htp46-wintext">Raveler with the most points when<br>the Project List runs out <b>WINS!</b></div><div class="htp46-tag"><img src="Other Images Textures Details/Details and Borders/PointTag-CMYK.png" alt=""><span>67</span></div></div>' +
+                '<button class="htp46-cta">Let’s Get Crafty!</button>' +
+                '<div class="htp46-foot"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""> Watch out for events and the pesky Tangled Cat…</div>' +
+                '<div class="htp46-again">Find this any time in the ☰ menu</div>' +
+              '</div>';
+            document.body.appendChild(ov);
+            var close = function(){
+                ov.classList.remove('open');
+                if (ov._first) {
+                    ov._first = false;
+                    try {
+                        if (!localStorage.getItem('ar_cm1_seen')) {
+                            localStorage.setItem('ar_cm1_seen', '1');
+                            setTimeout(function(){ if (UI.showCoachMark1) UI.showCoachMark1(); }, 300);
+                        }
+                    } catch (e) {}
+                }
+            };
+            ov.querySelector('.htp46-x').addEventListener('click', close);
+            ov.querySelector('.htp46-cta').addEventListener('click', close);
+            ov.addEventListener('click', function(e){ if (e.target === ov) close(); });
+        }
+        ov._first = !!firstGame;
+        ov.classList.add('open');
+    },
+
+    showCoachMark1: function() {
+        var grid = document.getElementById('actionGridOverlay');
+        if (!grid || !grid.children.length) return;
+        var r = grid.getBoundingClientRect();
+        if (!r.width) return;
+        var dim = document.createElement('div');
+        dim.className = 'cm46-dim';
+        var hole = document.createElement('div');
+        hole.className = 'cm46-hole';
+        hole.style.left = (r.left - 8) + 'px';
+        hole.style.top = (r.top - 8) + 'px';
+        hole.style.width = (r.width + 16) + 'px';
+        hole.style.height = (r.height + 16) + 'px';
+        dim.appendChild(hole);
+        var ch = Game.getCharacter && Game.getCharacter();
+        var mkFile = ch && UI._actionMarkers[ch.type];
+        if (mkFile) {
+            var mk = document.createElement('img');
+            mk.className = 'cm46-marker';
+            mk.src = 'story-assets/markers/' + mkFile;
+            mk.style.left = (r.left + r.width * 0.62) + 'px';
+            mk.style.top = Math.max(6, r.top - 34) + 'px';
+            dim.appendChild(mk);
+        }
+        var label = document.createElement('div');
+        label.className = 'cm46-label';
+        label.innerHTML = '<b>Place your action marker!</b> Pick ONE action space — it decides how many <b>Shops</b> &amp; <b>Crafts</b> you get this turn.<span class="cm46-tap">tap anywhere to continue</span>';
+        var lw = Math.min(300, window.innerWidth - 24);
+        var lx = r.left - lw - 18;
+        var above = false;
+        if (lx < 10) { lx = Math.max(10, r.left + r.width / 2 - lw / 2); above = true; }
+        label.style.left = lx + 'px';
+        label.style.top = (above ? Math.max(12, r.top - 140) : (r.top + r.height * 0.22)) + 'px';
+        label.style.maxWidth = lw + 'px';
+        dim.appendChild(label);
+        var dismiss = function(){
+            if (dim.parentNode) dim.parentNode.removeChild(dim);
+            window.removeEventListener('resize', dismiss);
+            UI._cm1Beat = true;
+        };
+        dim.addEventListener('click', dismiss);
+        window.addEventListener('resize', dismiss);
+        document.body.appendChild(dim);
+    },
+
+    _amBeatChip: function(label) {
+        var chip = document.createElement('div');
+        chip.className = 'am46-chip';
+        chip.textContent = label + ' this turn!';
+        document.body.appendChild(chip);
+        setTimeout(function(){ chip.classList.add('show'); }, 30);
+        setTimeout(function(){
+            chip.classList.remove('show');
+            setTimeout(function(){ if (chip.parentNode) chip.parentNode.removeChild(chip); }, 400);
+        }, 2600);
+    }
+});
