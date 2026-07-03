@@ -8576,7 +8576,7 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 .am-colorSpecialist{ height: 77%; transform: translate(-42%, -50%); }
 .am-yarnSpinner    { height: 71%; transform: translate(-42%, -50%); }
 .am-maker  { height: 53%; left: auto; right: 4%;  transform: translateY(-50%); }
-.am-expert { height: 68%; left: auto; right: 1%;  transform: translateY(-50%); }
+.am-expert { height: 68%; left: auto; right: -3%;  transform: translateY(-50%); }
 .am-drop { animation: amDrop .38s cubic-bezier(.34,1.56,.64,1); }
 @keyframes amDrop {
     0%   { margin-top: -26px; scale: 1.18; filter: drop-shadow(0 16px 12px rgba(0,0,0,.3)); }
