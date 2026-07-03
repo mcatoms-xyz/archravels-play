@@ -642,6 +642,9 @@ Object.assign(UI, {
      */
     showColorPicker: function(callback, title, player, forceContext) {
         this._colorPickerCallback = callback;
+        // Session 47b: entry-gain cancel row is per-use — clear any leftover
+        var _oldCancel = this.els.colorModal && this.els.colorModal.querySelector('.cp-cancel-row');
+        if (_oldCancel) _oldCancel.remove();
         var titleEl = this.els.colorModal.querySelector('.modal-title');
         if (titleEl) {
             titleEl.textContent = title || 'Choose a Yarn Color';
