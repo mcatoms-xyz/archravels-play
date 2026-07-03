@@ -11,7 +11,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=115">
+    <link rel="stylesheet" href="css/style.css?v=116">
 </head>
 
 <body>
@@ -617,18 +617,18 @@
          GAME SCRIPTS
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
-    <script src="js/cards.js?v=115"></script>
-    <script src="js/game.js?v=115"></script>
-    <script src="js/audio.js?v=115"></script>
-    <script src="js/ai.js?v=115"></script>
+    <script src="js/cards.js?v=116"></script>
+    <script src="js/game.js?v=116"></script>
+    <script src="js/audio.js?v=116"></script>
+    <script src="js/ai.js?v=116"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=115"></script>
-    <script src="js/ui-modals1.js?v=115"></script>
-    <script src="js/ui-modals2.js?v=115"></script>
-    <script src="js/ui-panels1.js?v=115"></script>
-    <script src="js/ui-panels2.js?v=115"></script>
-    <script src="js/ui-extra.js?v=115"></script>
+    <script src="js/ui-core.js?v=116"></script>
+    <script src="js/ui-modals1.js?v=116"></script>
+    <script src="js/ui-modals2.js?v=116"></script>
+    <script src="js/ui-panels1.js?v=116"></script>
+    <script src="js/ui-panels2.js?v=116"></script>
+    <script src="js/ui-extra.js?v=116"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
          The live game is solo + pass-and-play, with zero dependency on this layer
@@ -636,20 +636,20 @@
          online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
          here. Re-add to revive online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=115"></script>
-    <script src="js/online-bridge.js?v=115"></script>
+    <script src="js/network.js?v=116"></script>
+    <script src="js/online-bridge.js?v=116"></script>
     -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=115"></script>
+    <script src="js/story.js?v=116"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
          BUMP THIS each ship (build = session #). Deploy runbook step. -->
     <script>
     (function () {
-        var AR_VERSION = { v: '0.9', channel: 'Beta', build: 45 };
+        var AR_VERSION = { v: '0.9', channel: 'Beta', build: 46 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build;
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; }
@@ -729,6 +729,7 @@
                     <button class="nm-row" onclick="UI.onNavMenuToggle();UI.pauseGame()"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pause Game</button>
                     <button class="nm-row" id="navScoresBtn" style="display:none" onclick="UI.onNavMenuToggle();UI.showGameOverModal()"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M6 4h12v5a6 6 0 0 1-12 0V4z"/><path d="M6 6H4v2a3 3 0 0 0 2 2.8M18 6h2v2a3 3 0 0 1-2 2.8"/></svg>View Scores</button>
                     <button class="nm-row" id="navHistoryBtn" style="display:none" onclick="UI.onNavMenuToggle();UI.showTurnHistory()"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>Turn History</button>
+                    <button class="nm-row" onclick="UI.onNavMenuToggle();UI.showHowToPlay()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.7 2.7 0 1 1 3.7 2.5c-.8.3-1 .9-1 1.8"/><path d="M12 17h.01"/></svg>How to Play</button>
 
                     </div>
                     <div class="nm-seclabel">Audio</div>
