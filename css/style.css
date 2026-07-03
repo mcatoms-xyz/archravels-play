@@ -8702,3 +8702,22 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 @media (max-height: 900px) and (orientation: landscape) {
     #story-root .cc2-frame { height: min(72vh, 600px); }
 }
+
+/* ============================================================================
+   Session 47: FREE-ROAMING ACTION MARKER (Adam's post-B46 design)
+   ============================================================================ */
+/* Hop targets while the choice is soft: alive on hover, inviting but calm */
+.action-grid-btn.action-grid-roam { cursor: pointer; }
+.action-grid-btn.action-grid-roam:hover,
+.action-grid-btn.action-grid-roam:focus-visible {
+    background: rgba(232, 200, 106, .14);
+    box-shadow: inset 0 0 0 2.5px rgba(232, 200, 106, .75);
+    border-radius: 10px;
+}
+/* Resting marker at turn start: FULL-COLOR piece on the grayed previous space.
+   (The existing unavailable style grays the icons, not the button — so a child
+   marker keeps full opacity. We just make sure of it + add its shadow.) */
+.action-grid-unavailable .am-marker.am-rest {
+    opacity: 1;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.4)) !important;
+}
