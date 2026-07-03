@@ -1214,6 +1214,19 @@ var UI = {
                 if (!space.available) {
                     btn.classList.add('action-grid-unavailable');
                     btn.disabled = true;
+                    // Session 47: at turn start the marker rests on LAST turn's
+                    // space (grayed) — the no-repeat rule made physical. First
+                    // tap on a legal space hops it over.
+                    if (space.index === Game.state.turn.previousSpace) {
+                        var rmFile = character && self._actionMarkers[character.type];
+                        if (rmFile && !(Game.state.player && (Game.state.player.isAI || Game.state.player.isHank))) {
+                            var rm = document.createElement('img');
+                            rm.src = 'story-assets/markers/' + rmFile;
+                            rm.alt = ''; rm.draggable = false;
+                            rm.className = 'am-marker am-' + character.type + ' am-rest';
+                            btn.appendChild(rm);
+                        }
+                    }
                 } else {
                     // Playtest 6/29: pulse available spaces so it's clear a
                     // selection is needed during the chooseSpace phase.
@@ -1223,8 +1236,18 @@ var UI = {
                     })(space.index);
                 }
             } else {
-                // Active / read-only display
+                // Active display. Session 47: while the choice is still SOFT
+                // (nothing confirmed this turn), other legal spaces stay live
+                // as hop targets — the marker IS the change button.
+                var roaming = Game.canRoamSpace && Game.canRoamSpace();
                 btn.disabled = true;
+                if (roaming && space.index !== currentSpace && space.available) {
+                    btn.disabled = false;
+                    btn.classList.add('action-grid-roam');
+                    (function(idx) {
+                        btn.addEventListener('click', function() { UI.onSwitchSpace(idx); });
+                    })(space.index);
+                }
                 if (space.index === currentSpace) {
                     btn.classList.add('action-grid-selected');
                     // Session 46: drop the archetype's wooden action marker onto the chosen space
@@ -1332,12 +1355,8 @@ var UI = {
         if (actions.canExchange) {
             buttonsHtml += '<button class="btn btn-primary" onclick="UI.showExchangeModal()">Exchange Yarn</button>';
         }
-        var noActionsTaken = !Game.state.turn.shopDone &&
-            Game.state.turn.craftUsed === 0 &&
-            !Game.state.turn.exchangeDone;
-        if (noActionsTaken) {
-            buttonsHtml += '<button class="btn btn-link" onclick="UI.onChangeSpace()" style="font-size:13px">↩ Change</button>';
-        }
+        // Session 47: ↩ Change retired — while the choice is soft, the other
+        // legal action spaces are live hop targets (the marker IS the change UI).
         buttonsHtml += '<button class="btn btn-cta" onclick="UI.onEndActions()">End Actions →</button>';
 
         bar.innerHTML =
