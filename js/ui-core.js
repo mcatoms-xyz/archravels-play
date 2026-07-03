@@ -1092,6 +1092,34 @@ var UI = {
         var h = overlay && overlay.clientHeight;
         if (f && h > 40) { img.style.height = Math.round(h * f) + 'px'; }
     },
+    _amHopFrom: null,   // rect of the marker before a hop/choose — triggers the fly
+    /* Session 47n: the marker FLIES between spaces (FLIP clone), then lands
+       with the drop bounce — no more teleporting. */
+    _amFly: function(mk, from) {
+        try {
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            var to = mk.getBoundingClientRect();
+            if (!to.width || !from || !from.width) return;
+            var clone = mk.cloneNode(true);
+            clone.className = 'am-marker am-flying';
+            clone.style.cssText = 'position:fixed;margin:0;transform:none;z-index:960;pointer-events:none;' +
+                'left:' + from.left + 'px;top:' + from.top + 'px;width:' + from.width + 'px;height:' + from.height + 'px;' +
+                'filter:drop-shadow(0 12px 10px rgba(0,0,0,.35));' +
+                'transition:left .28s cubic-bezier(.34,1.2,.64,1), top .28s cubic-bezier(.34,1.2,.64,1), width .28s, height .28s;';
+            mk.style.visibility = 'hidden';
+            document.body.appendChild(clone);
+            void clone.offsetWidth;
+            clone.style.left = to.left + 'px';
+            clone.style.top = to.top + 'px';
+            clone.style.width = to.width + 'px';
+            clone.style.height = to.height + 'px';
+            setTimeout(function(){
+                if (clone.parentNode) clone.parentNode.removeChild(clone);
+                mk.style.visibility = '';
+                mk.classList.add('am-drop');    // landing bounce
+            }, 290);
+        } catch (e) { if (mk) mk.style.visibility = ''; }
+    },
     _cm1Beat: false,        // coach-mark just dismissed → show the beat chip on next drop
 
     /**
@@ -1271,12 +1299,21 @@ var UI = {
                         mk.className = 'am-marker am-' + character.type;
                         self._amApplySize(mk, character.type, overlay);
                         var tn = Game.state.turn.number;
-                        if (self._amDroppedTurn !== tn) {
+                        if (self._amHopFrom) {
+                            // hop or first-choose-from-rest: fly there, then bounce
+                            var _from = self._amHopFrom; self._amHopFrom = null;
+                            btn.appendChild(mk);
+                            self._amFly(mk, _from);
+                            self._amDroppedTurn = tn;
+                            if (self._cm1Beat) { self._cm1Beat = false; if (self._amBeatChip) self._amBeatChip(space.label); }
+                        } else if (self._amDroppedTurn !== tn) {
                             mk.classList.add('am-drop');
                             self._amDroppedTurn = tn;
                             if (self._cm1Beat) { self._cm1Beat = false; if (self._amBeatChip) self._amBeatChip(space.label); }
+                            btn.appendChild(mk);
+                        } else {
+                            btn.appendChild(mk);
                         }
-                        btn.appendChild(mk);
                     }
                 } else {
                     btn.classList.add('action-grid-other');
