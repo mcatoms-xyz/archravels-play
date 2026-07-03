@@ -1081,6 +1081,17 @@ var UI = {
         expert:          'marker-expert.png'
     },
     _amDroppedTurn: null,   // turn # whose marker drop already animated
+    // Session 47b: marker size = fraction of the ACTION AREA (overlay) height —
+    // NOT the button, whose height varies (Expert's 3-row layout shrank markers).
+    _amSizeFactors: {
+        thriftyShopper: .38, masterCrafter: .29, colorSpecialist: .34,
+        yarnSpinner: .33, maker: .31, expert: .29
+    },
+    _amApplySize: function(img, type, overlay) {
+        var f = this._amSizeFactors[type];
+        var h = overlay && overlay.clientHeight;
+        if (f && h > 40) { img.style.height = Math.round(h * f) + 'px'; }
+    },
     _cm1Beat: false,        // coach-mark just dismissed → show the beat chip on next drop
 
     /**
@@ -1224,6 +1235,7 @@ var UI = {
                             rm.src = 'story-assets/markers/' + rmFile;
                             rm.alt = ''; rm.draggable = false;
                             rm.className = 'am-marker am-' + character.type + ' am-rest';
+                            self._amApplySize(rm, character.type, overlay);
                             btn.appendChild(rm);
                         }
                     }
@@ -1257,6 +1269,7 @@ var UI = {
                         mk.src = 'story-assets/markers/' + mkFile;
                         mk.alt = ''; mk.draggable = false;
                         mk.className = 'am-marker am-' + character.type;
+                        self._amApplySize(mk, character.type, overlay);
                         var tn = Game.state.turn.number;
                         if (self._amDroppedTurn !== tn) {
                             mk.classList.add('am-drop');
