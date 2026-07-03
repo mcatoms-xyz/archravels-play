@@ -8723,8 +8723,7 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 }
 
 /* Session 47b: cancel row on entry-gain pickers */
-.cp-cancel-row { margin-top: 12px; text-align: center; }
-.cp-cancel-row .btn { font-size: 13px; }
+.cp-cancel-row { margin-top: 8px; text-align: center; }
 
 /* ============================================================================
    Session 47d: SR give-picker was a full-height phone tower on desktop (Adam,
