@@ -8746,3 +8746,11 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 @media (max-height: 900px) {
     .sr-take-card-img { max-height: 26vh; width: auto; }
 }
+
+/* Session 47k: give-picker shows whose FAVORITE the SR is */
+.sr-give-player-btn { display: flex; align-items: center; gap: 8px; }
+.sr-give-fav {
+    margin-left: auto; color: #c0392b; font-weight: 800; font-size: .76rem;
+    white-space: nowrap; animation: favPulse 1.4s ease-in-out infinite;
+}
+@keyframes favPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
