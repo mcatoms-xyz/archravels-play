@@ -1085,7 +1085,7 @@ var UI = {
     // NOT the button, whose height varies (Expert's 3-row layout shrank markers).
     _amSizeFactors: {
         thriftyShopper: .41, masterCrafter: .42, colorSpecialist: .39,
-        yarnSpinner: .38, maker: .26, expert: .33
+        yarnSpinner: .38, maker: .31, expert: .33
     },
     _amApplySize: function(img, type, overlay) {
         var f = this._amSizeFactors[type];
