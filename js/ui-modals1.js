@@ -9,6 +9,9 @@ Object.assign(UI, {
         // Guard: only allow during chooseSpace phase, and not during AI turn
         if (Game.state.phase !== 'chooseSpace') return;
         if (Game.state.player && Game.state.player.isAI) return;
+        // Session 47n: if the marker is resting on last turn's space, it FLIES to the pick
+        var _rm = document.querySelector('.am-marker:not(.am-flying)');
+        UI._amHopFrom = _rm ? _rm.getBoundingClientRect() : null;
         Game.chooseActionSpace(spaceIndex);
         // Game.chooseActionSpace already triggers UI re-renders
         UI._afterSpaceEntered();
@@ -18,8 +21,10 @@ Object.assign(UI, {
     onSwitchSpace: function(spaceIndex) {
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;
-        UI._amDroppedTurn = null;               // replay the drop animation on the hop
-        if (!Game.switchActionSpace(spaceIndex)) return;
+        // Session 47n: capture take-off point so the marker flies to the new space
+        var _mk = document.querySelector('.am-marker:not(.am-flying)');
+        UI._amHopFrom = _mk ? _mk.getBoundingClientRect() : null;
+        if (!Game.switchActionSpace(spaceIndex)) { UI._amHopFrom = null; return; }
         UI._afterSpaceEntered();
     },
 
