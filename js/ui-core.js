@@ -1098,6 +1098,7 @@ var UI = {
     _amFly: function(mk, from) {
         try {
             if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            if (!mk.isConnected) return;
             var to = mk.getBoundingClientRect();
             if (!to.width || !from || !from.width) return;
             var clone = mk.cloneNode(true);
@@ -1300,10 +1301,12 @@ var UI = {
                         self._amApplySize(mk, character.type, overlay);
                         var tn = Game.state.turn.number;
                         if (self._amHopFrom) {
-                            // hop or first-choose-from-rest: fly there, then bounce
+                            // hop or first-choose-from-rest: fly there, then bounce.
+                            // Deferred one tick: the btn attaches to the overlay at the
+                            // END of the loop, so measuring now reads width 0 (no fly).
                             var _from = self._amHopFrom; self._amHopFrom = null;
                             btn.appendChild(mk);
-                            self._amFly(mk, _from);
+                            setTimeout(function(){ self._amFly(mk, _from); }, 0);
                             self._amDroppedTurn = tn;
                             if (self._cm1Beat) { self._cm1Beat = false; if (self._amBeatChip) self._amBeatChip(space.label); }
                         } else if (self._amDroppedTurn !== tn) {
