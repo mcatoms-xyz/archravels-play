@@ -215,7 +215,7 @@ var Story = {
       '<div class="story-topbar">' +
         '<button class="story-menu" id="storyMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>' +
         '<button class="story-back" id="storyBackBtn" onclick="Story.navBack()" aria-label="Back">‹</button>' +
-        '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"></div>' +
+        '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="story-page-title" id="storyPageTitle"></span></div>' +
         '<button class="player-chip" title="Account" onclick="Story.openIdentity()">' +
           '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
           '<div class="pc-meta"><span class="pc-name" id="pcName">Sign In</span><span class="pc-note" id="pcNote" style="display:none"></span></div>' +
@@ -306,7 +306,8 @@ var Story = {
       setTimeout(function(){ self._applyRoute(); }, 380);
     }
   },
-  screen: function(html){ var r=document.getElementById('story-root'); if(r) r.classList.remove('cc-mode'); document.getElementById('story-screen').innerHTML = html; window.scrollTo(0,0); },
+  screen: function(html){ var r=document.getElementById('story-root'); if(r) r.classList.remove('cc-mode'); var pt=document.getElementById('storyPageTitle'); if(pt) pt.textContent=''; document.getElementById('story-screen').innerHTML = html; window.scrollTo(0,0); },
+  setPageTitle: function(s){ var pt=document.getElementById('storyPageTitle'); if(pt) pt.textContent=s||''; },
 
   /* ============================ entry ============================ */
   start: async function(){
@@ -614,8 +615,7 @@ var Story = {
           '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
     }).join('');
     this.screen('<div class="crumb">Story Mode</div>'+
-      '<h1 class="st-h1">Quest for Craft Circle Champion</h1>'+
-      '<div class="sm-intro">'+
+      '<div class="sm-intro sm-intro-2col">'+
         '<p class="st-sub sm-copy">Welcome to ArchRavels! A strategy board game set in the colorful &amp; crafty world of fiber arts! Choose from a variety of fiber art crafting specialists, each with their own style. Out-craft 11 fellow Ravelers for your chance to challenge Hank the Stitchmeister for the craft circle crown.</p>'+
         '<div class="sm-steps">'+
           '<span class="sm-step"><span class="sm-n">1</span>Pick a Raveler</span><span class="sm-arrow">→</span>'+
@@ -628,6 +628,7 @@ var Story = {
       '<h2 class="sm-choose">Choose Your Raveler!</h2>'+
       '<p class="st-sub">Six crafter archetypes, each with their own special crafting abilities. Pick the style that speaks to you.</p>'+
       '<div class="types">'+cards+'</div>');
+    this.setPageTitle('Quest for Craft Circle Champion');
   },
 
   goChars: function(tid){
