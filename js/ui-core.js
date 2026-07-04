@@ -1347,7 +1347,10 @@ var UI = {
                             btn.appendChild(mk);
                         }
                     }
-                } else {
+                } else if (!btn.classList.contains('action-grid-roam')) {
+                    // Session 48P (Adam): roam targets stay FULL COLOR — they're
+                    // live switch options, not dead space. Only non-switchable
+                    // spaces (incl. last turn's) go grey.
                     btn.classList.add('action-grid-other');
                 }
             }
