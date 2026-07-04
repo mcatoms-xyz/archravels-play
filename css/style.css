@@ -8916,3 +8916,40 @@ body.ar-pregame .action-feed { visibility: hidden; }
     animation: ld48go-in .3s ease;
 }
 @keyframes ld48go-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+
+/* =================================================================
+   SESSION 48V: WEB IN-MATCH PARITY WITH iOS (Adam's iPad batch)
+   ================================================================= */
+/* bazaar header text + per-project pts tags: gone everywhere (were app-only) */
+.bazaar-label { display: none; }
+.project-pts-overlay { display: none; }
+
+/* feed moves DOWN: column layout = after the boards (like the app) */
+.game-layout > .board-section { order: 1; }
+.game-layout > .player-area { order: 2; }
+.game-layout > .action-feed { order: 3; margin: auto auto 0; max-width: calc(100% - 14px); width: auto; }
+
+/* landscape/desktop grid: feed row drops to the bottom of the stack */
+@media (orientation: landscape) and (min-width: 768px) {
+    .game-layout {
+        grid-template-areas:
+            "board  player"
+            "sr     sr"
+            "feed   feed";
+    }
+}
+
+/* tighter page side margins in-match */
+.game-layout { padding-left: 8px; padding-right: 8px; }
+
+/* craft yarn picker: no more phone tower on wide screens */
+@media (min-width: 768px) {
+    #craftColorModal .modal-content { max-width: 620px; }
+}
+
+/* modal FONT audit: Baloo 2 across modal chrome (was system font) */
+.modal-content, .modal-content h1, .modal-content h2, .modal-content h3,
+.modal-content button, .modal-content .btn {
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+}
