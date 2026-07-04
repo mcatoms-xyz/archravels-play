@@ -293,6 +293,15 @@ var Game = {
         if (this.state.hankAutoma) {
             this.seedHankAutomaDecks(this.state.hankReds);
         }
+
+        // Session 48: first-ever game → How-to-Play as a PRE-GAME screen (fires at
+        // game start regardless of turn order — Adam: it popped mid-game when the
+        // CPU went first).
+        try {
+            if (window.UI && UI.maybeShowFirstGameHelp) {
+                setTimeout(function(){ UI.maybeShowFirstGameHelp(); }, 700);
+            }
+        } catch (e) {}
     },
 
     /* =========================================================
