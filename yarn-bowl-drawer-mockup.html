@@ -44,14 +44,6 @@
   }
   .bowl-yarnball { position: absolute; width: 17%; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 3px 5px rgba(0,0,0,.4)); }
 
-  /* tangled cat slumped over the drawer edge when blocked */
-  .drawer-cat {
-    position: fixed; left: -6px; top: calc(50% - 10vmin);
-    width: 20vmin; transform: scaleX(-1) rotate(-18deg);
-    filter: drop-shadow(2px 5px 6px rgba(0,0,0,.5));
-    z-index: 401; display: none; pointer-events: none;
-  }
-  body.tangled .drawer-cat { display: block; }
   .tangle-toast {
     position: fixed; left: 18px; top: calc(50% + 12vmin);
     background: #7a2e22; color: #ffe9df; font-weight: 700; font-size: .9rem;
@@ -83,7 +75,7 @@
   body.tangled .board-cat { display: block; }
   @keyframes bc-pounce {
     0%, 100% { transform: scaleX(-1) rotate(-29deg) translateY(0); }
-    50%      { transform: scaleX(-1) rotate(-25deg) translateY(-4%); }
+    50%      { transform: scaleX(-1) rotate(-29deg) translateY(-3%); }
   }
   .bowl-hotzone {
     position: absolute; top: 3%; left: 0; width: 14%; height: 74%;
@@ -121,7 +113,6 @@
   <div class="bowl-wheel" id="wheel"></div>
   <img class="bowl-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="">
 </div>
-<img class="drawer-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="Tangled Cat">
 <div class="tangle-toast" id="toast">😾 The Tangled Cat has your bowl!</div>
 
 <script>
