@@ -1188,9 +1188,15 @@ Object.assign(UI, {
                     var startGame = function(){
                         if (started) return; started = true;
                         try { orig.apply(UI, args); } catch (e) {}
-                        // give the board + marker render a settle beat behind the veil
+                        // hold the veil until How-to-Play is actually open (no
+                        // board peek between veil-lift and HTP), max +2s
                         Promise.all([minBeat]).then(function(){
-                            setTimeout(function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); }, 450);
+                            var t0 = Date.now();
+                            (function lift(){
+                                if (document.querySelector('.htp46-back.open') || Date.now() - t0 > 2000) {
+                                    setTimeout(function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); }, 200);
+                                } else { setTimeout(lift, 90); }
+                            })();
                         });
                     };
                     capped.then(startGame);
