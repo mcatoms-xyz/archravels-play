@@ -8964,12 +8964,17 @@ body.ar-pregame .action-feed { visibility: hidden; }
    stage, six tokens in one row nestled into it */
 .opp-yarn-bowl {
     background: url('Other Images Textures Details/yarnbowl_bg_pb_peek_drawer.png') no-repeat center bottom / contain;
-    padding: 10px 12px 26px;
+    /* Session 48AB: container takes the ART's proportions (772x352) so the
+       bowl renders full height; tokens sit in the bowl mouth */
+    aspect-ratio: 772 / 352;
+    padding: 0;
+    display: flex; align-items: flex-start;
 }
 .opp-yarn-grid.opp-yarn-arc {
     display: flex; flex-wrap: nowrap; gap: 0;
     justify-content: space-around; align-items: flex-start;
-    padding: 0 6%; 
+    width: 100%;
+    padding: 7% 9% 0;
 }
 .opp-yarn-arc .opp-yarn-cell { width: 13%; max-width: 44px; height: auto; aspect-ratio: 1/1; }
 .opp-yarn-arc .opp-yarn-num { font-size: clamp(12px, 3.6cqw, 15px); }
