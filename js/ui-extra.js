@@ -934,7 +934,7 @@ Object.assign(UI, {
                     '</div>' +
                   '</div>' +
                 '</div>' +
-                '<div class="htp46-win"><div class="htp46-wintext">Raveler with the most points when<br>the Project List runs out <b>WINS!</b></div><div class="htp46-tag"><img src="Other Images Textures Details/Details and Borders/PointTag-CMYK.png" alt=""><span>67</span></div></div>' +
+                '<div class="htp46-win"><div class="htp46-wintext">Raveler with the most points when<br>the Project List runs out <b>WINS!</b><div class="htp46-warn">\u2026but don\u2019t hoard! Leftover yarn counts against your score.</div></div><div class="htp46-tag"><img src="Other Images Textures Details/Details and Borders/PointTag-CMYK.png" alt=""><span>67</span></div></div>' +
                 '<button class="htp46-cta">Let’s Get Crafty!</button>' +
                 '<div class="htp46-foot"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""> Watch out for events and the pesky Tangled Cat…</div>' +
                 '<div class="htp46-again">Find this any time in the ☰ menu</div>' +
@@ -948,12 +948,12 @@ Object.assign(UI, {
                 // "you just read the rules — here's your board"). Not gated on
                 // the seen-flag; the flag only controls the AUTO-show.
                 try {
-                    localStorage.setItem('ar_cm1_seen', '1');
+                    localStorage.setItem('ar_tour_seen', '1');
                     var inChoose = window.Game && Game.state &&
                         Game.state.phase === 'chooseSpace' &&
                         Game.state.player && !Game.state.player.isAI && !Game.state.player.isHank;
                     if (inChoose) {
-                        setTimeout(function(){ if (UI.showCoachMark1) UI.showCoachMark1(); }, 300);
+                        setTimeout(function(){ if (UI.showActionTour) UI.showActionTour(); }, 300);
                     }
                 } catch (e) {}
             };
@@ -965,77 +965,134 @@ Object.assign(UI, {
         ov.classList.add('open');
     },
 
-    showCoachMark1: function() {
+    /* Session 48: first-ever game — How-to-Play as a PRE-GAME screen. */
+    maybeShowFirstGameHelp: function() {
+        try {
+            if (!localStorage.getItem('ar_htp_seen')) {
+                localStorage.setItem('ar_htp_seen', '1');
+                UI.showHowToPlay(true);
+            }
+        } catch (e) {}
+    },
+
+    /* =====================================================================
+       Session 48: ACTION TOUR (Adam's design, replaces the static coach mark).
+       The marker ANIMATES from space to space; a persistent box explains each
+       space as it lands. Dwells ~2.6s, loops. Touch/hover a space to jump the
+       marker + explanation there. Tap outside the highlighted zone to close.
+       ===================================================================== */
+    _tourSpaceCopy: function(sp) {
+        var bits = [];
+        if (sp.shop) bits.push('take ' + sp.shop + ' yarn card' + (sp.shop > 1 ? 's' : '') + ' from the Bazaar');
+        if (sp.unique === 'take3Yarn') bits.push('gain 3 yarn of one color right away');
+        if (sp.unique === 'take5AnyCraft1Any') bits.push('take 5 yarn of ANY colors');
+        if (sp.unique === 'take3Any') bits.push('gain 3 yarn of any colors');
+        if (sp.craft) bits.push('craft up to ' + sp.craft + ' item' + (sp.craft > 1 ? 's' : ''));
+        if (sp.unique === 'makeTwoItems') bits.push('your crafted item comes out as TWO copies');
+        if (sp.unique === 'craftAnyColors' || sp.unique === 'take5AnyCraft1Any') bits.push('patterns accept any colors');
+        if (sp.exchange) bits.push('swap yarn colors with the supply');
+        if (!bits.length) return '';
+        var s = bits.join(', then ');
+        return s.charAt(0).toUpperCase() + s.slice(1) + '.';
+    },
+
+    showActionTour: function() {
         var grid = document.getElementById('actionGridOverlay');
         if (!grid || !grid.children.length) return;
-        var r = grid.getBoundingClientRect();
-        if (!r.width) return;
+        var gr = grid.getBoundingClientRect();
+        if (!gr.width) return;
+        var ch = Game.getCharacter && Game.getCharacter();
+        if (!ch || !ch.actionSpaces) return;
+        var mkFile = UI._actionMarkers[ch.type];
+        if (!mkFile) return;
+
+        var btns = [].slice.call(grid.children);
+        var rects = btns.map(function(b){ return b.getBoundingClientRect(); });
+
         var dim = document.createElement('div');
         dim.className = 'cm46-dim';
         var hole = document.createElement('div');
         hole.className = 'cm46-hole';
-        hole.style.left = (r.left - 8) + 'px';
-        hole.style.top = (r.top - 8) + 'px';
-        hole.style.width = (r.width + 16) + 'px';
-        hole.style.height = (r.height + 16) + 'px';
+        hole.style.left = (gr.left - 8) + 'px';
+        hole.style.top = (gr.top - 8) + 'px';
+        hole.style.width = (gr.width + 16) + 'px';
+        hole.style.height = (gr.height + 16) + 'px';
         dim.appendChild(hole);
-        var ch = Game.getCharacter && Game.getCharacter();
-        var mkFile = ch && UI._actionMarkers[ch.type];
-        if (mkFile) {
-            var mk = document.createElement('img');
-            mk.className = 'cm46-marker';
-            mk.src = 'story-assets/markers/' + mkFile;
-            mk.style.left = (r.left + r.width * 0.62) + 'px';
-            mk.style.top = Math.max(6, r.top - 34) + 'px';
-            dim.appendChild(mk);
+
+        // persistent explainer box (left of the grid, or above on narrow)
+        var box = document.createElement('div');
+        box.className = 'tour48-box';
+        var bw = Math.min(310, window.innerWidth - 24);
+        var bx = gr.left - bw - 20;
+        if (bx < 10) { bx = Math.max(10, gr.left + gr.width / 2 - bw / 2); }
+        box.style.left = bx + 'px';
+        box.style.top = Math.max(12, (bx < gr.left - 10 ? gr.top + gr.height * 0.12 : gr.top - 170)) + 'px';
+        box.style.maxWidth = bw + 'px';
+        dim.appendChild(box);
+
+        // touring marker
+        var mk = document.createElement('img');
+        mk.className = 'tour48-marker';
+        mk.src = 'story-assets/markers/' + mkFile;
+        mk.style.height = Math.round(gr.height * (UI._amSizeFactors[ch.type] || .4)) + 'px';
+        dim.appendChild(mk);
+
+        var cur = -1, dwell = null;
+        function place(i, instant) {
+            cur = i;
+            var r = rects[i];
+            var mh = mk.offsetHeight || Math.round(gr.height * .4);
+            var mw = mk.offsetWidth || mh;
+            if (instant) mk.style.transition = 'none'; else mk.style.transition = 'left .3s cubic-bezier(.34,1.45,.64,1), top .3s cubic-bezier(.34,1.45,.64,1)';
+            mk.style.left = Math.round(r.left + r.width / 2 - mw / 2) + 'px';
+            mk.style.top = Math.round(r.top + r.height / 2 - mh / 2) + 'px';
+            var sp = ch.actionSpaces[i] || {};
+            box.innerHTML = '<div class="t48-h">Choose One Action Space</div>' +
+                '<div class="t48-s">Each turn you\u2019ll move your Action Marker to a different space on your board.</div>' +
+                '<div class="t48-space"><b>' + (sp.label || '') + '</b><br>' + UI._tourSpaceCopy(sp) + '</div>' +
+                '<div class="t48-tap">tap a space to peek \u00b7 tap outside to play</div>';
         }
-        var label = document.createElement('div');
-        label.className = 'cm46-label';
-        label.innerHTML = '<b>Place your action marker!</b> Pick ONE action space — it decides how many <b>Shops</b> &amp; <b>Crafts</b> you get this turn.<span class="cm46-tap">tap anywhere to continue</span>';
-        var lw = Math.min(300, window.innerWidth - 24);
-        var lx = r.left - lw - 18;
-        var above = false;
-        if (lx < 10) { lx = Math.max(10, r.left + r.width / 2 - lw / 2); above = true; }
-        label.style.left = lx + 'px';
-        label.style.top = (above ? Math.max(12, r.top - 140) : (r.top + r.height * 0.22)) + 'px';
-        label.style.maxWidth = lw + 'px';
-        dim.appendChild(label);
+        function schedule() {
+            clearTimeout(dwell);
+            dwell = setTimeout(function step(){
+                place((cur + 1) % rects.length);
+                dwell = setTimeout(step, 2600);
+            }, 2600);
+        }
+        // start on the first space after a beat (marker snaps to start instantly)
+        place(0, true);
+        // force initial position before enabling transitions
+        void mk.offsetWidth;
+        schedule();
+
+        function hitSpace(x, y) {
+            for (var i = 0; i < rects.length; i++) {
+                var r = rects[i];
+                if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return i;
+            }
+            return -1;
+        }
         var dismiss = function(){
+            clearTimeout(dwell);
             if (dim.parentNode) dim.parentNode.removeChild(dim);
             window.removeEventListener('resize', dismiss);
-            UI._cm1Beat = true;
+            UI._cm1Beat = true;   // first real placement announces its space
         };
-        dim.addEventListener('click', dismiss);
+        dim.addEventListener('click', function(e){
+            var i = hitSpace(e.clientX, e.clientY);
+            if (i >= 0) { place(i); schedule(); }
+            else dismiss();
+        });
+        dim.addEventListener('mousemove', function(e){
+            var i = hitSpace(e.clientX, e.clientY);
+            if (i >= 0 && i !== cur) { place(i); schedule(); }
+        });
         window.addEventListener('resize', dismiss);
         document.body.appendChild(dim);
     },
 
-    /* Session 47b: back out of an entry-gain picker (take3/take5) — the gain
-       was never confirmed, so the space choice reverts to soft/unchosen. */
-    _cancelEntryGain: function(modalId) {
-        var m = document.getElementById(modalId);
-        if (m) m.style.display = 'none';
-        Game.state.pendingTake3Yarn = false;
-        Game.state.pendingTake5Any = false;
-        Game.state.pendingTake3Any = false;
-        UI._colorPickerCallback = null;
-        Game.undoSpaceChoice();
-    },
-    onTake5Cancel: function() { UI._cancelEntryGain('take5Modal'); },
-    /* Inject a cancel row into a picker modal (removed on next open by showColorPicker). */
-    _addEntryGainCancel: function(modalId) {
-        var m = document.getElementById(modalId);
-        if (!m) return;
-        var host = m.querySelector('.modal-content') || m;
-        var row = host.querySelector('.cp-cancel-row');
-        if (!row) {
-            row = document.createElement('div');
-            row.className = 'cp-cancel-row';
-            host.appendChild(row);
-        }
-        row.innerHTML = '<button class="btn btn-link" type="button" style="font-size:13px">\u21A9 Pick a different space</button>';
-        row.firstChild.addEventListener('click', function(){ UI._cancelEntryGain(modalId); });
-    },
+    /* Back-compat alias (older hooks) */
+    showCoachMark1: function() { UI.showActionTour(); },
 
     _amBeatChip: function(label) {
         var chip = document.createElement('div');
