@@ -8974,12 +8974,12 @@ body.ar-pregame .action-feed { visibility: hidden; }
     display: flex; flex-wrap: wrap; gap: 3% 0;
     justify-content: center; align-items: flex-start;
     width: 100%;
-    padding: 12% 8% 0;   /* 48AD: two rows of three, 25% tokens */
+    padding: 6% 8% 0;   /* 48AK: tokens higher in the bowl */
 }
 /* 48AF: FORCED 3+3 — each cell is exactly a third of the row; the 70px
    token centers inside it (56px original + 25%) */
 .opp-yarn-arc .opp-yarn-cell { width: 33.333%; max-width: none; height: auto; aspect-ratio: auto; display: flex; align-items: center; justify-content: center; }
-.opp-yarn-arc .opp-yarn-img { width: 62px; height: 62px; }   /* 48AH: down from 70, Adam's eye */
+.opp-yarn-arc .opp-yarn-img { width: 52px; height: 52px; }   /* 48AK: smaller again */
 .opp-yarn-arc .opp-yarn-num { font-size: clamp(12px, 3.6cqw, 15px); }
 
 
