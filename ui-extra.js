@@ -1148,35 +1148,15 @@ Object.assign(UI, {
            not flash, hard cap 5s) BEFORE the setup screen appears. By Start Game
            everything is loaded, so no mid-layout reflow jank. If assets are
            already loaded (second game etc.) it goes straight through. */
+        /* Session 48L (Adam): ONE loading moment, at Start Game. Quick Play just
+           kicks off the background asset download and goes straight to setup
+           (the player browses crafters while art downloads). */
         if (UI.onLandingPlaySolo && !UI._playGateWrapped) {
             UI._playGateWrapped = true;
             var origPlay = UI.onLandingPlaySolo;
             UI.onLandingPlaySolo = function() {
-                var args = arguments;
-                try {
-                    UI._deferredAssetsGo();
-                    // ALWAYS show the beat on the first play of a page load
-                    // (assets may have finished during the landing tap, but the
-                    // beat guarantees a consistent, ready-before-setup flow)
-                    if (!UI._arFirstPlayDone) {
-                        UI._arFirstPlayDone = true;
-                        var ov = document.createElement('div');
-                        ov.className = 'ld48';
-                        ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
-                        document.body.appendChild(ov);
-                        var done = false;
-                        var minBeat = new Promise(function(res){ setTimeout(res, 1100); });
-                        var go = function(){
-                            if (done) return; done = true;
-                            if (ov.parentNode) ov.parentNode.removeChild(ov);
-                            origPlay.apply(UI, args);
-                        };
-                        Promise.all([window._arAssetsReady || Promise.resolve(), minBeat]).then(go);
-                        setTimeout(go, 5000);
-                        return;
-                    }
-                } catch (e) {}
-                return origPlay.apply(UI, args);
+                try { UI._deferredAssetsGo(); } catch (e) {}
+                return origPlay.apply(UI, arguments);
             };
         }
         // gate Start Game on readiness (max 6s, cozy loading beat)
@@ -1187,21 +1167,31 @@ Object.assign(UI, {
                 var args = arguments;
                 try {
                     UI._deferredAssetsGo();
-                    if (!UI._arAssetsLoaded && window._arAssetsReady) {
-                        var ov = document.createElement('div');
-                        ov.className = 'ld48';
-                        ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
-                        document.body.appendChild(ov);
-                        var done = false;
-                        var go = function(){
-                            if (done) return; done = true;
-                            if (ov.parentNode) ov.parentNode.removeChild(ov);
-                            orig.apply(UI, args);
-                        };
-                        window._arAssetsReady.then(go);
-                        setTimeout(go, 6000);
-                        return;
-                    }
+                    /* Session 48L: THE loading screen. Shows on every game start;
+                       behind it we (a) wait for assets (cap 5s), (b) run Game.init
+                       so the board + action marker assemble FULLY hidden (fixes the
+                       double marker: init used to run pre-asset-load, render a tiny
+                       marker, then re-render a correct one), then (c) lift the
+                       screen straight onto How-to-Play (which fires at init). */
+                    var ov = document.createElement('div');
+                    ov.className = 'ld48';
+                    ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
+                    document.body.appendChild(ov);
+                    var minBeat = new Promise(function(res){ setTimeout(res, 1100); });
+                    var ready = window._arAssetsReady || Promise.resolve();
+                    var capped = Promise.race([ready, new Promise(function(res){ setTimeout(res, 5000); })]);
+                    var started = false;
+                    var startGame = function(){
+                        if (started) return; started = true;
+                        try { orig.apply(UI, args); } catch (e) {}
+                        // give the board + marker render a settle beat behind the veil
+                        Promise.all([minBeat]).then(function(){
+                            setTimeout(function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); }, 450);
+                        });
+                    };
+                    capped.then(startGame);
+                    setTimeout(startGame, 5200);   // absolute failsafe
+                    return;
                 } catch (e) {}
                 return orig.apply(UI, args);
             };
