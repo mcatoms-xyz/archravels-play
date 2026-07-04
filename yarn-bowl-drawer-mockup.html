@@ -14,13 +14,13 @@
 
   /* ---------- the drawer ---------- */
   .bowl-drawer {
-    position: fixed; top: 50%; left: 0;
-    width: min(46vmin, 420px); height: min(46vmin, 420px);
+    position: fixed; top: var(--dy, 50%); left: 0;
+    width: min(var(--sz, 46vmin), 480px); height: min(var(--sz, 46vmin), 480px);
     transform: translate(-115%, -50%);
     transition: transform .45s cubic-bezier(.3, 1.25, .5, 1);
     z-index: 400; pointer-events: none;
   }
-  .bowl-drawer.open { transform: translate(-16%, -50%); pointer-events: auto; }
+  .bowl-drawer.open { transform: translate(var(--dx, -16%), -50%); pointer-events: auto; }
   /* tangled refusal: quick shove-out-and-back */
   .bowl-drawer.refuse { animation: refuse .5s ease; }
   @keyframes refuse {
@@ -31,17 +31,10 @@
   .bowl-wheel {
     position: absolute; inset: 11.5%;
     border-radius: 50%;
-    background: conic-gradient(
-      from -60deg,
-      #c0392b 0deg 60deg,
-      #e67e22 60deg 120deg,
-      #f1c40f 120deg 180deg,
-      #27ae60 180deg 240deg,
-      #2e6fb7 240deg 300deg,
-      #8e44ad 300deg 360deg
-    );
+    overflow: hidden;
     box-shadow: inset 0 6px 18px rgba(0,0,0,.45);
   }
+  .bowl-wheel svg { width: 100%; height: 100%; display: block; }
   .bowl-rim { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(6px 8px 14px rgba(0,0,0,.5)); }
   .wedge-count {
     position: absolute; left: 50%; top: 50%;
@@ -109,6 +102,10 @@
 <div class="controls">
   <label><input type="checkbox" id="tangledToggle"> 😾 Tangled (drawer blocked)</label>
   <button class="open-btn" onclick="openDrawer()">Or just open it</button>
+  <label>Open-X <input type="range" id="sDX" min="-60" max="20" step="1" value="-16" style="vertical-align:middle"></label>
+  <label>Vertical <input type="range" id="sDY" min="20" max="80" step="1" value="50" style="vertical-align:middle"></label>
+  <label>Size <input type="range" id="sSZ" min="26" max="80" step="1" value="46" style="vertical-align:middle"></label>
+  <span id="sVals" style="color:#ffd37a; font-size:.8rem"></span>
 </div>
 
 <div class="fake-board">
@@ -123,7 +120,6 @@
 <div class="bowl-drawer" id="drawer">
   <div class="bowl-wheel" id="wheel"></div>
   <img class="bowl-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="">
-  <img class="bowl-yarnball" src="Wood Yarn Tokens PNG/blue.png" alt="">
 </div>
 <img class="drawer-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="Tangled Cat">
 <div class="tangle-toast" id="toast">😾 The Tangled Cat has your bowl!</div>
@@ -144,19 +140,72 @@
     });
   })();
 
-  // place counts at wedge centers: wedge i spans (-60 + 60i)deg .. (+60i)deg from top
+  // SVG wedge wheel: red starts at 12 o'clock going clockwise, so the top
+  // pair reads purple (left) / red (right). Fabric pattern per wedge, that
+  // color's token at wedge center with the count on it, wood-brown middle.
   (function(){
-    var wheel = document.getElementById('wheel');
-    order.forEach(function(c, i){
-      var angle = (-30 + 60 * i - 90) * Math.PI / 180;   // wedge center, 0deg = up
-      var r = 33;                                          // % radius for label ring
-      var el = document.createElement('span');
-      el.className = 'wedge-count';
-      el.textContent = counts[c];
-      el.style.left = (50 + r * Math.cos(angle)) + '%';
-      el.style.top = (50 + r * Math.sin(angle)) + '%';
-      wheel.appendChild(el);
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 200 200');
+    var defs = document.createElementNS(NS, 'defs');
+    order.forEach(function(c){
+      var p = document.createElementNS(NS, 'pattern');
+      p.setAttribute('id', 'fab-' + c);
+      p.setAttribute('patternUnits', 'userSpaceOnUse');
+      p.setAttribute('width', '200'); p.setAttribute('height', '200');
+      var im = document.createElementNS(NS, 'image');
+      im.setAttribute('href', 'Other Images Textures Details/Textures/FabricPlain0015_ar_' + c + '.png');
+      im.setAttribute('width', '200'); im.setAttribute('height', '200');
+      im.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      p.appendChild(im); defs.appendChild(p);
     });
+    svg.appendChild(defs);
+    function pt(aDeg, r){ var a = aDeg * Math.PI / 180; return [100 + r * Math.sin(a), 100 - r * Math.cos(a)]; }
+    order.forEach(function(c, k){
+      var a0 = k * 60, a1 = (k + 1) * 60, R = 102;
+      var p1 = pt(a0, R), p2 = pt(a1, R);
+      var path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', 'M100,100 L' + p1[0] + ',' + p1[1] + ' A' + R + ',' + R + ' 0 0 1 ' + p2[0] + ',' + p2[1] + ' Z');
+      path.setAttribute('fill', 'url(#fab-' + c + ')');
+      path.setAttribute('stroke', 'rgba(60,38,18,.55)');
+      path.setAttribute('stroke-width', '1.2');
+      svg.appendChild(path);
+      // token + count at wedge center
+      var mid = pt(a0 + 30, 62), TW = 34;
+      var tok = document.createElementNS(NS, 'image');
+      tok.setAttribute('href', 'Wood Yarn Tokens PNG/' + c + '.png');
+      tok.setAttribute('x', mid[0] - TW/2); tok.setAttribute('y', mid[1] - TW/2);
+      tok.setAttribute('width', TW); tok.setAttribute('height', TW);
+      svg.appendChild(tok);
+      var txt = document.createElementNS(NS, 'text');
+      txt.setAttribute('x', mid[0]); txt.setAttribute('y', mid[1]);
+      txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'central');
+      txt.setAttribute('font-size', '15'); txt.setAttribute('font-weight', '800');
+      txt.setAttribute('fill', '#fff'); txt.setAttribute('stroke', '#000'); txt.setAttribute('stroke-width', '3');
+      txt.setAttribute('paint-order', 'stroke'); txt.setAttribute('font-family', 'inherit');
+      txt.textContent = counts[c];
+      svg.appendChild(txt);
+    });
+    // wood bowl bottom
+    var dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('cx', '100'); dot.setAttribute('cy', '100'); dot.setAttribute('r', '24');
+    dot.setAttribute('fill', '#5a3c20'); dot.setAttribute('stroke', '#3f2a15'); dot.setAttribute('stroke-width', '3');
+    svg.appendChild(dot);
+    document.getElementById('wheel').appendChild(svg);
+  })();
+
+  // ---- drawer placement sliders ----
+  (function(){
+    var drawer = document.getElementById('drawer');
+    function upd(){
+      var dx = document.getElementById('sDX').value, dy = document.getElementById('sDY').value, sz = document.getElementById('sSZ').value;
+      drawer.style.setProperty('--dx', dx + '%');
+      drawer.style.setProperty('--dy', dy + '%');
+      drawer.style.setProperty('--sz', sz + 'vmin');
+      document.getElementById('sVals').textContent = 'open-x ' + dx + '% · vertical ' + dy + '% · size ' + sz + 'vmin';
+    }
+    ['sDX','sDY','sSZ'].forEach(function(id){ document.getElementById(id).addEventListener('input', upd); });
+    upd();
   })();
 
   var drawer = document.getElementById('drawer');
