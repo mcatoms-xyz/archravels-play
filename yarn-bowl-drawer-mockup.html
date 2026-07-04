@@ -68,8 +68,30 @@
   .tangle-toast.show { opacity: 1; }
 
   /* fake board area to click (stands in for the token column / bowl art zone) */
-  .fake-board { position: relative; width: min(680px, 92vw); border-radius: 10px; overflow: hidden; }
+  .fake-board { position: relative; width: min(680px, 92vw); border-radius: 10px; overflow: hidden; container-type: inline-size; }
   .fake-board img.board { width: 100%; display: block; }
+
+  /* yarn token column — live-game calibrated (6.12% tokens, 0.64% gap, 2.73% count) */
+  .tok-col { position: absolute; top: 5%; left: 0; width: 9%; height: 70%;
+    display: flex; flex-direction: column; justify-content: space-around; align-items: center;
+    padding: 4% 0; box-sizing: border-box; pointer-events: none; }
+  .tok-col .tok { position: relative; display: flex; align-items: center; justify-content: center;
+    width: 100%; margin: 0.64cqw 0; }
+  .tok-col .tok img { width: 6.12cqw; height: 6.12cqw; display: block; }
+  .tok-col .tok span { position: absolute; font-weight: 800; font-size: 2.73cqw; line-height: 1; color: #fff;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 2px 4px rgba(0,0,0,.8); }
+
+  /* on-board tangled cat — Adam's tuned values (48Q) */
+  .board-cat { position: absolute; left: 3%; top: 53%; width: 26.5%; height: auto;
+    z-index: 5; pointer-events: none; display: none;
+    transform: scaleX(-1) rotate(-29deg);
+    filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
+    animation: bc-pounce 2.4s ease-in-out infinite; }
+  body.tangled .board-cat { display: block; }
+  @keyframes bc-pounce {
+    0%, 100% { transform: scaleX(-1) rotate(-29deg) translateY(0); }
+    50%      { transform: scaleX(-1) rotate(-25deg) translateY(-4%); }
+  }
   .bowl-hotzone {
     position: absolute; top: 3%; left: 0; width: 14%; height: 74%;
     cursor: pointer; border-radius: 8px;
@@ -91,6 +113,8 @@
 
 <div class="fake-board">
   <img class="board" src="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png" alt="board">
+  <div class="tok-col" id="tokCol"></div>
+  <img class="board-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="">
   <div class="bowl-hotzone" onclick="openDrawer()" title="Yarn Bowl"></div>
   <div class="hotzone-hint">← tap the token column zone</div>
 </div>
@@ -109,6 +133,17 @@
   var counts = { red: 3, orange: 1, yellow: 0, green: 2, blue: 4, purple: 1 };
   var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
 
+  // yarn token column on the board (the tap target for the drawer)
+  (function(){
+    var col = document.getElementById('tokCol');
+    order.forEach(function(c){
+      var d = document.createElement('div');
+      d.className = 'tok';
+      d.innerHTML = '<img src="Wood Yarn Tokens PNG/' + c + '.png" alt=""><span>' + counts[c] + '</span>';
+      col.appendChild(d);
+    });
+  })();
+
   // place counts at wedge centers: wedge i spans (-60 + 60i)deg .. (+60i)deg from top
   (function(){
     var wheel = document.getElementById('wheel');
@@ -126,6 +161,11 @@
 
   var drawer = document.getElementById('drawer');
   var scrim = document.getElementById('scrim');
+  // cat appears the moment Tangled is on — he's guarding the drawer
+  document.getElementById('tangledToggle').addEventListener('change', function(){
+    document.body.classList.toggle('tangled', this.checked);
+    if (this.checked) closeDrawer();
+  });
   function openDrawer() {
     var tangled = document.getElementById('tangledToggle').checked;
     document.body.classList.toggle('tangled', tangled);
