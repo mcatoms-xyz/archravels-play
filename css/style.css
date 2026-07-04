@@ -8953,3 +8953,8 @@ body.ar-pregame .action-feed { visibility: hidden; }
 .modal-content button, .modal-content .btn {
     font-family: 'Baloo2', var(--font-system, sans-serif);
 }
+
+
+/* Session 48W: entry-gain cancel row + count-font fallback pre-JS */
+.cp-cancel-row { text-align: center; margin-top: 10px; }
+.yarn-bowl-overlay .yarn-count { font-size: clamp(11px, 1.35vw, 19px); }
