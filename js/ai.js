@@ -1213,10 +1213,16 @@ var AI = {
          * @param {string} recipientName — who ended up with the SR
          */
         function showAwardMoment(recipientName) {
+            // Session 48W (Adam): landing someone's FAVORITE = WOW moment,
+            // including when the human RECEIVES it from a CPU
+            var recip = null;
+            Game.state.players.forEach(function(pl){ if (pl.name === recipientName) recip = pl; });
+            var favHit = recip && card.favoriteOf === recip.characterId;
+            if (favHit && window.Sound) { try { Sound.play('fav-wow'); } catch (e) {} }
             self.showAction(card.name + ' given to ' + recipientName, function() {
                 UI.showGameMoment({
-                    badge: 'Awarded',
-                    badgeClass: 'moment-sr',
+                    badge: favHit ? ((recip.isAI || recip.isHank) ? 'Their Favorite!' : 'Your Favorite!') : 'Awarded',
+                    badgeClass: favHit ? 'moment-favorite' : 'moment-sr',
                     img: card.img,
                     title: card.name,
                     desc: '<span class="player-name">' + card.name + '</span> given to <span class="player-name">' + recipientName + '</span>',
