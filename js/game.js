@@ -304,6 +304,7 @@ var Game = {
         // game start regardless of turn order — Adam: it popped mid-game when the
         // CPU went first).
         try {
+            try { if (window.UI && UI.logEvent) UI.logEvent('game_start', { players: this.state.playerCount }); } catch (e) {}
             if (window.UI && UI.maybeShowFirstGameHelp) {
                 // Session 48k: show IMMEDIATELY so the overlay covers the board
                 // building behind it (the 700ms gap let half-built layout flash)
@@ -1231,6 +1232,7 @@ var Game = {
 
             // All final crafts done → game over
             this.state.phase = 'gameOver';
+            try { if (window.UI && UI.logEvent) UI.logEvent('game_finish', { rounds: this.getRoundNumber ? this.getRoundNumber() : null }); } catch (e) {}
             this.state.selectedSlots = new Set();
             this.stopTimer();  // Session 15: stop the game clock
             this.state.finalCraftQueue = null;
