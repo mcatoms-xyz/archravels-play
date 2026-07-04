@@ -66,6 +66,11 @@
     width: var(--tc-w, 9%); height: var(--tc-h, 70%);
     display: flex; flex-direction: column; justify-content: space-around; align-items: center;
     padding: 4% 0; box-sizing: border-box; pointer-events: none; }
+  .fake-board .tok-col.two-col {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr);
+    justify-items: center; align-items: center; column-gap: var(--tc-colgap, 1cqw);
+  }
+  .fake-board .tok-col.two-col.fill-down { grid-auto-flow: column; }
   .tok-col .tok { position: relative; display: flex; align-items: center; justify-content: center;
     width: 100%; margin: var(--tc-gap, 0.64cqw) 0; }
   .tok-col .tok img { width: var(--tc-tok, 6.12cqw); height: var(--tc-tok, 6.12cqw); display: block; }
@@ -119,6 +124,9 @@
     <label>Token size <input type="range" id="tTok" min="3" max="12" step="0.1" value="6.12"></label>
     <label>Gap <input type="range" id="tGap" min="0" max="3" step="0.05" value="0.64"></label>
     <label>Count size <input type="range" id="tFont" min="1.2" max="5" step="0.05" value="2.73"></label>
+    <label>Columns <select id="tCols"><option value="1">1</option><option value="2">2</option></select>
+      <select id="tFill"><option value="down">fill down (3+3 stacks)</option><option value="across">fill across (pairs)</option></select></label>
+    <label>Col gap <input type="range" id="tColGap" min="0" max="6" step="0.1" value="1"></label>
   </fieldset>
   <fieldset style="border:1px solid #584730; border-radius:10px; padding:8px 12px">
     <legend style="font-size:.8rem; color:#ffd37a">🐈 Cat (toggle Tangled to see)</legend>
@@ -229,6 +237,10 @@
     fb.style.setProperty('--tc-tok', V('tTok') + 'cqw');
     fb.style.setProperty('--tc-gap', V('tGap') + 'cqw');
     fb.style.setProperty('--tc-font', V('tFont') + 'cqw');
+    fb.style.setProperty('--tc-colgap', V('tColGap') + 'cqw');
+    var col = document.getElementById('tokCol');
+    col.classList.toggle('two-col', V('tCols') === '2');
+    col.classList.toggle('fill-down', V('tCols') === '2' && V('tFill') === 'down');
     fb.style.setProperty('--cat-l', V('cL') + '%');
     fb.style.setProperty('--cat-t', V('cT') + '%');
     fb.style.setProperty('--cat-w', V('cW') + '%');
@@ -240,6 +252,7 @@
       'drawer:  open-x ' + V('sDX') + '% | vertical ' + V('sDY') + '% (of board) | size ' + V('sSZ') + '% of board\n' +
       'tokens:  left ' + V('tLeft') + '% | top ' + V('tTop') + '% | width ' + V('tW') + '% | height ' + V('tH') + '%\n' +
       '         token ' + V('tTok') + '% of board | gap ' + V('tGap') + '% | count ' + V('tFont') + '%\n' +
+      '         columns ' + V('tCols') + (V('tCols')==='2' ? ' (' + V('tFill') + ', col-gap ' + V('tColGap') + '%)' : '') + '\n' +
       'cat:     left ' + V('cL') + '% | top ' + V('cT') + '% | width ' + V('cW') + '% | rot ' + V('cR') + 'deg';
   }
   function copyAll(){
@@ -248,9 +261,10 @@
     d.textContent = '✓ copied — paste it to Johnny';
     setTimeout(function(){ d.textContent = ''; }, 2500);
   }
-  ['sDX','sDY','sSZ','tLeft','tTop','tW','tH','tTok','tGap','tFont','cL','cT','cW','cR'].forEach(function(id){
+  ['sDX','sDY','sSZ','tLeft','tTop','tW','tH','tTok','tGap','tFont','tColGap','cL','cT','cW','cR'].forEach(function(id){
     document.getElementById(id).addEventListener('input', updAll);
   });
+  ['tCols','tFill'].forEach(function(id){ document.getElementById(id).addEventListener('change', updAll); });
   updAll();
 
   var drawer = document.getElementById('drawer');
