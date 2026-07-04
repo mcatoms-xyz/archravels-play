@@ -1296,11 +1296,26 @@ Object.assign(UI, {
     }
 });
 
-// live count sync whenever the bowl re-renders; close the drawer at turn
-// handoff moments so it never lingers over another player's board
+// live count sync whenever the bowl re-renders; count font sized in px from
+// the real board width (2.75% of board, Adam's recipe) — no container units
 (function(){
+    function sizeCounts() {
+        try {
+            var wrap = document.querySelector('.player-board-wrapper');
+            if (!wrap) return;
+            var w = wrap.getBoundingClientRect().width;
+            if (!w) return;
+            var px = Math.max(9, w * 0.0275);
+            document.querySelectorAll('.yarn-bowl-overlay .yarn-count').forEach(function(el){
+                el.style.fontSize = px + 'px';
+            });
+        } catch (e) {}
+    }
+    UI._ybSizeCounts = sizeCounts;
     var _rYB = UI.renderYarnBowl;
-    if (_rYB) UI.renderYarnBowl = function(ch){ _rYB.call(UI, ch); try { UI._ybSync(); } catch (e) {} };
+    if (_rYB) UI.renderYarnBowl = function(ch){ _rYB.call(UI, ch); try { UI._ybSync(); sizeCounts(); } catch (e) {} };
+    var _t;
+    window.addEventListener('resize', function(){ clearTimeout(_t); _t = setTimeout(sizeCounts, 150); });
 })();
 
 (function(){
