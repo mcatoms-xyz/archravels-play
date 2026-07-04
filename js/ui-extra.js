@@ -1098,3 +1098,68 @@ Object.assign(UI, {
         }, 2600);
     }
 });
+
+
+/* =========================================================================
+   Session 48d: LIGHT HOMEPAGE (Adam). Heavy board art is deferred — the
+   landing screen loads light; touching ANY landing button starts the real
+   asset load (the setup screen is the natural loading window). Start Game
+   gates briefly on a cozy loading beat only if assets aren't ready yet.
+   ========================================================================= */
+Object.assign(UI, {
+    _arAssetsLoaded: false,
+    _deferredAssetsGo: function() {
+        if (this._arDeferStarted) return window._arAssetsReady;
+        this._arDeferStarted = true;
+        var imgs = [].slice.call(document.querySelectorAll('[data-defer-src]'));
+        var waits = imgs.map(function(img){
+            return new Promise(function(res){
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+                img.src = img.getAttribute('data-defer-src');
+                img.removeAttribute('data-defer-src');
+            });
+        });
+        window._arAssetsReady = Promise.all(waits).then(function(){ UI._arAssetsLoaded = true; });
+        return window._arAssetsReady;
+    }
+});
+
+(function(){
+    function boot() {
+        // any touch of the landing starts the real load
+        var landing = document.getElementById('landingScreen');
+        if (landing) {
+            landing.addEventListener('click', function(){ UI._deferredAssetsGo(); }, { capture: true, once: true });
+        }
+        // gate Start Game on readiness (max 6s, cozy loading beat)
+        if (UI.onSetupStart && !UI._setupGateWrapped) {
+            UI._setupGateWrapped = true;
+            var orig = UI.onSetupStart;
+            UI.onSetupStart = function() {
+                var args = arguments;
+                try {
+                    UI._deferredAssetsGo();
+                    if (!UI._arAssetsLoaded && window._arAssetsReady) {
+                        var ov = document.createElement('div');
+                        ov.className = 'ld48';
+                        ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
+                        document.body.appendChild(ov);
+                        var done = false;
+                        var go = function(){
+                            if (done) return; done = true;
+                            if (ov.parentNode) ov.parentNode.removeChild(ov);
+                            orig.apply(UI, args);
+                        };
+                        window._arAssetsReady.then(go);
+                        setTimeout(go, 6000);
+                        return;
+                    }
+                } catch (e) {}
+                return orig.apply(UI, args);
+            };
+        }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+})();
