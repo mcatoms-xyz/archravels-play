@@ -1305,7 +1305,7 @@ Object.assign(UI, {
             if (!wrap) return;
             var w = wrap.getBoundingClientRect().width;
             if (!w) return;
-            var px = Math.max(9, w * 0.0275);
+            var px = Math.max(10, w * 0.033);   // 48U: Adam wanted the counts bigger
             document.querySelectorAll('.yarn-bowl-overlay .yarn-count').forEach(function(el){
                 el.style.fontSize = px + 'px';
             });
