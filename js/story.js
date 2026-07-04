@@ -545,7 +545,7 @@ var Story = {
     if(!email){ if(msg) msg.textContent='Enter your email first.'; return; }
     if(!this.sb){ if(msg) msg.textContent='Not connected yet.'; return; }
     if(msg) msg.textContent='Sending…';
-    try{ var r=await this.sb.auth.signInWithOtp({email:email, options:{emailRedirectTo:window.location.href}});
+    try{ var r=await this.sb.auth.signInWithOtp({email:email, options:{emailRedirectTo:window.location.origin + window.location.pathname}});
       if(msg) msg.textContent=r.error?('Error: '+r.error.message):'Check your email for a sign-in link!';
     }catch(e){ if(msg) msg.textContent='Something went wrong.'; }
   },
@@ -566,7 +566,11 @@ var Story = {
       }catch(e){ if(msg) msg.textContent='Google sign-in unavailable ('+(e && e.message || e)+')'; }
       return;
     }
-    try{ await this.sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.href } }); }catch(e){}
+    // Session 49.3 FIX (Jeff's bug): redirect to the CLEAN origin only. Using
+    // location.href broke sign-in from hash routes (#/profile etc): the OAuth
+    // token comes back AS a hash, they collide, and Supabase fell back to a
+    // stale Site URL (GitHub 404). Root URL is allowlisted and hash-free.
+    try{ await this.sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: window.location.origin + window.location.pathname } }); }catch(e){}
   },
   signOut: async function(){
     if(this.sb){ try{ await this.sb.auth.signOut(); }catch(e){} }
