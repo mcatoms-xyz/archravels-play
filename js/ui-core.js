@@ -2031,7 +2031,7 @@ var UI = {
     document.addEventListener('pointerdown', function (e) {
         var onBoard = e.target.closest && e.target.closest('.player-board-image, .bowl-wood-bg, .player-board-wrapper');
         if (!onBoard) return;
-        if (e.target.closest('.yarn-bowl-overlay, .craft-board-overlay, .fo-drawer, .fo-drawer-tab, button, a, [onclick], [class*="slot"]')) return;
+        if (e.target.closest('.yarn-bowl-overlay, .yb-hotzone, .yb-clip, .craft-board-overlay, .fo-drawer, .fo-drawer-tab, button, a, [onclick], [class*="slot"]')) return;
         sx = e.clientX; sy = e.clientY;
         clear();
         timer = setTimeout(function () {
