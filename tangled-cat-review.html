@@ -77,6 +77,22 @@
       <input type="range" id="r" min="-30" max="30" step="1" value="-6"></label>
     <label><input type="checkbox" id="flip" checked> Flip to face LEFT (toward bowl)</label>
     <label><input type="checkbox" id="showBowl" checked> Show yarn bowl tokens</label>
+    <hr style="border-color:#584730; margin:14px 0 4px">
+    <strong style="font-size:.9rem">🧶 Yarn Bowl placement</strong>
+    <label>Bowl left <span class="val" id="vBX">0%</span>
+      <input type="range" id="bx" min="-3" max="25" step="0.5" value="0"></label>
+    <label>Bowl top <span class="val" id="vBY">5%</span>
+      <input type="range" id="by" min="-5" max="40" step="0.5" value="5"></label>
+    <label>Bowl width <span class="val" id="vBW">9%</span>
+      <input type="range" id="bw" min="4" max="22" step="0.5" value="9"></label>
+    <label>Bowl height <span class="val" id="vBH">70%</span>
+      <input type="range" id="bh" min="35" max="95" step="1" value="70"></label>
+    <label>Token size <span class="val" id="vTS">6.12</span>
+      <input type="range" id="ts" min="3" max="12" step="0.1" value="6.12"></label>
+    <label>Token gap <span class="val" id="vTG">0.64</span>
+      <input type="range" id="tg" min="0" max="3" step="0.05" value="0.64"></label>
+    <label>Count size <span class="val" id="vCF">2.73</span>
+      <input type="range" id="cf" min="1.2" max="5" step="0.05" value="2.73"></label>
     <div class="flipnote">Current live values: width 20%, left 6.5%, top 24%, rot -6°, flipped.</div>
     <pre id="out"></pre>
     <button onclick="navigator.clipboard.writeText(document.getElementById('out').textContent)">Copy CSS</button>
@@ -123,6 +139,38 @@
   }
   ['w','x','y','r','flip'].forEach(function(id){ document.getElementById(id).addEventListener('input', upd); });
   document.getElementById('boardSel').addEventListener('change', function(){ document.getElementById('board').src = this.value; });
+
+  // ---- yarn bowl placement sliders ----
+  function updBowl() {
+    var bowl = document.getElementById('bowl');
+    var bx = +document.getElementById('bx').value, by = +document.getElementById('by').value,
+        bw = +document.getElementById('bw').value, bh = +document.getElementById('bh').value,
+        ts = +document.getElementById('ts').value, tg = +document.getElementById('tg').value,
+        cf = +document.getElementById('cf').value;
+    bowl.style.left = bx + '%'; bowl.style.top = by + '%';
+    bowl.style.width = bw + '%'; bowl.style.height = bh + '%';
+    bowl.querySelectorAll('.tok').forEach(function(t){
+      t.style.margin = tg + 'cqw 0';
+      t.querySelector('img').style.width = ts + 'cqw';
+      t.querySelector('img').style.height = ts + 'cqw';
+      t.querySelector('span').style.fontSize = cf + 'cqw';
+    });
+    document.getElementById('vBX').textContent = bx + '%';
+    document.getElementById('vBY').textContent = by + '%';
+    document.getElementById('vBW').textContent = bw + '%';
+    document.getElementById('vBH').textContent = bh + '%';
+    document.getElementById('vTS').textContent = ts;
+    document.getElementById('vTG').textContent = tg;
+    document.getElementById('vCF').textContent = cf;
+    document.getElementById('outBowl').textContent =
+      '/* Yarn Bowl — board-relative values for Johnny to wire in */\n' +
+      '.yarn-bowl-overlay { top: ' + by + '%; left: ' + bx + '%; width: ' + bw + '%; height: ' + bh + '%; }\n' +
+      'token size: ' + ts + '% of board · gap: ' + tg + '% · count font: ' + cf + '%';
+  }
+  ['bx','by','bw','bh','ts','tg','cf'].forEach(function(id){ document.getElementById(id).addEventListener('input', updBowl); });
+  var pre2 = document.createElement('pre'); pre2.id = 'outBowl';
+  document.getElementById('out').after(pre2);
+  updBowl();
   upd();
 </script>
 </body>
