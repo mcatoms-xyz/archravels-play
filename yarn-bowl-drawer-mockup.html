@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yarn Bowl Drawer — Mockup</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #2b2118; color: #fdf6e8; margin: 0; padding: 18px; overflow-x: hidden; }
+  h1 { font-size: 1.15rem; margin: 0 0 4px; }
+  .sub { color: #cbb891; font-size: .85rem; margin-bottom: 12px; max-width: 640px; }
+  .controls { margin-bottom: 12px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .controls label { font-size: .85rem; }
+  button.open-btn { background: #3769BE; color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 700; cursor: pointer; }
+
+  /* ---------- the drawer ---------- */
+  .bowl-drawer {
+    position: fixed; top: 50%; left: 0;
+    width: min(46vmin, 420px); height: min(46vmin, 420px);
+    transform: translate(-115%, -50%);
+    transition: transform .45s cubic-bezier(.3, 1.25, .5, 1);
+    z-index: 400; pointer-events: none;
+  }
+  .bowl-drawer.open { transform: translate(-16%, -50%); pointer-events: auto; }
+  /* tangled refusal: quick shove-out-and-back */
+  .bowl-drawer.refuse { animation: refuse .5s ease; }
+  @keyframes refuse {
+    0%, 100% { transform: translate(-115%, -50%); }
+    35%      { transform: translate(-96%, -50%) rotate(-3deg); }
+  }
+
+  .bowl-wheel {
+    position: absolute; inset: 11.5%;
+    border-radius: 50%;
+    background: conic-gradient(
+      from -60deg,
+      #c0392b 0deg 60deg,
+      #e67e22 60deg 120deg,
+      #f1c40f 120deg 180deg,
+      #27ae60 180deg 240deg,
+      #2e6fb7 240deg 300deg,
+      #8e44ad 300deg 360deg
+    );
+    box-shadow: inset 0 6px 18px rgba(0,0,0,.45);
+  }
+  .bowl-rim { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(6px 8px 14px rgba(0,0,0,.5)); }
+  .wedge-count {
+    position: absolute; left: 50%; top: 50%;
+    font-weight: 800; font-size: clamp(18px, 4.6vmin, 34px); color: #fff;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 2px 5px rgba(0,0,0,.8);
+    transform: translate(-50%, -50%);
+  }
+  .bowl-yarnball { position: absolute; width: 17%; left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 3px 5px rgba(0,0,0,.4)); }
+
+  /* tangled cat slumped over the drawer edge when blocked */
+  .drawer-cat {
+    position: fixed; left: -6px; top: calc(50% - 10vmin);
+    width: 20vmin; transform: scaleX(-1) rotate(-18deg);
+    filter: drop-shadow(2px 5px 6px rgba(0,0,0,.5));
+    z-index: 401; display: none; pointer-events: none;
+  }
+  body.tangled .drawer-cat { display: block; }
+  .tangle-toast {
+    position: fixed; left: 18px; top: calc(50% + 12vmin);
+    background: #7a2e22; color: #ffe9df; font-weight: 700; font-size: .9rem;
+    padding: 8px 14px; border-radius: 10px; z-index: 402;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .tangle-toast.show { opacity: 1; }
+
+  /* fake board area to click (stands in for the token column / bowl art zone) */
+  .fake-board { position: relative; width: min(680px, 92vw); border-radius: 10px; overflow: hidden; }
+  .fake-board img.board { width: 100%; display: block; }
+  .bowl-hotzone {
+    position: absolute; top: 3%; left: 0; width: 14%; height: 74%;
+    cursor: pointer; border-radius: 8px;
+    outline: 2px dashed rgba(255, 211, 122, .0); transition: outline-color .2s, background .2s;
+  }
+  .bowl-hotzone:hover { background: rgba(255, 211, 122, .12); outline-color: rgba(255, 211, 122, .55); }
+  .hotzone-hint { position: absolute; top: 1%; left: 15%; font-size: .75rem; color: #ffd37a; background: rgba(0,0,0,.45); padding: 3px 8px; border-radius: 6px; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 390; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+</style>
+</head>
+<body>
+<h1>🥣 Yarn Bowl Drawer — Mockup</h1>
+<div class="sub">Tap the yarn-token zone on the board (dashed on hover) to slide the bowl in from the left. Toggle Tangled to see the refusal: drawer bumps, cat's got it. Tap anywhere outside to close.</div>
+<div class="controls">
+  <label><input type="checkbox" id="tangledToggle"> 😾 Tangled (drawer blocked)</label>
+  <button class="open-btn" onclick="openDrawer()">Or just open it</button>
+</div>
+
+<div class="fake-board">
+  <img class="board" src="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png" alt="board">
+  <div class="bowl-hotzone" onclick="openDrawer()" title="Yarn Bowl"></div>
+  <div class="hotzone-hint">← tap the token column zone</div>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<div class="bowl-drawer" id="drawer">
+  <div class="bowl-wheel" id="wheel"></div>
+  <img class="bowl-rim" src="Other Images Textures Details/woodgrainbleed.png" alt="">
+  <img class="bowl-yarnball" src="Wood Yarn Tokens PNG/blue.png" alt="">
+</div>
+<img class="drawer-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="Tangled Cat">
+<div class="tangle-toast" id="toast">😾 The Tangled Cat has your bowl!</div>
+
+<script>
+  // sample counts, bowl order
+  var counts = { red: 3, orange: 1, yellow: 0, green: 2, blue: 4, purple: 1 };
+  var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+
+  // place counts at wedge centers: wedge i spans (-60 + 60i)deg .. (+60i)deg from top
+  (function(){
+    var wheel = document.getElementById('wheel');
+    order.forEach(function(c, i){
+      var angle = (-30 + 60 * i - 90) * Math.PI / 180;   // wedge center, 0deg = up
+      var r = 33;                                          // % radius for label ring
+      var el = document.createElement('span');
+      el.className = 'wedge-count';
+      el.textContent = counts[c];
+      el.style.left = (50 + r * Math.cos(angle)) + '%';
+      el.style.top = (50 + r * Math.sin(angle)) + '%';
+      wheel.appendChild(el);
+    });
+  })();
+
+  var drawer = document.getElementById('drawer');
+  var scrim = document.getElementById('scrim');
+  function openDrawer() {
+    var tangled = document.getElementById('tangledToggle').checked;
+    document.body.classList.toggle('tangled', tangled);
+    if (tangled) {
+      drawer.classList.remove('refuse'); void drawer.offsetWidth;
+      drawer.classList.add('refuse');
+      var t = document.getElementById('toast');
+      t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 1600);
+      return;
+    }
+    drawer.classList.add('open'); scrim.classList.add('on');
+  }
+  function closeDrawer() { drawer.classList.remove('open'); scrim.classList.remove('on'); }
+</script>
+</body>
+</html>
