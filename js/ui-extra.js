@@ -101,13 +101,8 @@ Object.assign(UI, {
             cell.innerHTML =
                 '<img class="opp-yarn-img" src="Wood Yarn Tokens PNG/' + color + '.png" alt="' + color + ' yarn">' +
                 '<span class="opp-yarn-num">' + count + '</span>';
-            // Session 48X (Adam's bowl art): ONE row of six, dipping INTO the
-            // bowl — middle tokens sit deepest. (48S applied this curve to the
-            // old 3x2 grid and broke the layout; single row is the fix.)
-            var _i = yarnOrder.indexOf(color), _tt = _i / 5;
-            var _b = (_tt <= 0.5) ? Math.sin((_tt / 0.5) * Math.PI / 2)
-                                  : Math.sin(((1 - _tt) / 0.5) * Math.PI / 2);
-            cell.style.transform = 'translateY(' + (_b * 16) + 'px)';
+            // Session 48AD (Adam): back to two rows of three, no dip —
+            // the tall bowl art holds them
             yarnGrid.appendChild(cell);
         });
         bowl.appendChild(yarnGrid);
