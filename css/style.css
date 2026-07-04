@@ -8832,17 +8832,18 @@ body.ar-pregame .action-feed { visibility: hidden; }
 /* =================================================================
    SESSION 48S: YARN BOWL ARC + DRAWER (Adam's mockup-blessed recipe)
    ================================================================= */
-/* board wrapper becomes a size container so cqw = % of board width */
-.player-board-wrapper { container-type: inline-size; }
+/* NO containment on the wrapper (48S.3 hotfix: container-type collapsed the
+   board on some layouts). All sizes are plain %-of-parent + JS-set fonts. */
 
 /* bowl overlay: arc box (overrides the Session 15b flex column) */
 .yarn-bowl-overlay {
     top: 26.5%; left: 0.5%; width: 10%; height: 45%;
     display: block; padding: 0;
 }
-.yarn-bowl-overlay .yarn-token-slot { position: absolute; left: 0; width: auto; }
-.yarn-bowl-overlay .yarn-token-img { width: 5.3cqw; height: 5.3cqw; }
-.yarn-bowl-overlay .yarn-count { font-size: 2.75cqw; }
+/* slot width = 53% of overlay = 5.3% of board; JS sets left along the arc */
+.yarn-bowl-overlay .yarn-token-slot { position: absolute; width: 53%; }
+.yarn-bowl-overlay .yarn-token-img { width: 100%; height: auto; }
+/* count font is set in px by JS (2.75% of board width) */
 
 /* clip layer: drawer slides INSIDE the board even though the wrapper
    keeps overflow visible for the craft cost dots */
@@ -8852,7 +8853,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
 }
 .yb-drawer {
     position: absolute; top: 48%; left: 0;
-    width: 45cqw; height: 45cqw;
+    width: 45%; aspect-ratio: 1 / 1; height: auto;
     transform: translate(-115%, -50%);
     transition: transform .45s cubic-bezier(.3, 1.25, .5, 1);
     pointer-events: none;
@@ -8894,7 +8895,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
     position: absolute; left: 4%; top: 76%;
     background: #7a2e22; color: #ffe9df; font-weight: 700;
     font-family: 'Baloo2', var(--font-system, sans-serif);
-    font-size: clamp(.72rem, 2.4cqw, 1rem);
+    font-size: clamp(.72rem, 1.4vw, 1rem);
     padding: 7px 12px; border-radius: 10px; z-index: 10;
     opacity: 0; transition: opacity .3s; pointer-events: none;
 }
