@@ -8774,3 +8774,9 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 .ld48-in { text-align: center; color: #fdf6e8; font-family: 'Baloo2', var(--font-system, sans-serif); font-weight: 700; font-size: 1.05rem; }
 .ld48-in img { height: 54px; display: block; margin: 0 auto 12px; animation: ld48bob 1.1s ease-in-out infinite; }
 @keyframes ld48bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+
+/* Session 48e: pre-game, the game layer is HIDDEN — no stale Rebecca board
+   behind the setup modal. Game.init reveals it. */
+body.ar-pregame .game-layout,
+body.ar-pregame .action-bar-wrapper,
+body.ar-pregame .action-feed { visibility: hidden; }
