@@ -64,7 +64,7 @@ Object.assign(UI, {
         var charSection = this._oppSection('');
         var charInfo = document.createElement('div');
         charInfo.className = 'opp-last-space';
-        charInfo.innerHTML = '<strong>' + character.name + '</strong> — ' +
+        charInfo.innerHTML = '<strong>' + character.name + '</strong> · ' +
             (this._typeNames[p.characterType] || p.characterType);
         charSection.content.appendChild(charInfo);
         body.appendChild(charSection.section);
