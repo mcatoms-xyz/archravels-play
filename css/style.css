@@ -8999,3 +8999,25 @@ body.ar-pregame .action-feed { visibility: hidden; }
     border-radius: 10px;
 }
 @media (prefers-reduced-motion: reduce) { .bazaar-slot.bazaar-sr-pulse { animation: none; } }
+
+
+/* Session 48AG (Adam): story page title lives IN the topbar, right of the
+   logo; intro goes two-column on wide screens */
+#story-root .story-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+#story-root .story-page-title {
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+    font-weight: 800; font-size: 1.02rem; color: #fdf6e8;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+@media (max-width: 640px) { #story-root .story-page-title { display: none; } }
+@media (min-width: 768px) {
+    #story-root .sm-intro-2col {
+        display: grid; grid-template-columns: 1.15fr .85fr;
+        gap: 10px 28px; align-items: center; text-align: left;
+        max-width: 900px; margin: 6px auto 14px;
+    }
+    #story-root .sm-intro-2col .sm-copy { margin: 0; }
+    #story-root .sm-intro-2col .sm-steps { flex-direction: column; align-items: flex-start; gap: 8px; }
+    #story-root .sm-intro-2col .sm-arrow { display: none; }
+}
