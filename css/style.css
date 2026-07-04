@@ -8973,3 +8973,13 @@ body.ar-pregame .action-feed { visibility: hidden; }
 }
 .opp-yarn-arc .opp-yarn-cell { width: 13%; max-width: 44px; height: auto; aspect-ratio: 1/1; }
 .opp-yarn-arc .opp-yarn-num { font-size: clamp(12px, 3.6cqw, 15px); }
+
+
+/* Session 48Y: widescreen flipped scorecard */
+.go-transposed { width: 100%; }
+.go-transposed .go-tcol-header { padding: 8px 10px; text-align: center; font-size: .78rem; white-space: nowrap; }
+.go-transposed .go-tcol-label { display: block; font-size: .72rem; opacity: .8; }
+.go-transposed .go-tplayer { display: flex; align-items: center; gap: 8px; padding: 8px 12px; white-space: nowrap; }
+.go-transposed .go-tplayer-names { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.go-transposed .go-val-cell { text-align: center; padding: 10px 8px; }
+.go-transposed .go-total-val { text-align: center; }
