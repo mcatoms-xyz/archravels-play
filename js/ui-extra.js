@@ -942,15 +942,20 @@ Object.assign(UI, {
             document.body.appendChild(ov);
             var close = function(){
                 ov.classList.remove('open');
-                if (ov._first) {
-                    ov._first = false;
-                    try {
-                        if (!localStorage.getItem('ar_cm1_seen')) {
-                            localStorage.setItem('ar_cm1_seen', '1');
-                            setTimeout(function(){ if (UI.showCoachMark1) UI.showCoachMark1(); }, 300);
-                        }
-                    } catch (e) {}
-                }
+                ov._first = false;
+                // Session 47q: closing How-to ALWAYS flows into the action-space
+                // coach when the player is at a choose-space moment (contextual:
+                // "you just read the rules — here's your board"). Not gated on
+                // the seen-flag; the flag only controls the AUTO-show.
+                try {
+                    localStorage.setItem('ar_cm1_seen', '1');
+                    var inChoose = window.Game && Game.state &&
+                        Game.state.phase === 'chooseSpace' &&
+                        Game.state.player && !Game.state.player.isAI && !Game.state.player.isHank;
+                    if (inChoose) {
+                        setTimeout(function(){ if (UI.showCoachMark1) UI.showCoachMark1(); }, 300);
+                    }
+                } catch (e) {}
             };
             ov.querySelector('.htp46-x').addEventListener('click', close);
             ov.querySelector('.htp46-cta').addEventListener('click', close);
