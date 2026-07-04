@@ -8820,8 +8820,10 @@ body.ar-pregame .action-feed { visibility: hidden; }
     filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
     animation: tbc-pounce 2.4s ease-in-out infinite;
 }
+/* Session 48R (Adam): rotation stays FIXED — the wobble pivoted around the
+   wrong point and read as broken. Gentle bob only. */
 @keyframes tbc-pounce {
     0%, 100% { transform: scaleX(-1) rotate(-29deg) translateY(0); }
-    50%      { transform: scaleX(-1) rotate(-25deg) translateY(-4%); }
+    50%      { transform: scaleX(-1) rotate(-29deg) translateY(-3%); }
 }
 @media (prefers-reduced-motion: reduce) { .tangled-board-cat { animation: none; } }
