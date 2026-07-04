@@ -1155,19 +1155,23 @@ Object.assign(UI, {
                 var args = arguments;
                 try {
                     UI._deferredAssetsGo();
-                    if (!UI._arAssetsLoaded && window._arAssetsReady) {
+                    // ALWAYS show the beat on the first play of a page load
+                    // (assets may have finished during the landing tap, but the
+                    // beat guarantees a consistent, ready-before-setup flow)
+                    if (!UI._arFirstPlayDone) {
+                        UI._arFirstPlayDone = true;
                         var ov = document.createElement('div');
                         ov.className = 'ld48';
                         ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
                         document.body.appendChild(ov);
                         var done = false;
-                        var minBeat = new Promise(function(res){ setTimeout(res, 900); });
+                        var minBeat = new Promise(function(res){ setTimeout(res, 1100); });
                         var go = function(){
                             if (done) return; done = true;
                             if (ov.parentNode) ov.parentNode.removeChild(ov);
                             origPlay.apply(UI, args);
                         };
-                        Promise.all([window._arAssetsReady, minBeat]).then(go);
+                        Promise.all([window._arAssetsReady || Promise.resolve(), minBeat]).then(go);
                         setTimeout(go, 5000);
                         return;
                     }
