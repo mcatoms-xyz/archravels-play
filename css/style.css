@@ -8756,7 +8756,7 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 @keyframes favPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 
 /* ===== Session 48: hoard warning in the How-to win band + ACTION TOUR ===== */
-.htp46-warn { font-size: .72rem; font-weight: 400; font-style: italic; color: #6b5c48; margin-top: 4px; }
+.htp46-warn { font-size: .76rem; font-weight: 700; font-style: italic; color: #c0392b; margin-top: 4px; }
 .tour48-box {
     position: absolute; background: #fdf6e8; color: #30261a; border-radius: 12px;
     padding: 13px 15px; box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 3;
