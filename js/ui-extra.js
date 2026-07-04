@@ -1152,6 +1152,48 @@ Object.assign(UI, {
    board (own clip layer; wrapper keeps overflow visible for cost dots).
    Wedge wheel = live counts. Tangled = refuse + annoyed cat, no other sound.
    ========================================================================= */
+/* Session 48W: entry-gain cancel handlers RESTORED (Session 47 originals were
+   lost in the deploy-path incident — the buttons survived, the functions
+   didn't). Cancel = soft revert, marker roams again. */
+Object.assign(UI, {
+    _addEntryGainCancel: function(modalId) {
+        var modal = document.getElementById(modalId);
+        if (!modal) return;
+        var content = modal.querySelector('.modal-content') || modal;
+        if (content.querySelector('.cp-cancel-row')) return;
+        var row = document.createElement('div');
+        row.className = 'cp-cancel-row';
+        var b = document.createElement('button');
+        b.className = 'btn btn-link';
+        b.style.fontSize = '13px';
+        b.textContent = '\u21a9 Pick a different space';
+        b.addEventListener('click', function(){ UI._cancelEntryGain(modalId); });
+        row.appendChild(b);
+        content.appendChild(row);
+    },
+
+    _cancelEntryGain: function(modalId) {
+        var modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+            var row = modal.querySelector('.cp-cancel-row');
+            if (row) row.remove();
+        }
+        Game.state.pendingTake3Yarn = false;
+        Game.state.pendingTake5Any = false;
+        if (Game.undoSpaceChoice) Game.undoSpaceChoice();
+    },
+
+    onTake5Cancel: function() {
+        var modal = document.getElementById('take5Modal');
+        if (modal) modal.style.display = 'none';
+        this._take5 = {};
+        Game.state.pendingTake3Yarn = false;
+        Game.state.pendingTake5Any = false;
+        if (Game.undoSpaceChoice) Game.undoSpaceChoice();
+    }
+});
+
 Object.assign(UI, {
     YB_ARC: { left: 0.5, top: 26.5, w: 10, h: 45, tok: 5.3, font: 2.75,
               depth: 4.8, peak: 0.5, dOpenX: -7, dY: 48, dSz: 45 },
@@ -1299,18 +1341,24 @@ Object.assign(UI, {
 // live count sync whenever the bowl re-renders; count font sized in px from
 // the real board width (2.75% of board, Adam's recipe) — no container units
 (function(){
+    var _szRetry;
     function sizeCounts() {
         try {
             var wrap = document.querySelector('.player-board-wrapper');
             if (!wrap) return;
             var w = wrap.getBoundingClientRect().width;
-            if (!w) return;
-            var px = Math.max(10, w * 0.033);   // 48U: Adam wanted the counts bigger
+            if (!w) {
+                // board still hidden (pre-game) — retry until it has real width
+                clearTimeout(_szRetry); _szRetry = setTimeout(sizeCounts, 400);
+                return;
+            }
+            var px = Math.max(10, w * 0.030);   // 48W: split the difference
             document.querySelectorAll('.yarn-bowl-overlay .yarn-count').forEach(function(el){
                 el.style.fontSize = px + 'px';
             });
         } catch (e) {}
     }
+    setTimeout(sizeCounts, 300);   // first-load pass (retries till visible)
     UI._ybSizeCounts = sizeCounts;
     var _rYB = UI.renderYarnBowl;
     if (_rYB) UI.renderYarnBowl = function(ch){ _rYB.call(UI, ch); try { UI._ybSync(); sizeCounts(); } catch (e) {} };
