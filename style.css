@@ -4985,7 +4985,10 @@ body {
 }
 
 /* Dynamic modal widths per player count — Session 15 */
-.go-modal-wide { max-height: 75vh; overflow-y: auto; margin-top: 100px; }
+/* Session 48N: scorecard must ALWAYS fit the viewport and scroll inside
+   (Adam hit an unscrollable overflow on desktop). Wide-layout redesign of the
+   table itself is backlogged. */
+.go-modal-wide { max-height: calc(100dvh - 32px) !important; overflow-y: auto; margin-top: 16px; }
 .go-modal-wide.go-players-2 { max-width: 520px !important; min-width: 420px; }
 .go-modal-wide.go-players-3 { max-width: 660px !important; min-width: 500px; }
 .go-modal-wide.go-players-4 { max-width: 800px !important; min-width: 600px; }
@@ -8803,3 +8806,18 @@ body.ar-pregame .action-feed { visibility: hidden; }
     body:not(.cap-native) .setup-content .setup-section { margin-bottom: 10px; }
     body:not(.cap-native) .setup-content .confirm-take-buttons { margin-top: 12px !important; }
 }
+
+
+/* Session 48N: Tangled Cat pounces at the yarn bowl on the player board */
+.tangled-board-cat {
+    position: absolute; left: 8.5%; top: 30%; width: 12%; height: auto;
+    z-index: 5; pointer-events: none;
+    transform: scaleX(-1) rotate(-6deg);
+    filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
+    animation: tbc-pounce 2.4s ease-in-out infinite;
+}
+@keyframes tbc-pounce {
+    0%, 100% { transform: scaleX(-1) rotate(-6deg) translateY(0); }
+    50%      { transform: scaleX(-1) rotate(-2deg) translateY(-4%); }
+}
+@media (prefers-reduced-motion: reduce) { .tangled-board-cat { animation: none; } }
