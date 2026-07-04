@@ -1048,11 +1048,11 @@ Object.assign(UI, {
         if (sideFits) {
             box.style.top = Math.max(12, gr.top + gr.height * 0.12) + 'px';
         } else {
-            // Session 48AH (Adam): mobile — NEVER cover the grid. Below it if
-            // there's room, otherwise above it.
-            var below = gr.top + gr.height + 14;
-            if (below + 215 > window.innerHeight) below = Math.max(12, gr.top - 226);
-            box.style.top = below + 'px';
+            // Session 48AI (Adam): mobile — ABOVE the grid, never covering it.
+            // Only drop below if there's no headroom.
+            var above = gr.top - 226;
+            if (above < 12) above = Math.min(gr.top + gr.height + 14, window.innerHeight - 226);
+            box.style.top = Math.max(12, above) + 'px';
         }
         box.style.maxWidth = bw + 'px';
         dim.appendChild(box);
