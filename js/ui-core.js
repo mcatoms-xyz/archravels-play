@@ -862,6 +862,17 @@ var UI = {
                     slot.classList.add('bazaar-event');
                 } else if (card.type === 'specialRequest') {
                     slot.classList.add('bazaar-sr');
+                    // Session 48AA (Adam): craft action selected + you HAVE the
+                    // yarn for this SR -> same pulse/glow as the craft row
+                    try {
+                        var _ph = Game.state.phase;
+                        var _acts = Game.getAvailableActions();
+                        if ((_ph === 'playerActions' || _ph === 'finalCraft') && _acts.canCraft &&
+                            Game.canAffordSpecialRequest && Game.canAffordSpecialRequest(card) &&
+                            Game.state.player && !Game.state.player.isAI && !Game.state.player.isHank) {
+                            slot.classList.add('bazaar-sr-pulse');
+                        }
+                    } catch (e) {}
                 }
 
                 var img = document.createElement('img');
