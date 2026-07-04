@@ -71,6 +71,10 @@
     justify-items: center; align-items: center; column-gap: var(--tc-colgap, 1cqw);
   }
   .fake-board .tok-col.two-col.fill-down { grid-auto-flow: column; }
+  /* stagger: 2nd column slides vertically to nestle between the 1st column's
+     tokens (honeycomb). Positive = down, negative = up. */
+  .fake-board .tok-col.two-col.fill-down .tok:nth-child(n+4) { transform: translateY(var(--tc-stagger, 0cqw)); }
+  .fake-board .tok-col.two-col:not(.fill-down) .tok:nth-child(even) { transform: translateY(var(--tc-stagger, 0cqw)); }
   .tok-col .tok { position: relative; display: flex; align-items: center; justify-content: center;
     width: 100%; margin: var(--tc-gap, 0.64cqw) 0; }
   .tok-col .tok img { width: var(--tc-tok, 6.12cqw); height: var(--tc-tok, 6.12cqw); display: block; }
@@ -127,6 +131,7 @@
     <label>Columns <select id="tCols"><option value="1">1</option><option value="2">2</option></select>
       <select id="tFill"><option value="down">fill down (3+3 stacks)</option><option value="across">fill across (pairs)</option></select></label>
     <label>Col gap <input type="range" id="tColGap" min="0" max="6" step="0.1" value="1"></label>
+    <label>Stagger <input type="range" id="tStag" min="-8" max="8" step="0.1" value="0"></label>
   </fieldset>
   <fieldset style="border:1px solid #584730; border-radius:10px; padding:8px 12px">
     <legend style="font-size:.8rem; color:#ffd37a">🐈 Cat (toggle Tangled to see)</legend>
@@ -238,6 +243,7 @@
     fb.style.setProperty('--tc-gap', V('tGap') + 'cqw');
     fb.style.setProperty('--tc-font', V('tFont') + 'cqw');
     fb.style.setProperty('--tc-colgap', V('tColGap') + 'cqw');
+    fb.style.setProperty('--tc-stagger', V('tStag') + 'cqw');
     var col = document.getElementById('tokCol');
     col.classList.toggle('two-col', V('tCols') === '2');
     col.classList.toggle('fill-down', V('tCols') === '2' && V('tFill') === 'down');
@@ -252,7 +258,7 @@
       'drawer:  open-x ' + V('sDX') + '% | vertical ' + V('sDY') + '% (of board) | size ' + V('sSZ') + '% of board\n' +
       'tokens:  left ' + V('tLeft') + '% | top ' + V('tTop') + '% | width ' + V('tW') + '% | height ' + V('tH') + '%\n' +
       '         token ' + V('tTok') + '% of board | gap ' + V('tGap') + '% | count ' + V('tFont') + '%\n' +
-      '         columns ' + V('tCols') + (V('tCols')==='2' ? ' (' + V('tFill') + ', col-gap ' + V('tColGap') + '%)' : '') + '\n' +
+      '         columns ' + V('tCols') + (V('tCols')==='2' ? ' (' + V('tFill') + ', col-gap ' + V('tColGap') + '%, stagger ' + V('tStag') + '%)' : '') + '\n' +
       'cat:     left ' + V('cL') + '% | top ' + V('cT') + '% | width ' + V('cW') + '% | rot ' + V('cR') + 'deg';
   }
   function copyAll(){
@@ -261,7 +267,7 @@
     d.textContent = '✓ copied — paste it to Johnny';
     setTimeout(function(){ d.textContent = ''; }, 2500);
   }
-  ['sDX','sDY','sSZ','tLeft','tTop','tW','tH','tTok','tGap','tFont','tColGap','cL','cT','cW','cR'].forEach(function(id){
+  ['sDX','sDY','sSZ','tLeft','tTop','tW','tH','tTok','tGap','tFont','tColGap','tStag','cL','cT','cW','cR'].forEach(function(id){
     document.getElementById(id).addEventListener('input', updAll);
   });
   ['tCols','tFill'].forEach(function(id){ document.getElementById(id).addEventListener('change', updAll); });
