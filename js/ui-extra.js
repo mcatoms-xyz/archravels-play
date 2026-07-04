@@ -1367,14 +1367,28 @@ Object.assign(UI, {
                     var startGame = function(){
                         if (started) return; started = true;
                         try { orig.apply(UI, args); } catch (e) {}
-                        // hold the veil until How-to-Play is actually open (no
-                        // board peek between veil-lift and HTP), max +2s
+                        // Session 48T (Adam): the veil does NOT auto-lift. Once
+                        // the board is assembled (HTP open behind it, or 2s cap)
+                        // the loading line becomes a Get Crafty! button and the
+                        // PLAYER lifts the veil.
                         Promise.all([minBeat]).then(function(){
                             var t0 = Date.now();
-                            (function lift(){
+                            (function ready(){
                                 if (document.querySelector('.htp46-back.open') || Date.now() - t0 > 2000) {
-                                    setTimeout(function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); }, 200);
-                                } else { setTimeout(lift, 90); }
+                                    var inBox = ov.querySelector('.ld48-in');
+                                    if (inBox && !ov.querySelector('.ld48-go')) {
+                                        var line = inBox.querySelector('div');
+                                        if (line) line.remove();
+                                        var go = document.createElement('button');
+                                        go.className = 'btn btn-cta ld48-go';
+                                        go.textContent = 'Get Crafty!';
+                                        go.addEventListener('click', function(){
+                                            if (ov.parentNode) ov.parentNode.removeChild(ov);
+                                        });
+                                        inBox.appendChild(go);
+                                        try { go.focus(); } catch (e) {}
+                                    }
+                                } else { setTimeout(ready, 90); }
                             })();
                         });
                     };
