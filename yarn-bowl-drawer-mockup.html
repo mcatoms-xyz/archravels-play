@@ -40,6 +40,10 @@
     box-shadow: inset 0 6px 18px rgba(0,0,0,.45);
   }
   .bowl-wheel svg { width: 100%; height: 100%; display: block; }
+  .bowl-wheel .wedge-g { cursor: pointer; outline: none; }
+  .bowl-wheel .wedge-g:hover path, .bowl-wheel .wedge-g:focus-visible path {
+    filter: brightness(1.18); stroke: rgba(255, 211, 122, .9); stroke-width: 2;
+  }
   .bowl-rim { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(6px 8px 14px rgba(0,0,0,.5)); }
   .wedge-count {
     position: absolute; left: 50%; top: 50%;
@@ -150,10 +154,10 @@
   <img class="board" src="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png" alt="board">
   <div class="tok-col" id="tokCol"></div>
   <img class="board-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="">
-  <div class="bowl-hotzone" onclick="openDrawer()" title="Yarn Bowl"></div>
+  <div class="bowl-hotzone" onclick="toggleDrawer()" title="Yarn Bowl" role="button" tabindex="0" aria-label="Open your Yarn Bowl" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDrawer();}"></div>
   <div class="hotzone-hint">← tap the token column zone</div>
   <div class="scrim" id="scrim" onclick="closeDrawer()"></div>
-  <div class="bowl-drawer" id="drawer">
+  <div class="bowl-drawer" id="drawer" role="dialog" aria-label="Yarn Bowl — your yarn counts" onclick="closeDrawer()" title="Tap to close">
     <div class="bowl-wheel" id="wheel"></div>
     <img class="bowl-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="">
   </div>
@@ -200,19 +204,27 @@
     order.forEach(function(c, k){
       var a0 = k * 60, a1 = (k + 1) * 60, R = 102;
       var p1 = pt(a0, R), p2 = pt(a1, R);
+      // one accessible, hoverable group per wedge
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'wedge-g');
+      g.setAttribute('role', 'img');
+      g.setAttribute('tabindex', '0');
+      g.setAttribute('aria-label', c.charAt(0).toUpperCase() + c.slice(1) + ' yarn: ' + counts[c]);
+      var ttl = document.createElementNS(NS, 'title');
+      ttl.textContent = c.charAt(0).toUpperCase() + c.slice(1) + ' yarn: ' + counts[c];
+      g.appendChild(ttl);
       var path = document.createElementNS(NS, 'path');
       path.setAttribute('d', 'M100,100 L' + p1[0] + ',' + p1[1] + ' A' + R + ',' + R + ' 0 0 1 ' + p2[0] + ',' + p2[1] + ' Z');
       path.setAttribute('fill', 'url(#fab-' + c + ')');
       path.setAttribute('stroke', 'rgba(60,38,18,.55)');
       path.setAttribute('stroke-width', '1.2');
-      svg.appendChild(path);
-      // token + count at wedge center
+      g.appendChild(path);
       var mid = pt(a0 + 30, 62), TW = 34;
       var tok = document.createElementNS(NS, 'image');
       tok.setAttribute('href', 'Wood Yarn Tokens PNG/' + c + '.png');
       tok.setAttribute('x', mid[0] - TW/2); tok.setAttribute('y', mid[1] - TW/2);
       tok.setAttribute('width', TW); tok.setAttribute('height', TW);
-      svg.appendChild(tok);
+      g.appendChild(tok);
       var txt = document.createElementNS(NS, 'text');
       txt.setAttribute('x', mid[0]); txt.setAttribute('y', mid[1]);
       txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'central');
@@ -220,7 +232,8 @@
       txt.setAttribute('fill', '#fff'); txt.setAttribute('stroke', '#000'); txt.setAttribute('stroke-width', '3');
       txt.setAttribute('paint-order', 'stroke'); txt.setAttribute('font-family', 'inherit');
       txt.textContent = counts[c];
-      svg.appendChild(txt);
+      g.appendChild(txt);
+      svg.appendChild(g);
     });
     // wood bowl bottom
     var dot = document.createElementNS(NS, 'circle');
@@ -324,6 +337,7 @@
     drawer.classList.add('open'); scrim.classList.add('on');
   }
   function closeDrawer() { drawer.classList.remove('open'); scrim.classList.remove('on'); }
+  function toggleDrawer() { drawer.classList.contains('open') ? closeDrawer() : openDrawer(); }
 </script>
 </body>
 </html>
