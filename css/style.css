@@ -8971,7 +8971,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
     display: flex; align-items: flex-start;
 }
 .opp-yarn-grid.opp-yarn-arc {
-    display: flex; flex-wrap: wrap; gap: 3% 0;
+    display: flex; flex-wrap: wrap; gap: 16px 0;   /* 48AL: air between rows */
     justify-content: center; align-items: flex-start;
     width: 100%;
     padding: 6% 8% 0;   /* 48AK: tokens higher in the bowl */
