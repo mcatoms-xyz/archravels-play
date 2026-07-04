@@ -992,8 +992,9 @@ Object.assign(UI, {
         if (sp.unique === 'craftAnyColors' || sp.unique === 'take5AnyCraft1Any') bits.push('patterns accept any colors');
         if (sp.exchange) bits.push('swap yarn colors with the supply');
         if (!bits.length) return '';
-        var s = bits.join(', then ');
-        return s.charAt(0).toUpperCase() + s.slice(1) + '.';
+        var s = bits.join(' and ');
+        s = s.charAt(0).toUpperCase() + s.slice(1);
+        return s + (bits.length > 1 ? ' \u2014 in any order you like.' : '.');
     },
 
     showActionTour: function() {
@@ -1037,7 +1038,7 @@ Object.assign(UI, {
         mk.style.height = Math.round(gr.height * (UI._amSizeFactors[ch.type] || .4)) + 'px';
         dim.appendChild(mk);
 
-        var cur = -1, dwell = null;
+        var cur = -1;
         function place(i, instant) {
             cur = i;
             var r = rects[i];
@@ -1052,18 +1053,10 @@ Object.assign(UI, {
                 '<div class="t48-space"><b>' + (sp.label || '') + '</b><br>' + UI._tourSpaceCopy(sp) + '</div>' +
                 '<div class="t48-tap">tap a space to peek \u00b7 tap outside to play</div>';
         }
-        function schedule() {
-            clearTimeout(dwell);
-            dwell = setTimeout(function step(){
-                place((cur + 1) % rects.length);
-                dwell = setTimeout(step, 2600);
-            }, 2600);
-        }
-        // start on the first space after a beat (marker snaps to start instantly)
+        // Session 48b (Adam): no auto-loop — the tour is interaction-driven.
+        // Marker starts on the first space; tap/hover a space to move it.
         place(0, true);
-        // force initial position before enabling transitions
-        void mk.offsetWidth;
-        schedule();
+        void mk.offsetWidth;   // lock initial position before enabling transitions
 
         function hitSpace(x, y) {
             for (var i = 0; i < rects.length; i++) {
@@ -1073,19 +1066,18 @@ Object.assign(UI, {
             return -1;
         }
         var dismiss = function(){
-            clearTimeout(dwell);
             if (dim.parentNode) dim.parentNode.removeChild(dim);
             window.removeEventListener('resize', dismiss);
             UI._cm1Beat = true;   // first real placement announces its space
         };
         dim.addEventListener('click', function(e){
             var i = hitSpace(e.clientX, e.clientY);
-            if (i >= 0) { place(i); schedule(); }
+            if (i >= 0) { place(i); }
             else dismiss();
         });
         dim.addEventListener('mousemove', function(e){
             var i = hitSpace(e.clientX, e.clientY);
-            if (i >= 0 && i !== cur) { place(i); schedule(); }
+            if (i >= 0 && i !== cur) { place(i); }
         });
         window.addEventListener('resize', dismiss);
         document.body.appendChild(dim);
