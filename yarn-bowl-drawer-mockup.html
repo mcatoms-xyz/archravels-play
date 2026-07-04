@@ -15,12 +15,15 @@
   button.open-btn { background: #3769BE; color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 700; cursor: pointer; }
 
   /* ---------- the drawer ---------- */
+  /* Anchored INSIDE the player board: absolute in .fake-board, sized in cqw
+     (board-relative), clipped by the board's overflow:hidden. Slides in to sit
+     on the board's bowl curve. */
   .bowl-drawer {
-    position: fixed; top: var(--dy, 50%); left: 0;
-    width: min(var(--sz, 46vmin), 480px); height: min(var(--sz, 46vmin), 480px);
+    position: absolute; top: var(--dy, 50%); left: 0;
+    width: var(--sz, 38cqw); height: var(--sz, 38cqw);
     transform: translate(-115%, -50%);
     transition: transform .45s cubic-bezier(.3, 1.25, .5, 1);
-    z-index: 400; pointer-events: none;
+    z-index: 8; pointer-events: none;
   }
   .bowl-drawer.open { transform: translate(var(--dx, -16%), -50%); pointer-events: auto; }
   /* tangled refusal: quick shove-out-and-back */
@@ -87,7 +90,7 @@
   }
   .bowl-hotzone:hover { background: rgba(255, 211, 122, .12); outline-color: rgba(255, 211, 122, .55); }
   .hotzone-hint { position: absolute; top: 1%; left: 15%; font-size: .75rem; color: #ffd37a; background: rgba(0,0,0,.45); padding: 3px 8px; border-radius: 6px; }
-  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 390; }
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .35s; z-index: 7; border-radius: 10px; }
   .scrim.on { opacity: 1; pointer-events: auto; }
 </style>
 </head>
@@ -103,9 +106,9 @@
 <div class="controls" style="gap:22px; align-items:flex-start">
   <fieldset style="border:1px solid #584730; border-radius:10px; padding:8px 12px">
     <legend style="font-size:.8rem; color:#ffd37a">🥣 Drawer</legend>
-    <label>Open-X <input type="range" id="sDX" min="-60" max="20" step="1" value="-16"></label>
-    <label>Vertical <input type="range" id="sDY" min="20" max="80" step="1" value="50"></label>
-    <label>Size <input type="range" id="sSZ" min="26" max="80" step="1" value="46"></label>
+    <label>Open-X <input type="range" id="sDX" min="-70" max="10" step="1" value="-18"></label>
+    <label>Vertical <input type="range" id="sDY" min="10" max="90" step="1" value="42"></label>
+    <label>Size <input type="range" id="sSZ" min="18" max="70" step="1" value="38"></label>
   </fieldset>
   <fieldset style="border:1px solid #584730; border-radius:10px; padding:8px 12px">
     <legend style="font-size:.8rem; color:#ffd37a">🧶 Token column</legend>
@@ -133,12 +136,11 @@
   <img class="board-cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="">
   <div class="bowl-hotzone" onclick="openDrawer()" title="Yarn Bowl"></div>
   <div class="hotzone-hint">← tap the token column zone</div>
-</div>
-
-<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
-<div class="bowl-drawer" id="drawer">
-  <div class="bowl-wheel" id="wheel"></div>
-  <img class="bowl-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="">
+  <div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+  <div class="bowl-drawer" id="drawer">
+    <div class="bowl-wheel" id="wheel"></div>
+    <img class="bowl-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="">
+  </div>
 </div>
 <div class="tangle-toast" id="toast">😾 The Tangled Cat has your bowl!</div>
 
@@ -218,7 +220,7 @@
     var drawer = document.getElementById('drawer');
     drawer.style.setProperty('--dx', V('sDX') + '%');
     drawer.style.setProperty('--dy', V('sDY') + '%');
-    drawer.style.setProperty('--sz', V('sSZ') + 'vmin');
+    drawer.style.setProperty('--sz', V('sSZ') + 'cqw');
     var fb = document.querySelector('.fake-board');
     fb.style.setProperty('--tc-left', V('tLeft') + '%');
     fb.style.setProperty('--tc-top', V('tTop') + '%');
@@ -235,7 +237,7 @@
   }
   function allText(){
     return 'JOHNNY TUNING VALUES\n' +
-      'drawer:  open-x ' + V('sDX') + '% | vertical ' + V('sDY') + '% | size ' + V('sSZ') + 'vmin\n' +
+      'drawer:  open-x ' + V('sDX') + '% | vertical ' + V('sDY') + '% (of board) | size ' + V('sSZ') + '% of board\n' +
       'tokens:  left ' + V('tLeft') + '% | top ' + V('tTop') + '% | width ' + V('tW') + '% | height ' + V('tH') + '%\n' +
       '         token ' + V('tTok') + '% of board | gap ' + V('tGap') + '% | count ' + V('tFont') + '%\n' +
       'cat:     left ' + V('cL') + '% | top ' + V('cT') + '% | width ' + V('cW') + '% | rot ' + V('cR') + 'deg';
