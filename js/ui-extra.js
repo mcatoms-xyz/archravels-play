@@ -1343,6 +1343,23 @@ Object.assign(UI, {
     }
 });
 
+/* Session 49.2: lightweight play analytics — fire-and-forget event pings to
+   Supabase (ar_events table, anon-insert-only RLS). Never blocks gameplay. */
+Object.assign(UI, {
+    logEvent: function(ev, meta) {
+        try {
+            var sb = window.Story && Story.sb;
+            if (!sb) return;
+            sb.from('ar_events').insert({
+                ev: ev,
+                mode: (window.Story && Story.storyGame) ? 'story' : 'quick',
+                build: (window.AR_VERSION ? AR_VERSION.build + '.' + (AR_VERSION.rev || 0) : ''),
+                meta: meta || {}
+            }).then(function(){}, function(){});
+        } catch (e) {}
+    }
+});
+
 // live count sync whenever the bowl re-renders; count font sized in px from
 // the real board width (2.75% of board, Adam's recipe) — no container units
 (function(){
