@@ -1034,9 +1034,10 @@ var UI = {
         var banner = document.getElementById('tangledCatBanner');
         if (!banner) return;
         var player = Game.state.player;
-        if (player && player.cantCraftNextTurn && Game.state.phase !== 'gameOver') {
+        var tangled = player && player.cantCraftNextTurn && Game.state.phase !== 'gameOver';
+        if (tangled) {
+            // Session 48N (Adam): cat moved OFF the banner (bar + text + color stay)
             banner.innerHTML =
-                '<img class="tangled-cat-banner-img" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="Tangled Cat">' +
                 '<span class="tangled-cat-banner-text">' +
                     '<strong>Tangled Cat!</strong> ' + (player.name || 'Player') + ' can\'t Craft this turn.' +
                 '</span>';
@@ -1044,6 +1045,22 @@ var UI = {
         } else {
             banner.style.display = 'none';
         }
+        // Session 48N (Adam): the big cat meeple sits ON the tangled player's
+        // board, pouncing at their yarn bowl (flipped to face it, left edge)
+        var bc = document.getElementById('tangledBoardCat');
+        if (tangled) {
+            if (!bc) {
+                var wrap = document.querySelector('.player-board-wrapper');
+                if (wrap) {
+                    bc = document.createElement('img');
+                    bc.id = 'tangledBoardCat';
+                    bc.className = 'tangled-board-cat';
+                    bc.src = 'Other Images Textures Details/AR_cat_meeple_GRAY_3D.png';
+                    bc.alt = 'Tangled Cat'; bc.draggable = false;
+                    wrap.appendChild(bc);
+                }
+            }
+        } else if (bc) { bc.remove(); }
     },
 
     /**
