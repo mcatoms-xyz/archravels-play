@@ -9021,3 +9021,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
     #story-root .sm-intro-2col .sm-steps { flex-direction: column; align-items: flex-start; gap: 8px; }
     #story-root .sm-intro-2col .sm-arrow { display: none; }
 }
+
+
+/* Session 48AJ: build stamp on the landing splash */
+.landing-build { font-size: .68rem; color: rgba(253,246,232,.45); text-align: center; margin-top: 4px; letter-spacing: .04em; }
