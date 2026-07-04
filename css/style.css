@@ -8754,3 +8754,17 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
     white-space: nowrap; animation: favPulse 1.4s ease-in-out infinite;
 }
 @keyframes favPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* ===== Session 48: hoard warning in the How-to win band + ACTION TOUR ===== */
+.htp46-warn { font-size: .72rem; font-weight: 400; font-style: italic; color: #6b5c48; margin-top: 4px; }
+.tour48-box {
+    position: absolute; background: #fdf6e8; color: #30261a; border-radius: 12px;
+    padding: 13px 15px; box-shadow: 0 8px 24px rgba(0,0,0,.5); z-index: 3;
+    font-family: 'Baloo2', var(--font-system, sans-serif); line-height: 1.35;
+}
+.t48-h { font-weight: 800; font-size: 1rem; color: #a4642a; margin-bottom: 3px; }
+.t48-s { font-size: .8rem; color: #6b5c48; margin-bottom: 9px; }
+.t48-space { font-size: .86rem; background: rgba(201,168,76,.14); border: 1.5px dashed #c9a84c; border-radius: 8px; padding: 8px 10px; min-height: 58px; }
+.t48-space b { color: #30261a; }
+.t48-tap { font-size: .68rem; font-style: italic; color: #8a7a68; margin-top: 8px; text-align: center; }
+.tour48-marker { position: absolute; z-index: 4; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); pointer-events: none; }
