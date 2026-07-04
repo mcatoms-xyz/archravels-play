@@ -889,6 +889,15 @@ var UI = {
                             UI.onBazaarClick(index);
                         });
                     })(i);
+                    // Session 48M (Adam): subtle pulse on bazaar yarn cards while
+                    // a shop action is selected and yarn is still up for grabs
+                    // (softer cousin of .craft-slot-pulse)
+                    if (Game.state.phase === 'playerActions' &&
+                        !Game.state.turn.shopDone && Game.state.shopLimit > 0 &&
+                        Game.state.player && !Game.state.player.isAI && !Game.state.player.isHank &&
+                        !isSelected) {
+                        slot.classList.add('bazaar-shop-pulse');
+                    }
                 }
 
             } else {
@@ -1328,14 +1337,14 @@ var UI = {
             overlay.appendChild(btn);
         });
 
-        // Session 48: first time the player is asked to choose a space → the
-        // ACTION TOUR (animated marker walkthrough). How-to-Play itself now fires
-        // pre-game from Game.init.
+        // Session 48M (Adam): the tour fires ONLY after "Let's Get Crafty!"
+        // (HTP close). This render path never self-triggers — it only honors a
+        // pending handoff when the player wasn't at choose-space at close time
+        // (e.g. the CPU was still finishing its opening turn).
         if (mode === 'choose') {
             try {
-                if (!localStorage.getItem('ar_tour_seen') &&
-                    !document.querySelector('.htp46-back.open')) {
-                    localStorage.setItem('ar_tour_seen', '1');
+                if (UI._tourPending && !document.querySelector('.htp46-back.open')) {
+                    UI._tourPending = false;
                     setTimeout(function(){ if (UI.showActionTour) UI.showActionTour(); }, 350);
                 }
             } catch (e) {}
