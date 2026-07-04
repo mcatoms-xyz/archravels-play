@@ -88,7 +88,7 @@ Object.assign(UI, {
         var bowl = document.createElement('div');
         bowl.className = 'opp-yarn-bowl';
         var yarnGrid = document.createElement('div');
-        yarnGrid.className = 'opp-yarn-grid';
+        yarnGrid.className = 'opp-yarn-grid opp-yarn-arc';
         var yarnTotal = 0;
         var yarnOrder = UI._yarnBowlOrder || CARDS.COLORS;   // ROYGBP → two rows of 3
         yarnOrder.forEach(function(color) {
@@ -101,6 +101,12 @@ Object.assign(UI, {
             cell.innerHTML =
                 '<img class="opp-yarn-img" src="Wood Yarn Tokens PNG/' + color + '.png" alt="' + color + ' yarn">' +
                 '<span class="opp-yarn-num">' + count + '</span>';
+            // Session 48S: same bowl-arc language as the player board — cells
+            // dip along a shallow curve like yarn resting in a bowl
+            var _i = yarnOrder.indexOf(color), _tt = _i / 5;
+            var _b = (_tt <= 0.5) ? Math.sin((_tt / 0.5) * Math.PI / 2)
+                                  : Math.sin(((1 - _tt) / 0.5) * Math.PI / 2);
+            cell.style.transform = 'translateY(' + (_b * 12) + 'px)';
             yarnGrid.appendChild(cell);
         });
         bowl.appendChild(yarnGrid);
@@ -1140,8 +1146,166 @@ Object.assign(UI, {
     }
 });
 
+/* =========================================================================
+   Session 48S: YARN BOWL DRAWER (Adam's design, mockup-blessed values).
+   Tap the token arc -> the wooden bowl slides in from the left, INSIDE the
+   board (own clip layer; wrapper keeps overflow visible for cost dots).
+   Wedge wheel = live counts. Tangled = refuse + annoyed cat, no other sound.
+   ========================================================================= */
+Object.assign(UI, {
+    YB_ARC: { left: 0.5, top: 26.5, w: 10, h: 45, tok: 5.3, font: 2.75,
+              depth: 4.8, peak: 0.5, dOpenX: -7, dY: 48, dSz: 45 },
+    _ybCounts: null,
+
+    buildYarnDrawer: function() {
+        var wrap = document.querySelector('.player-board-wrapper');
+        if (!wrap || document.getElementById('ybClip')) return;
+        var clip = document.createElement('div');
+        clip.id = 'ybClip'; clip.className = 'yb-clip';
+        clip.innerHTML =
+            '<div class="yb-scrim" id="ybScrim"></div>' +
+            '<div class="yb-drawer" id="ybDrawer" role="dialog" aria-label="Yarn Bowl: your yarn counts" title="Tap to close">' +
+                '<div class="yb-wheel" id="ybWheel"></div>' +
+                '<img class="yb-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="" draggable="false">' +
+            '</div>';
+        wrap.appendChild(clip);
+        var hz = document.createElement('div');
+        hz.id = 'ybHotzone'; hz.className = 'yb-hotzone';
+        hz.setAttribute('role', 'button'); hz.setAttribute('tabindex', '0');
+        hz.setAttribute('aria-label', 'Open your Yarn Bowl');
+        wrap.appendChild(hz);
+        var toast = document.createElement('div');
+        toast.id = 'ybToast'; toast.className = 'yb-toast';
+        toast.textContent = '\ud83d\ude3e The Tangled Cat has your bowl!';
+        wrap.appendChild(toast);
+        hz.addEventListener('click', function(){ UI.toggleYarnDrawer(); });
+        hz.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); UI.toggleYarnDrawer(); }
+        });
+        document.getElementById('ybScrim').addEventListener('click', function(){ UI.closeYarnDrawer(); });
+        document.getElementById('ybDrawer').addEventListener('click', function(){ UI.closeYarnDrawer(); });
+        this._ybBuildWheel();
+    },
+
+    _ybBuildWheel: function() {
+        var host = document.getElementById('ybWheel');
+        if (!host || !window.CARDS) return;
+        host.innerHTML = '';
+        var NS = 'http://www.w3.org/2000/svg';
+        var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+        var svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', '0 0 200 200');
+        var defs = document.createElementNS(NS, 'defs');
+        order.forEach(function(c){
+            var p = document.createElementNS(NS, 'pattern');
+            p.setAttribute('id', 'ybfab-' + c);
+            p.setAttribute('patternUnits', 'userSpaceOnUse');
+            p.setAttribute('width', '200'); p.setAttribute('height', '200');
+            var im = document.createElementNS(NS, 'image');
+            im.setAttribute('href', 'Other Images Textures Details/Textures/FabricPlain0015_ar_' + c + '.png');
+            im.setAttribute('width', '200'); im.setAttribute('height', '200');
+            im.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            p.appendChild(im); defs.appendChild(p);
+        });
+        svg.appendChild(defs);
+        function pt(aDeg, r){ var a = aDeg * Math.PI / 180; return [100 + r * Math.sin(a), 100 - r * Math.cos(a)]; }
+        this._ybCounts = {};
+        var self = this;
+        order.forEach(function(c, k){
+            var a0 = k * 60, a1 = (k + 1) * 60, R = 102;
+            var p1 = pt(a0, R), p2 = pt(a1, R);
+            var g = document.createElementNS(NS, 'g');
+            g.setAttribute('class', 'yb-wedge');
+            g.setAttribute('role', 'img'); g.setAttribute('tabindex', '0');
+            var ttl = document.createElementNS(NS, 'title'); g.appendChild(ttl);
+            var path = document.createElementNS(NS, 'path');
+            path.setAttribute('d', 'M100,100 L' + p1[0] + ',' + p1[1] + ' A' + R + ',' + R + ' 0 0 1 ' + p2[0] + ',' + p2[1] + ' Z');
+            path.setAttribute('fill', 'url(#ybfab-' + c + ')');
+            path.setAttribute('stroke', 'rgba(60,38,18,.55)'); path.setAttribute('stroke-width', '1.2');
+            g.appendChild(path);
+            var mid = pt(a0 + 30, 62), TW = 34;
+            var tok = document.createElementNS(NS, 'image');
+            tok.setAttribute('href', 'Wood Yarn Tokens PNG/' + c + '.png');
+            tok.setAttribute('x', mid[0] - TW/2); tok.setAttribute('y', mid[1] - TW/2);
+            tok.setAttribute('width', TW); tok.setAttribute('height', TW);
+            g.appendChild(tok);
+            var txt = document.createElementNS(NS, 'text');
+            txt.setAttribute('x', mid[0]); txt.setAttribute('y', mid[1]);
+            txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'central');
+            txt.setAttribute('font-size', '15'); txt.setAttribute('font-weight', '800');
+            txt.setAttribute('fill', '#fff'); txt.setAttribute('stroke', '#000'); txt.setAttribute('stroke-width', '3');
+            txt.setAttribute('paint-order', 'stroke');
+            g.appendChild(txt);
+            svg.appendChild(g);
+            self._ybCounts[c] = { text: txt, title: ttl, g: g };
+        });
+        var dot = document.createElementNS(NS, 'circle');
+        dot.setAttribute('cx', '100'); dot.setAttribute('cy', '100'); dot.setAttribute('r', '24');
+        dot.setAttribute('fill', '#5a3c20'); dot.setAttribute('stroke', '#3f2a15'); dot.setAttribute('stroke-width', '3');
+        svg.appendChild(dot);
+        host.appendChild(svg);
+        this._ybSync();
+    },
+
+    _ybSync: function() {
+        if (!this._ybCounts || !window.Game || !Game.state || !Game.state.player) return;
+        var bowl = Game.state.player.yarnBowl || {};
+        var self = this;
+        Object.keys(this._ybCounts).forEach(function(c){
+            var n = bowl[c] || 0;
+            var label = c.charAt(0).toUpperCase() + c.slice(1) + ' yarn: ' + n;
+            self._ybCounts[c].text.textContent = n;
+            self._ybCounts[c].title.textContent = label;
+            self._ybCounts[c].g.setAttribute('aria-label', label);
+        });
+    },
+
+    openYarnDrawer: function() {
+        var drawer = document.getElementById('ybDrawer');
+        var scrim = document.getElementById('ybScrim');
+        if (!drawer) return;
+        var p = window.Game && Game.state && Game.state.player;
+        if (p && p.cantCraftNextTurn && !p.isAI && !p.isHank) {
+            // Tangled: the cat has your bowl. Bump + toast + annoyed cat ONLY.
+            drawer.classList.remove('yb-refuse'); void drawer.offsetWidth;
+            drawer.classList.add('yb-refuse');
+            try { if (window.Sound) Sound.play('ev-tangled-cat'); } catch (e) {}
+            var toast = document.getElementById('ybToast');
+            if (toast) { toast.classList.add('show'); setTimeout(function(){ toast.classList.remove('show'); }, 1700); }
+            return;
+        }
+        this._ybSync();
+        drawer.classList.add('open');
+        if (scrim) scrim.classList.add('on');
+        try { if (window.Sound) Sound.play('drawer-open'); } catch (e) {}
+    },
+
+    closeYarnDrawer: function() {
+        var drawer = document.getElementById('ybDrawer');
+        var scrim = document.getElementById('ybScrim');
+        if (!drawer || !drawer.classList.contains('open')) return;
+        drawer.classList.remove('open');
+        if (scrim) scrim.classList.remove('on');
+        try { if (window.Sound) Sound.play('drawer-close'); } catch (e) {}
+    },
+
+    toggleYarnDrawer: function() {
+        var drawer = document.getElementById('ybDrawer');
+        if (drawer && drawer.classList.contains('open')) this.closeYarnDrawer();
+        else this.openYarnDrawer();
+    }
+});
+
+// live count sync whenever the bowl re-renders; close the drawer at turn
+// handoff moments so it never lingers over another player's board
+(function(){
+    var _rYB = UI.renderYarnBowl;
+    if (_rYB) UI.renderYarnBowl = function(ch){ _rYB.call(UI, ch); try { UI._ybSync(); } catch (e) {} };
+})();
+
 (function(){
     function boot() {
+        try { UI.buildYarnDrawer(); } catch (e) {}
         // any touch of the landing starts the real load
         var landing = document.getElementById('landingScreen');
         if (landing) {
