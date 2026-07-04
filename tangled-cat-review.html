@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tangled Cat — Board Placement Tweaker</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #2b2118; color: #fdf6e8; margin: 0; padding: 18px; }
+  h1 { font-size: 1.15rem; margin: 0 0 4px; }
+  .sub { color: #cbb891; font-size: .85rem; margin-bottom: 14px; }
+  .wrap { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .stage { position: relative; flex: 1 1 560px; max-width: 900px; }
+  .stage img.board { width: 100%; display: block; border-radius: 10px; }
+  #cat {
+    position: absolute; pointer-events: none; height: auto;
+    filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
+    animation: pounce 2.4s ease-in-out infinite;
+  }
+  @keyframes pounce {
+    0%, 100% { transform: scaleX(-1) rotate(var(--rot)) translateY(0); }
+    50%      { transform: scaleX(-1) rotate(calc(var(--rot) + 4deg)) translateY(-4%); }
+  }
+  /* Yarn bowl overlay — mirrors the live game's .yarn-bowl-overlay (top 5%,
+     left 0, width 9%, vertical spread, Session 48O token margins) */
+  /* Proportions MEASURED off the live game at desktop (board 658px):
+     token = 6.12% of board width, count font = 2.73%, stack gap = 0.64%.
+     Stage is container-queried so everything scales with the board. */
+  .stage { container-type: inline-size; }
+  .bowl {
+    position: absolute; top: 5%; left: 0; width: 9%; height: 70%;
+    display: flex; flex-direction: column; justify-content: space-around;
+    align-items: center; padding: 4% 0; box-sizing: border-box; pointer-events: none;
+  }
+  .bowl .tok { position: relative; display: flex; align-items: center; justify-content: center;
+    width: 100%; margin: 0.64cqw 0; }
+  .bowl .tok img { width: 6.12cqw; height: 6.12cqw; display: block; }
+  .bowl .tok span {
+    position: absolute; font-weight: 800; font-size: 2.73cqw; line-height: 1; color: #fff;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 2px 4px rgba(0,0,0,.8);
+  }
+  .panel { background: #3a2d1f; border-radius: 12px; padding: 14px 16px; width: 290px; }
+  .panel label { display: block; font-size: .82rem; margin: 10px 0 2px; color: #e8d9b8; }
+  .panel input[type=range] { width: 100%; }
+  .panel .val { float: right; color: #ffd37a; font-variant-numeric: tabular-nums; }
+  select { width: 100%; padding: 6px; border-radius: 8px; border: none; background: #fdf6e8; }
+  pre { background: #241b12; border-radius: 8px; padding: 10px; font-size: .78rem; white-space: pre-wrap; color: #9fe6a0; }
+  .flipnote { font-size: .78rem; color: #cbb891; margin-top: 8px; }
+  button { margin-top: 8px; background: #3769BE; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>🐈 Tangled Cat — Board Placement Tweaker</h1>
+<div class="sub">Drag the sliders; the CSS block below updates live. When it looks right, copy the block (or just tell Johnny the numbers).</div>
+<div class="wrap">
+  <div class="stage">
+    <img class="board" id="board" src="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png" alt="Player board">
+    <div id="bowl" class="bowl"></div>
+    <img id="cat" src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="Tangled Cat">
+  </div>
+  <div class="panel">
+    <label>Board
+      <select id="boardSel">
+        <option value="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png">Rebecca (Thrifty)</option>
+        <option value="Player Boards PNG/AR_PlayerBoards_Final.2.13__0001_t2-theo.png">Theo</option>
+        <option value="Player Boards PNG/AR_PlayerBoards_Final.2.13__0002_fa1-derrick.png">Derrick (Fiber Artist)</option>
+        <option value="Player Boards PNG/ARMS_PlayerBoards_0040_Maker-Board-1.png">Maker</option>
+        <option value="Player Boards PNG/ARMS_PlayerBoards_0041_Expert-Board-1.png">Expert</option>
+      </select>
+    </label>
+    <label>Width <span class="val" id="vW">20%</span>
+      <input type="range" id="w" min="8" max="40" step="0.5" value="20"></label>
+    <label>Left <span class="val" id="vX">6.5%</span>
+      <input type="range" id="x" min="-5" max="60" step="0.5" value="6.5"></label>
+    <label>Top <span class="val" id="vY">24%</span>
+      <input type="range" id="y" min="-10" max="80" step="0.5" value="24"></label>
+    <label>Rotation <span class="val" id="vR">-6°</span>
+      <input type="range" id="r" min="-30" max="30" step="1" value="-6"></label>
+    <label><input type="checkbox" id="flip" checked> Flip to face LEFT (toward bowl)</label>
+    <label><input type="checkbox" id="showBowl" checked> Show yarn bowl tokens</label>
+    <div class="flipnote">Current live values: width 20%, left 6.5%, top 24%, rot -6°, flipped.</div>
+    <pre id="out"></pre>
+    <button onclick="navigator.clipboard.writeText(document.getElementById('out').textContent)">Copy CSS</button>
+  </div>
+</div>
+<script>
+  var cat = document.getElementById('cat');
+  // build the yarn bowl (same order as the game, sample counts)
+  (function(){
+    var bowl = document.getElementById('bowl');
+    var colors = ['red','orange','yellow','green','blue','purple'];
+    var counts = [3, 1, 0, 2, 4, 1];
+    colors.forEach(function(c, i){
+      var d = document.createElement('div');
+      d.className = 'tok';
+      d.innerHTML = '<img src="Wood Yarn Tokens PNG/' + c + '.png" alt="' + c + '"><span>' + counts[i] + '</span>';
+      bowl.appendChild(d);
+    });
+    document.getElementById('showBowl').addEventListener('input', function(){
+      bowl.style.display = this.checked ? 'flex' : 'none';
+    });
+  })();
+  function upd() {
+    var w = +document.getElementById('w').value, x = +document.getElementById('x').value,
+        y = +document.getElementById('y').value, r = +document.getElementById('r').value,
+        flip = document.getElementById('flip').checked;
+    cat.style.width = w + '%'; cat.style.left = x + '%'; cat.style.top = y + '%';
+    cat.style.setProperty('--rot', r + 'deg');
+    document.documentElement.style.setProperty('--rot', r + 'deg');
+    cat.style.animation = 'none'; void cat.offsetWidth;
+    cat.style.transform = (flip ? 'scaleX(-1) ' : '') + 'rotate(' + r + 'deg)';
+    document.getElementById('vW').textContent = w + '%';
+    document.getElementById('vX').textContent = x + '%';
+    document.getElementById('vY').textContent = y + '%';
+    document.getElementById('vR').textContent = r + '°';
+    document.getElementById('out').textContent =
+      '.tangled-board-cat {\n' +
+      '    position: absolute; left: ' + x + '%; top: ' + y + '%; width: ' + w + '%; height: auto;\n' +
+      '    z-index: 5; pointer-events: none;\n' +
+      '    transform: ' + (flip ? 'scaleX(-1) ' : '') + 'rotate(' + r + 'deg);\n' +
+      '    filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));\n' +
+      '    animation: tbc-pounce 2.4s ease-in-out infinite;\n' +
+      '}';
+  }
+  ['w','x','y','r','flip'].forEach(function(id){ document.getElementById(id).addEventListener('input', upd); });
+  document.getElementById('boardSel').addEventListener('change', function(){ document.getElementById('board').src = this.value; });
+  upd();
+</script>
+</body>
+</html>
