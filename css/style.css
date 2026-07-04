@@ -8780,3 +8780,16 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 body.ar-pregame .game-layout,
 body.ar-pregame .action-bar-wrapper,
 body.ar-pregame .action-feed { visibility: hidden; }
+
+/* ===== Session 48f: Quick Play setup modal was too TALL on desktop/iPad —
+   shrink the logo block + tighten spacing at ordinary screen heights.
+   (cap-native already does its own compact treatment.) ===== */
+@media (min-width: 620px) and (max-height: 1100px) {
+    body:not(.cap-native) .setup-content { padding: 16px 28px 20px; }
+    body:not(.cap-native) .setup-logo-img { max-width: 120px; }
+    body:not(.cap-native) .setup-logo { margin-bottom: 2px; }
+    body:not(.cap-native) .setup-edition { font-size: 10px; }
+    body:not(.cap-native) .setup-content .modal-title { font-size: 1.15rem; margin: 4px 0 10px; }
+    body:not(.cap-native) .setup-content .setup-section { margin-bottom: 10px; }
+    body:not(.cap-native) .setup-content .confirm-take-buttons { margin-top: 12px !important; }
+}
