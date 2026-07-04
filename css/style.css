@@ -8814,16 +8814,96 @@ body.ar-pregame .action-feed { visibility: hidden; }
 /* Session 48N: Tangled Cat pounces at the yarn bowl on the player board */
 .tangled-board-cat {
     /* Session 48Q: Adam's tuned values from tangled-cat-review.html */
-    position: absolute; left: 3%; top: 53%; width: 26.5%; height: auto;
+    position: absolute; left: 5.5%; top: 48.5%; width: 26%; height: auto;
     z-index: 5; pointer-events: none;
-    transform: scaleX(-1) rotate(-29deg);
+    transform: scaleX(-1) rotate(-31deg);
     filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
     animation: tbc-pounce 2.4s ease-in-out infinite;
 }
 /* Session 48R (Adam): rotation stays FIXED — the wobble pivoted around the
    wrong point and read as broken. Gentle bob only. */
 @keyframes tbc-pounce {
-    0%, 100% { transform: scaleX(-1) rotate(-29deg) translateY(0); }
-    50%      { transform: scaleX(-1) rotate(-29deg) translateY(-3%); }
+    0%, 100% { transform: scaleX(-1) rotate(-31deg) translateY(0); }
+    50%      { transform: scaleX(-1) rotate(-31deg) translateY(-3%); }
 }
 @media (prefers-reduced-motion: reduce) { .tangled-board-cat { animation: none; } }
+
+
+/* =================================================================
+   SESSION 48S: YARN BOWL ARC + DRAWER (Adam's mockup-blessed recipe)
+   ================================================================= */
+/* board wrapper becomes a size container so cqw = % of board width */
+.player-board-wrapper { container-type: inline-size; }
+
+/* bowl overlay: arc box (overrides the Session 15b flex column) */
+.yarn-bowl-overlay {
+    top: 26.5%; left: 0.5%; width: 10%; height: 45%;
+    display: block; padding: 0;
+}
+.yarn-bowl-overlay .yarn-token-slot { position: absolute; left: 0; width: auto; }
+.yarn-bowl-overlay .yarn-token-img { width: 5.3cqw; height: 5.3cqw; }
+.yarn-bowl-overlay .yarn-count { font-size: 2.75cqw; }
+
+/* clip layer: drawer slides INSIDE the board even though the wrapper
+   keeps overflow visible for the craft cost dots */
+.yb-clip {
+    position: absolute; inset: 0; overflow: hidden;
+    border-radius: 16px; z-index: 9; pointer-events: none;
+}
+.yb-drawer {
+    position: absolute; top: 48%; left: 0;
+    width: 45cqw; height: 45cqw;
+    transform: translate(-115%, -50%);
+    transition: transform .45s cubic-bezier(.3, 1.25, .5, 1);
+    pointer-events: none;
+}
+.yb-drawer.open { transform: translate(-7%, -50%); pointer-events: auto; cursor: pointer; }
+.yb-drawer.yb-refuse { animation: yb-refuse .5s ease; }
+@keyframes yb-refuse {
+    0%, 100% { transform: translate(-115%, -50%); }
+    35%      { transform: translate(-96%, -50%) rotate(-3deg); }
+}
+.yb-wheel {
+    position: absolute; inset: 11.5%; border-radius: 50%; overflow: hidden;
+    box-shadow: inset 0 6px 18px rgba(0,0,0,.45);
+}
+.yb-wheel svg { width: 100%; height: 100%; display: block; }
+.yb-wheel .yb-wedge { outline: none; }
+.yb-wheel .yb-wedge:hover path, .yb-wheel .yb-wedge:focus-visible path {
+    filter: brightness(1.18); stroke: rgba(255, 211, 122, .9); stroke-width: 2;
+}
+.yb-wheel text { font-family: 'Baloo2', var(--font-system, sans-serif); }
+.yb-rim {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    filter: drop-shadow(6px 8px 14px rgba(0,0,0,.5)); pointer-events: none;
+}
+.yb-scrim {
+    position: absolute; inset: 0; background: rgba(20,14,8,.35);
+    opacity: 0; pointer-events: none; transition: opacity .35s; border-radius: 16px;
+}
+.yb-scrim.on { opacity: 1; pointer-events: auto; }
+.yb-hotzone {
+    position: absolute; top: 24%; left: 0; width: 15%; height: 50%;
+    z-index: 6; cursor: pointer; border-radius: 10px;
+    -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+    .yb-hotzone:hover { background: rgba(255, 211, 122, .10); }
+}
+.yb-toast {
+    position: absolute; left: 4%; top: 76%;
+    background: #7a2e22; color: #ffe9df; font-weight: 700;
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+    font-size: clamp(.72rem, 2.4cqw, 1rem);
+    padding: 7px 12px; border-radius: 10px; z-index: 10;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+.yb-toast.show { opacity: 1; }
+
+/* opponent viewer: same bowl-arc language, shallow horizontal dip */
+.opp-yarn-grid.opp-yarn-arc { align-items: flex-start; padding-bottom: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .yb-drawer { transition: none; }
+    .yb-drawer.yb-refuse { animation: none; }
+}
