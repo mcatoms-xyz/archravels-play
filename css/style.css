@@ -8813,14 +8813,15 @@ body.ar-pregame .action-feed { visibility: hidden; }
 
 /* Session 48N: Tangled Cat pounces at the yarn bowl on the player board */
 .tangled-board-cat {
-    position: absolute; left: 6.5%; top: 24%; width: 20%; height: auto;
+    /* Session 48Q: Adam's tuned values from tangled-cat-review.html */
+    position: absolute; left: 3%; top: 53%; width: 26.5%; height: auto;
     z-index: 5; pointer-events: none;
-    transform: scaleX(-1) rotate(-6deg);
+    transform: scaleX(-1) rotate(-29deg);
     filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
     animation: tbc-pounce 2.4s ease-in-out infinite;
 }
 @keyframes tbc-pounce {
-    0%, 100% { transform: scaleX(-1) rotate(-6deg) translateY(0); }
-    50%      { transform: scaleX(-1) rotate(-2deg) translateY(-4%); }
+    0%, 100% { transform: scaleX(-1) rotate(-29deg) translateY(0); }
+    50%      { transform: scaleX(-1) rotate(-25deg) translateY(-4%); }
 }
 @media (prefers-reduced-motion: reduce) { .tangled-board-cat { animation: none; } }
