@@ -305,7 +305,9 @@ var Game = {
         // CPU went first).
         try {
             if (window.UI && UI.maybeShowFirstGameHelp) {
-                setTimeout(function(){ UI.maybeShowFirstGameHelp(); }, 700);
+                // Session 48k: show IMMEDIATELY so the overlay covers the board
+                // building behind it (the 700ms gap let half-built layout flash)
+                setTimeout(function(){ UI.maybeShowFirstGameHelp(); }, 0);
             }
         } catch (e) {}
     },
