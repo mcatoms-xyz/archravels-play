@@ -982,19 +982,24 @@ Object.assign(UI, {
        marker + explanation there. Tap outside the highlighted zone to close.
        ===================================================================== */
     _tourSpaceCopy: function(sp) {
-        var bits = [];
-        if (sp.shop) bits.push('take ' + sp.shop + ' yarn card' + (sp.shop > 1 ? 's' : '') + ' from the Bazaar');
-        if (sp.unique === 'take3Yarn') bits.push('gain 3 yarn of one color right away');
-        if (sp.unique === 'take5AnyCraft1Any') bits.push('take 5 yarn of ANY colors');
-        if (sp.unique === 'take3Any') bits.push('gain 3 yarn of any colors');
-        if (sp.craft) bits.push('craft up to ' + sp.craft + ' item' + (sp.craft > 1 ? 's' : ''));
-        if (sp.unique === 'makeTwoItems') bits.push('your crafted item comes out as TWO copies');
-        if (sp.unique === 'craftAnyColors' || sp.unique === 'take5AnyCraft1Any') bits.push('patterns accept any colors');
-        if (sp.exchange) bits.push('swap yarn colors with the supply');
-        if (!bits.length) return '';
-        var s = bits.join(' and ');
-        s = s.charAt(0).toUpperCase() + s.slice(1);
-        return s + (bits.length > 1 ? ' \u2014 in any order you like.' : '.');
+        var acts = [], notes = [];
+        if (sp.shop) acts.push('take ' + sp.shop + ' yarn card' + (sp.shop > 1 ? 's' : '') + ' from the Bazaar');
+        if (sp.unique === 'take3Yarn') acts.push('gain 3 yarn of one color right away');
+        if (sp.unique === 'take5AnyCraft1Any') acts.push('take 5 yarn of ANY colors');
+        if (sp.unique === 'take3Any') acts.push('gain 3 yarn of any colors');
+        if (sp.craft) acts.push('craft up to ' + sp.craft + ' item' + (sp.craft > 1 ? 's' : ''));
+        if (sp.exchange) acts.push('swap yarn colors with the supply');
+        if (sp.unique === 'makeTwoItems') notes.push('Your crafted item comes out as TWO copies!');
+        if (sp.unique === 'craftAnyColors' || sp.unique === 'take5AnyCraft1Any') notes.push('Patterns accept any colors.');
+        if (!acts.length && !notes.length) return '';
+        var s = acts.join(' and ');
+        if (s) {
+            s = s.charAt(0).toUpperCase() + s.slice(1);
+            if (acts.length > 1) s += ', in any order you like';
+            s += '.';
+        }
+        if (notes.length) s = (s ? s + ' ' : '') + notes.join(' ');
+        return s;
     },
 
     showActionTour: function() {
