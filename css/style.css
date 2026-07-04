@@ -8976,7 +8976,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
     width: 100%;
     padding: 12% 8% 0;   /* 48AD: two rows of three, 25% tokens */
 }
-.opp-yarn-arc .opp-yarn-cell { width: 25%; max-width: none; height: auto; aspect-ratio: 1/1; }
+.opp-yarn-arc .opp-yarn-cell { width: 70px; max-width: none; height: auto; aspect-ratio: 1/1; }   /* 48AE: 25% bigger than the old 56px */
 .opp-yarn-arc .opp-yarn-num { font-size: clamp(12px, 3.6cqw, 15px); }
 
 
