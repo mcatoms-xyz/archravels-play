@@ -8908,3 +8908,11 @@ body.ar-pregame .action-feed { visibility: hidden; }
     .yb-drawer { transition: none; }
     .yb-drawer.yb-refuse { animation: none; }
 }
+
+
+/* Session 48T: the loading veil ends on the player's tap, not a timer */
+.ld48-go {
+    margin-top: 14px; font-size: 1.05rem; padding: 12px 26px;
+    animation: ld48go-in .3s ease;
+}
+@keyframes ld48go-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
