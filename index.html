@@ -11,7 +11,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=139">
+    <link rel="stylesheet" href="css/style.css?v=140">
 </head>
 
 <body>
@@ -109,7 +109,7 @@
              ============================================================= -->
         <div class="board-section" role="region" aria-label="Game board — Yarn Bazaar and Projects">
             <img class="board-image"
-                 src="Game Board PNG/AR_YarnBazaarBoard.png"
+                 src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Game Board PNG/AR_YarnBazaarBoard.png"
                  alt="ArchRavels Game Board — Yarn Bazaar">
 
             <div class="bazaar-label">
@@ -119,7 +119,7 @@
 
             <!-- Session 15b: Yarn deck card back — sits in the deck slot (left column) -->
             <div class="deck-card-back yarn-deck-back" id="yarnDeckBack">
-                <img src="Square Cards PNG/AR_YarnEvents_Final_0028_Square_CardBack.png" alt="Yarn Deck">
+                <img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Square Cards PNG/AR_YarnEvents_Final_0028_Square_CardBack.png" alt="Yarn Deck">
                 <span class="deck-card-count" id="yarnDeckCount"></span>
             </div>
 
@@ -137,7 +137,7 @@
 
             <!-- Session 15b: Project deck card back — sits in the project deck slot -->
             <div class="deck-card-back project-deck-back" id="projectDeckBack">
-                <img src="Project Cards PNG/AR_ProjectCards_Back.png" alt="Project Deck">
+                <img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Project Cards PNG/AR_ProjectCards_Back.png" alt="Project Deck">
                 <span class="deck-card-count" id="projectDeckCount"></span>
             </div>
 
@@ -172,7 +172,7 @@
 
                 <!-- Full player board image (2587×1831 RGBA PNG) -->
                 <img class="player-board-image"
-                     src="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png"
+                     src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Player Boards PNG/AR_PlayerBoards_Final.2.13__0000_t1-rebecca.png"
                      alt="Rebecca's Player Board">
 
                 <!-- Yarn bowl tokens — rendered by JS into the notch area -->
@@ -620,18 +620,18 @@
          GAME SCRIPTS
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
-    <script src="js/cards.js?v=139"></script>
-    <script src="js/game.js?v=139"></script>
-    <script src="js/audio.js?v=139"></script>
-    <script src="js/ai.js?v=139"></script>
+    <script src="js/cards.js?v=140"></script>
+    <script src="js/game.js?v=140"></script>
+    <script src="js/audio.js?v=140"></script>
+    <script src="js/ai.js?v=140"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=139"></script>
-    <script src="js/ui-modals1.js?v=139"></script>
-    <script src="js/ui-modals2.js?v=139"></script>
-    <script src="js/ui-panels1.js?v=139"></script>
-    <script src="js/ui-panels2.js?v=139"></script>
-    <script src="js/ui-extra.js?v=139"></script>
+    <script src="js/ui-core.js?v=140"></script>
+    <script src="js/ui-modals1.js?v=140"></script>
+    <script src="js/ui-modals2.js?v=140"></script>
+    <script src="js/ui-panels1.js?v=140"></script>
+    <script src="js/ui-panels2.js?v=140"></script>
+    <script src="js/ui-extra.js?v=140"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
          The live game is solo + pass-and-play, with zero dependency on this layer
@@ -639,13 +639,13 @@
          online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
          here. Re-add to revive online play from this page.
     <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=139"></script>
-    <script src="js/online-bridge.js?v=139"></script>
+    <script src="js/network.js?v=140"></script>
+    <script src="js/online-bridge.js?v=140"></script>
     -->
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=139"></script>
+    <script src="js/story.js?v=140"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
