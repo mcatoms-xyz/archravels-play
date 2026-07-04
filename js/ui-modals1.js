@@ -40,7 +40,7 @@ Object.assign(UI, {
                 UI.renderCraftGrid();
                 UI.renderSpecialRequests();
                 UI.renderActionBar();
-            }, 'Take 3 Yarn — Choose a Color', Game.state.player, true);
+            }, 'Take 3 Yarn: Choose a Color', Game.state.player, true);
             UI._addEntryGainCancel('colorPickerModal');
         }
 
