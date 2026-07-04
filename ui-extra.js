@@ -954,6 +954,10 @@ Object.assign(UI, {
                         Game.state.player && !Game.state.player.isAI && !Game.state.player.isHank;
                     if (inChoose) {
                         setTimeout(function(){ if (UI.showActionTour) UI.showActionTour(); }, 300);
+                    } else {
+                        // not the player's choose moment yet — hand off to the
+                        // next choose-space render (Session 48M, single-fire)
+                        UI._tourPending = true;
                     }
                 } catch (e) {}
             };
