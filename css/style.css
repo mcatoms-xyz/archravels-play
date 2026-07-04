@@ -8768,3 +8768,9 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 .t48-space b { color: #30261a; }
 .t48-tap { font-size: .68rem; font-style: italic; color: #8a7a68; margin-top: 8px; text-align: center; }
 .tour48-marker { position: absolute; z-index: 4; filter: drop-shadow(0 6px 8px rgba(0,0,0,.45)); pointer-events: none; }
+
+/* Session 48d: cozy loading beat between setup and game */
+.ld48 { position: fixed; inset: 0; z-index: 990; background: rgba(20,14,8,.92); display: flex; align-items: center; justify-content: center; }
+.ld48-in { text-align: center; color: #fdf6e8; font-family: 'Baloo2', var(--font-system, sans-serif); font-weight: 700; font-size: 1.05rem; }
+.ld48-in img { height: 54px; display: block; margin: 0 auto 12px; animation: ld48bob 1.1s ease-in-out infinite; }
+@keyframes ld48bob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
