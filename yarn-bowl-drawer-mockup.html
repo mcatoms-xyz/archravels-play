@@ -266,6 +266,11 @@
     if (tangled) {
       drawer.classList.remove('refuse'); void drawer.offsetWidth;
       drawer.classList.add('refuse');
+      // ONLY sound at this interaction: the annoyed tangled cat (Adam's spec)
+      try {
+        window._catSnd = window._catSnd || new Audio('audio/' + encodeURI('alex_jauk-annoyed-cat-meows-angrily-438006.mp3'));
+        window._catSnd.currentTime = 0; window._catSnd.play().catch(function(){});
+      } catch (e) {}
       var t = document.getElementById('toast');
       t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 1600);
       return;
