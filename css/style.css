@@ -794,6 +794,8 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
+    /* Session 48O (Adam): tokens were stacked flush — give them air */
+    margin: clamp(2px, 0.55vh, 7px) 0;
 }
 
 /* Yarn token images — sized to fill the bowl comfortably */
@@ -7155,7 +7157,8 @@ html { overflow-x: hidden; }
     50%      { box-shadow: 0 0 20px 6px rgba(var(--char-rgb, 90,160,210), 0.95); transform: scale(1.05); }
 }
 .action-grid-btn.action-grid-pulse {
-    animation: hint-pulse-space 1.8s ease-in-out infinite;
+    /* Session 48O (Adam): same soft breathing as the bazaar cards */
+    animation: hint-pulse-shop 1.9s ease-in-out infinite;
 }
 .craft-slot.craft-slot-pulse {
     animation: hint-pulse-craft 1.5s ease-in-out infinite;
@@ -8588,7 +8591,7 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 .am-masterCrafter  { height: 68%; }                                     /* Fiber Artist hank (tall) */
 .am-colorSpecialist{ height: 77%; transform: translate(-42%, -50%); }
 .am-yarnSpinner    { height: 71%; transform: translate(-42%, -50%); }
-.am-maker  { height: 53%; left: auto; right: 4%;  transform: translateY(-50%); }
+.am-maker  { height: 53%; left: auto; right: 1.5%;  transform: translateY(-50%); }
 .am-expert { height: 68%; left: auto; right: -3%;  transform: translateY(-50%); }
 .am-drop { animation: amDrop .38s cubic-bezier(.34,1.56,.64,1); }
 @keyframes amDrop {
@@ -8810,7 +8813,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
 
 /* Session 48N: Tangled Cat pounces at the yarn bowl on the player board */
 .tangled-board-cat {
-    position: absolute; left: 8.5%; top: 30%; width: 12%; height: auto;
+    position: absolute; left: 6.5%; top: 24%; width: 20%; height: auto;
     z-index: 5; pointer-events: none;
     transform: scaleX(-1) rotate(-6deg);
     filter: drop-shadow(2px 5px 5px rgba(0,0,0,.38));
