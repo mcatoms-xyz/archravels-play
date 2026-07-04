@@ -629,12 +629,14 @@ Object.assign(UI, {
             slot.setAttribute('data-color', color);
             // Session 48S (Adam's recipe): tokens sit on an ARC tracing the
             // bowl-edge art. Even vertical spacing, smooth 0-1-0 bulge.
-            var A = (window.UI && UI.YB_ARC) || { depth: 4.8, peak: 0.5 };
+            var A = (window.UI && UI.YB_ARC) || { depth: 4.8, peak: 0.5, w: 10 };
             var tt = _i / 5;
             var b = (tt <= A.peak) ? Math.sin((tt / A.peak) * Math.PI / 2)
                                    : Math.sin(((1 - tt) / (1 - A.peak)) * Math.PI / 2);
             slot.style.top = (tt * 100) + '%';
-            slot.style.transform = 'translate(' + (A.depth * b) + 'cqw, -50%)';
+            // left as % of the overlay box (overlay = A.w % of board wide)
+            slot.style.left = (A.depth * b / (A.w || 10) * 100) + '%';
+            slot.style.transform = 'translateY(-50%)';
 
             slot.innerHTML =
                 '<div class="yarn-token-wrap">' +
