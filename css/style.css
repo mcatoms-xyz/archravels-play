@@ -8983,3 +8983,11 @@ body.ar-pregame .action-feed { visibility: hidden; }
 .go-transposed .go-tplayer-names { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
 .go-transposed .go-val-cell { text-align: center; padding: 10px 8px; }
 .go-transposed .go-total-val { text-align: center; }
+
+
+/* Session 48AA: bazaar SRs you can afford glow during an active craft action */
+.bazaar-slot.bazaar-sr-pulse {
+    animation: hint-pulse-craft 1.5s ease-in-out infinite;
+    border-radius: 10px;
+}
+@media (prefers-reduced-motion: reduce) { .bazaar-slot.bazaar-sr-pulse { animation: none; } }
