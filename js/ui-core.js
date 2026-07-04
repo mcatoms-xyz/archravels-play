@@ -1326,15 +1326,15 @@ var UI = {
             overlay.appendChild(btn);
         });
 
-        // Session 46: first-game helpers — How-to-Play offer, then the action coach mark.
+        // Session 48: first time the player is asked to choose a space → the
+        // ACTION TOUR (animated marker walkthrough). How-to-Play itself now fires
+        // pre-game from Game.init.
         if (mode === 'choose') {
             try {
-                if (!localStorage.getItem('ar_htp_seen')) {
-                    localStorage.setItem('ar_htp_seen', '1');
-                    setTimeout(function(){ if (UI.showHowToPlay) UI.showHowToPlay(true); }, 400);
-                } else if (!localStorage.getItem('ar_cm1_seen')) {
-                    localStorage.setItem('ar_cm1_seen', '1');
-                    setTimeout(function(){ if (UI.showCoachMark1) UI.showCoachMark1(); }, 300);
+                if (!localStorage.getItem('ar_tour_seen') &&
+                    !document.querySelector('.htp46-back.open')) {
+                    localStorage.setItem('ar_tour_seen', '1');
+                    setTimeout(function(){ if (UI.showActionTour) UI.showActionTour(); }, 350);
                 }
             } catch (e) {}
         }
