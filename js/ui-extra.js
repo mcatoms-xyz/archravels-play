@@ -954,6 +954,10 @@ Object.assign(UI, {
                         Game.state.player && !Game.state.player.isAI && !Game.state.player.isHank;
                     if (inChoose) {
                         setTimeout(function(){ if (UI.showActionTour) UI.showActionTour(); }, 300);
+                    } else {
+                        // not the player's choose moment yet — hand off to the
+                        // next choose-space render (Session 48M, single-fire)
+                        UI._tourPending = true;
                     }
                 } catch (e) {}
             };
@@ -1143,6 +1147,22 @@ Object.assign(UI, {
         if (landing) {
             landing.addEventListener('click', function(){ UI._deferredAssetsGo(); }, { capture: true, once: true });
         }
+        /* Session 48k (Adam): loading screen moved UP-FRONT. Quick Play shows a
+           cozy loading beat that waits for the real assets (min 0.9s so it does
+           not flash, hard cap 5s) BEFORE the setup screen appears. By Start Game
+           everything is loaded, so no mid-layout reflow jank. If assets are
+           already loaded (second game etc.) it goes straight through. */
+        /* Session 48L (Adam): ONE loading moment, at Start Game. Quick Play just
+           kicks off the background asset download and goes straight to setup
+           (the player browses crafters while art downloads). */
+        if (UI.onLandingPlaySolo && !UI._playGateWrapped) {
+            UI._playGateWrapped = true;
+            var origPlay = UI.onLandingPlaySolo;
+            UI.onLandingPlaySolo = function() {
+                try { UI._deferredAssetsGo(); } catch (e) {}
+                return origPlay.apply(UI, arguments);
+            };
+        }
         // gate Start Game on readiness (max 6s, cozy loading beat)
         if (UI.onSetupStart && !UI._setupGateWrapped) {
             UI._setupGateWrapped = true;
@@ -1151,21 +1171,37 @@ Object.assign(UI, {
                 var args = arguments;
                 try {
                     UI._deferredAssetsGo();
-                    if (!UI._arAssetsLoaded && window._arAssetsReady) {
-                        var ov = document.createElement('div');
-                        ov.className = 'ld48';
-                        ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
-                        document.body.appendChild(ov);
-                        var done = false;
-                        var go = function(){
-                            if (done) return; done = true;
-                            if (ov.parentNode) ov.parentNode.removeChild(ov);
-                            orig.apply(UI, args);
-                        };
-                        window._arAssetsReady.then(go);
-                        setTimeout(go, 6000);
-                        return;
-                    }
+                    /* Session 48L: THE loading screen. Shows on every game start;
+                       behind it we (a) wait for assets (cap 5s), (b) run Game.init
+                       so the board + action marker assemble FULLY hidden (fixes the
+                       double marker: init used to run pre-asset-load, render a tiny
+                       marker, then re-render a correct one), then (c) lift the
+                       screen straight onto How-to-Play (which fires at init). */
+                    var ov = document.createElement('div');
+                    ov.className = 'ld48';
+                    ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
+                    document.body.appendChild(ov);
+                    var minBeat = new Promise(function(res){ setTimeout(res, 1100); });
+                    var ready = window._arAssetsReady || Promise.resolve();
+                    var capped = Promise.race([ready, new Promise(function(res){ setTimeout(res, 5000); })]);
+                    var started = false;
+                    var startGame = function(){
+                        if (started) return; started = true;
+                        try { orig.apply(UI, args); } catch (e) {}
+                        // hold the veil until How-to-Play is actually open (no
+                        // board peek between veil-lift and HTP), max +2s
+                        Promise.all([minBeat]).then(function(){
+                            var t0 = Date.now();
+                            (function lift(){
+                                if (document.querySelector('.htp46-back.open') || Date.now() - t0 > 2000) {
+                                    setTimeout(function(){ if (ov.parentNode) ov.parentNode.removeChild(ov); }, 200);
+                                } else { setTimeout(lift, 90); }
+                            })();
+                        });
+                    };
+                    capped.then(startGame);
+                    setTimeout(startGame, 5200);   // absolute failsafe
+                    return;
                 } catch (e) {}
                 return orig.apply(UI, args);
             };
