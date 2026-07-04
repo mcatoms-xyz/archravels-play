@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>AR Digital Beta Stats</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #241b12; color: #fdf6e8; margin: 0; padding: 26px; }
+  h1 { font-size: 1.2rem; margin: 0 0 2px; }
+  .sub { color: #cbb891; font-size: .82rem; margin-bottom: 22px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; max-width: 900px; }
+  .tile { background: #3a2d1f; border: 1.5px solid #584730; border-radius: 14px; padding: 16px 18px; }
+  .tile .v { font-size: 2.1rem; font-weight: 900; color: #ffd37a; line-height: 1.1; }
+  .tile .l { font-size: .78rem; color: #cbb891; margin-top: 4px; letter-spacing: .04em; text-transform: uppercase; }
+  .tile.today .v { color: #9fe6a0; }
+  .note { margin-top: 22px; color: #8a7a68; font-size: .78rem; max-width: 640px; line-height: 1.5; }
+  .err { color: #e08b7b; margin-top: 18px; font-size: .9rem; white-space: pre-wrap; }
+  button { background: #3769BE; color: #fff; border: none; border-radius: 10px; padding: 9px 16px; font-weight: 700; cursor: pointer; margin-top: 18px; }
+</style>
+</head>
+<body>
+<h1>🧶 ArchRavels Digital · Beta Stats</h1>
+<div class="sub" id="asOf">loading…</div>
+<div class="tiles" id="tiles"></div>
+<div class="err" id="err"></div>
+<button onclick="load()">↻ Refresh</button>
+<div class="note">Signups = story profiles saved to the cloud. Plays are counted from Build 49.2 onward (older builds didn't ping). Traffic (pageviews/referrers) lives in GoatCounter once it's wired.</div>
+<script>
+  var SB = supabase.createClient('https://ingppffghqsajdrgahcm.supabase.co', 'sb_publishable__41r1k47DJnKmtbmVNqYKQ_yOL98eTd');
+  function tile(v, l, today) { return '<div class="tile' + (today ? ' today' : '') + '"><div class="v">' + (v === null || v === undefined ? '?' : v) + '</div><div class="l">' + l + '</div></div>'; }
+  async function load() {
+    document.getElementById('err').textContent = '';
+    try {
+      var r = await SB.rpc('ar_public_stats');
+      if (r.error) throw r.error;
+      var s = r.data;
+      document.getElementById('tiles').innerHTML =
+        tile(s.signups, 'Signups (cloud profiles)') +
+        tile(s.starts_total, 'Games started') +
+        tile(s.finishes_total, 'Games finished') +
+        tile(s.story_total, 'Story mode plays') +
+        tile(s.quick_total, 'Quick plays') +
+        tile(s.starts_today, 'Started today', true) +
+        tile(s.finishes_today, 'Finished today', true) +
+        tile(s.signups_today, 'Signups today', true);
+      document.getElementById('asOf').textContent = 'as of ' + new Date().toLocaleString();
+    } catch (e) {
+      document.getElementById('err').textContent = 'Stats backend not set up yet.\nAdam: paste the SQL block Johnny gave you into the Supabase SQL editor, then refresh.\n\n(' + (e.message || e) + ')';
+    }
+  }
+  load();
+</script>
+</body>
+</html>
