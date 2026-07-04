@@ -1189,7 +1189,7 @@ Object.assign(UI, {
 
     _ybBuildWheel: function() {
         var host = document.getElementById('ybWheel');
-        if (!host || !window.CARDS) return;
+        if (!host) return;
         host.innerHTML = '';
         var NS = 'http://www.w3.org/2000/svg';
         var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
