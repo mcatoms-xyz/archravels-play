@@ -965,10 +965,16 @@ Object.assign(UI, {
         ov.classList.add('open');
     },
 
-    /* Session 48: first-ever game — How-to-Play as a PRE-GAME screen. */
+    /* Session 48i: How-to-Play auto-show rule (Adam):
+       1) first-ever game on this device, ANY mode, and
+       2) EVERY Quick Play game unless the player is signed in.
+       (Signed-in players know the game; booth iPads stay in teaching mode.) */
     maybeShowFirstGameHelp: function() {
         try {
-            if (!localStorage.getItem('ar_htp_seen')) {
+            var firstEver = !localStorage.getItem('ar_htp_seen');
+            var isStory = !!(window.Story && Story.storyGame);
+            var signedIn = !!(window.Story && Story.currentUser);
+            if (firstEver || (!isStory && !signedIn)) {
                 localStorage.setItem('ar_htp_seen', '1');
                 UI.showHowToPlay(true);
             }
