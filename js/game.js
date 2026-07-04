@@ -294,6 +294,9 @@ var Game = {
             this.seedHankAutomaDecks(this.state.hankReds);
         }
 
+        // Session 48d: make sure deferred board art is loading (deep-link safety)
+        try { if (window.UI && UI._deferredAssetsGo) UI._deferredAssetsGo(); } catch (e) {}
+
         // Session 48: first-ever game → How-to-Play as a PRE-GAME screen (fires at
         // game start regardless of turn order — Adam: it popped mid-game when the
         // CPU went first).
