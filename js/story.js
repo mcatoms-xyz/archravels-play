@@ -1983,8 +1983,17 @@ var Story = {
   },
   save: async function(){
     if(!this.profile) return;
+    this.profile._savedAt = Date.now();   // Session 48j: merge anchor
     try{ localStorage.setItem('ar_story_profile', JSON.stringify(this.profile)); }catch(e){}
-    if(this.sb && this.currentUser){ try{ await this.sb.from('profiles').upsert({ id:this.currentUser.id, data:this.profile, updated_at:new Date().toISOString() }); }catch(e){} }
+    if(this.sb){
+      // Session 48j: session may have silently expired mid-match (the 'Sign In'
+      // flip Adam hit) — re-check before deciding we're a guest, so wins keep
+      // cloud-saving whenever the session is actually recoverable.
+      if(!this.currentUser){
+        try{ var rs=await this.sb.auth.getSession(); this.currentUser = rs.data.session ? rs.data.session.user : null; if(this.currentUser) this.renderChip(); }catch(e){}
+      }
+      if(this.currentUser){ try{ await this.sb.from('profiles').upsert({ id:this.currentUser.id, data:this.profile, updated_at:new Date().toISOString() }); }catch(e){} }
+    }
   },
 
   /* ---- SR preview ---- */
@@ -1994,12 +2003,76 @@ var Story = {
   unhoverSR: function(){ var h=document.getElementById('srhover'); if(h) h.style.display='none'; },
 };
 
-// Load saved profile (cloud if signed in, else local). Helper so start() reads fresh.
+// Load saved profile. Session 48j (PROGRESS-LOSS FIX): when signed in, cloud and
+// local are MERGED instead of cloud blindly winning. Previously: session expires
+// mid-match -> win saves local-only -> re-sign-in loads stale cloud -> win EATEN
+// (Adam lost a Theo victory to this). Now the newer profile is the base and the
+// older one's monotonic progress is folded in, then saved back to both stores.
 async function SaveAPISafe(S){
+  var local=null;
+  try{ local=JSON.parse(localStorage.getItem('ar_story_profile')||'null'); }catch(e){ local=null; }
+  if(local && typeof local!=='object') local=null;
   if(S.sb && S.currentUser){
-    try{ var r=await S.sb.from('profiles').select('data').eq('id',S.currentUser.id).maybeSingle(); if(r.data&&r.data.data) return r.data.data; }catch(e){}
+    var cloud=null;
+    try{ var r=await S.sb.from('profiles').select('data').eq('id',S.currentUser.id).maybeSingle(); if(r.data&&r.data.data) cloud=r.data.data; }catch(e){}
+    if(cloud && local && local._savedAt){
+      var merged=MergeStoryProfiles(cloud, local);
+      // persist the healed profile to BOTH stores right away
+      try{ localStorage.setItem('ar_story_profile', JSON.stringify(merged)); }catch(e){}
+      try{ await S.sb.from('profiles').upsert({ id:S.currentUser.id, data:merged, updated_at:new Date().toISOString() }); }catch(e){}
+      return merged;
+    }
+    if(cloud) return cloud;
+    if(local) return local;   // first save() uploads it
+    return {};
   }
-  try{ return JSON.parse(localStorage.getItem('ar_story_profile')||'{}'); }catch(e){ return {}; }
+  return local || {};
+}
+
+// Newer profile = base; fold the older one's monotonic progress in.
+function MergeStoryProfiles(a, b){
+  var newer = ((b._savedAt||0) >= (a._savedAt||0)) ? b : a;
+  var older = (newer===b) ? a : b;
+  var out; try{ out=JSON.parse(JSON.stringify(newer)); }catch(e){ return newer; }
+  try{
+    // per-crafter climb: max progress each
+    var oc=older.crafters||{}; out.crafters=out.crafters||{};
+    Object.keys(oc).forEach(function(k){
+      var o=oc[k]||{}, n=out.crafters[k]||{};
+      n.used = n.used || o.used;
+      n.best = Math.max(n.best||0, o.best||0);
+      n.beaten = Math.max(n.beaten||0, o.beaten||0);
+      n.furthest = (n.beaten>=11) ? 'Champion \ud83c\udfc6' : (n.beaten ? n.beaten+' rivals beaten' : (n.furthest||o.furthest||''));
+      out.crafters[k]=n;
+    });
+    // achievements + stamps: union (keep earliest unlock time)
+    var oa=older.achievements||{}; out.achievements=out.achievements||{};
+    Object.keys(oa).forEach(function(id){ out.achievements[id] = out.achievements[id] ? Math.min(out.achievements[id], oa[id]) : oa[id]; });
+    var om=older.achMeta||{}; out.achMeta=out.achMeta||{};
+    Object.keys(om).forEach(function(id){ if(!out.achMeta[id]) out.achMeta[id]=om[id]; });
+    // headline counters: max is the non-destructive choice
+    ['bank','lifetimeStoryScore','totalPlayTimeMs','_totalWins'].forEach(function(f){
+      if(typeof older[f]==='number') out[f]=Math.max(out[f]||0, older[f]);
+    });
+    if(older.perGameHigh && (!out.perGameHigh || older.perGameHigh.score>out.perGameHigh.score)) out.perGameHigh=older.perGameHigh;
+    // SR board + packs: union unlocks
+    if(older.sr && out.sr){
+      var ou=older.sr.unlocked||{}, nu=out.sr.unlocked||{};
+      Object.keys(ou).forEach(function(id){ if(!nu[id]) nu[id]=ou[id]; });
+      out.sr.unlocked=nu;
+    } else if(older.sr && !out.sr){ out.sr=older.sr; }
+    if(older.packs && !out.packs) out.packs=older.packs;
+    // match history: union by fingerprint, newest-first order preserved, 75 cap
+    if(Array.isArray(older.matches)){
+      out.matches=Array.isArray(out.matches)?out.matches:[];
+      var seen={}; out.matches.forEach(function(m){ try{ seen[JSON.stringify(m)]=1; }catch(e){} });
+      older.matches.forEach(function(m){ try{ var k=JSON.stringify(m); if(!seen[k]){ out.matches.push(m); seen[k]=1; } }catch(e){} });
+      if(out.matches.length>75) out.matches=out.matches.slice(0,75);
+    }
+    if(!out.handle && older.handle) out.handle=older.handle;
+    out._mergedAt=Date.now();
+  }catch(e){}
+  return out;
 }
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var lb=document.getElementById('srlightbox'); if(lb) lb.classList.remove('open'); } });
