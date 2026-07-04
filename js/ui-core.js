@@ -1570,6 +1570,57 @@ var UI = {
      * Session 8c / 17: Render the action bar for the gameOver phase.
      * Single row: trophy icon, summary text, score + play-again buttons.
      */
+    /* Session 48Y: widescreen scorecard — one row per player. */
+    _goTransposedTable: function(allScores, H) {
+        var cols = [
+            { icon: '\ud83e\uddf6', label: 'Crafted', key: 'items' },
+            { icon: '\ud83d\udccb', label: 'Special Requests', key: 'specialRequests', extra: 'srCount' },
+            { icon: '\ud83c\udfc6', label: 'Projects', key: 'projects' },
+            { icon: '\ud83d\udd04', label: 'Patterns', key: 'learnedTiles' },
+            { icon: '\u2764\ufe0f', label: 'Favorite', key: 'favoriteBonus', isFav: true },
+            { icon: '\u26a0', label: 'SR Pen.', key: 'srPenalty', isPenalty: true },
+            { icon: '\ud83e\uddf5', label: 'Yarn Pen.', key: 'yarnPenalty', isPenalty: true }
+        ];
+        var html = '<table class="go-score-table go-transposed">';
+        html += '<thead><tr><th class="go-cat-header">Raveler</th>';
+        cols.forEach(function(c){
+            html += '<th class="go-tcol-header"><span class="go-cat-icon">' + c.icon + '</span><span class="go-tcol-label">' + c.label + '</span></th>';
+        });
+        html += '<th class="go-tcol-header go-tcol-total">Total</th></tr></thead><tbody>';
+        allScores.forEach(function(entry, rank){
+            var p = entry.player, s = entry.score;
+            var typeColor = H.typeAccents[p.characterType] || '#555';
+            var rowBg = H.hexToRgba(typeColor, 0.10);
+            var typeName = H.typeNames[p.characterType] || p.characterType;
+            var typeIcon = H.typeIcons[p.characterType] || '';
+            html += '<tr class="go-trow">';
+            html += '<td class="go-tplayer" style="background:' + rowBg + '">' +
+                '<span class="go-player-rank">' + H.MEDALS[rank] + '</span>' +
+                (typeIcon ? '<img class="go-player-type-icon" src="' + typeIcon + '" alt="">' : '') +
+                '<span class="go-tplayer-names"><span class="go-player-charname">' + p.name + '</span>' +
+                '<span class="go-player-type" style="color:' + typeColor + '">' + typeName + '</span></span>' +
+                '<span class="go-player-who ' + (p.isAI ? 'go-who-ai">CPU' : 'go-who-human">Human') + '</span>' +
+                '</td>';
+            cols.forEach(function(c){
+                var val = s[c.key];
+                if (c.isFav) {
+                    html += '<td class="go-val-cell" style="background:' + rowBg + '">' +
+                        (s.favoriteWon ? '<span class="go-fav-yes">' + val + ' \u2713</span>' : '<span style="color:var(--text-muted)">\u2014</span>') + '</td>';
+                } else if (c.isPenalty) {
+                    html += '<td class="go-val-cell' + (val !== 0 ? ' go-penalty' : '') + '" style="background:' + rowBg + '">' +
+                        (val === 0 ? '\u2014' : '\u2212' + Math.abs(val)) + '</td>';
+                } else {
+                    var suffix = c.extra ? ' <span class="go-fav-detail">(' + s[c.extra] + ')</span>' : '';
+                    html += '<td class="go-val-cell" style="background:' + rowBg + '">' + val + suffix + '</td>';
+                }
+            });
+            html += '<td class="go-total-val" style="background:' + rowBg + '"><span class="pt-tag pt-total' + (rank === 0 ? ' pt-winner' : '') + '"><span class="pt-tag-value">' + s.total + '</span></span></td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        return html;
+    },
+
     _renderGameOverBar: function(bar) {
         var turnNum = Game.state.turn.number;
         var summaryText = 'Finished after ' + Game.currentRound() + ' rounds';
@@ -1661,6 +1712,17 @@ var UI = {
         html += '<div class="go-stat"><div class="go-stat-value">' + totalTurns + '</div><div class="go-stat-label">Turns</div></div>';
         html += '<div class="go-stat"><div class="go-stat-value">' + gameTime + '</div><div class="go-stat-label">Game Time</div></div>';
         html += '</div>';
+
+        // Session 48Y (Adam): WIDESCREEN = flipped axis. Players as rows,
+        // categories as columns ("many columns, fewer rows").
+        var goWide = false;
+        try { goWide = window.matchMedia('(min-width: 900px) and (orientation: landscape)').matches; } catch (e) {}
+        if (goWide) {
+            html += this._goTransposedTable(allScores, {
+                typeNames: typeNames, typeIcons: typeIcons, typeAccents: typeAccents,
+                hexToRgba: hexToRgba, MEDALS: MEDALS
+            });
+        } else {
 
         // Score table
         html += '<table class="go-score-table">';
@@ -1867,6 +1929,8 @@ var UI = {
         html += '</tr>';
 
         html += '</tbody></table>';
+
+        }   // end portrait/narrow table (Session 48Y)
 
         // Reuse the event modal for this display
         var modalContent = this.els.eventModal.querySelector('.modal-content');
