@@ -1190,7 +1190,8 @@ Object.assign(UI, {
             var close = function(go) {
                 ov.classList.remove('open');
                 try { localStorage.setItem('ar_sm_seen', '1'); } catch (e) {}
-                if (go === true) Story.start();
+                // 49.21: mid-game, the CTA respects the leave-game confirm
+                if (go === true) UI.nmNav('Story Mode', function(){ Story.start(); });
             };
             ov.querySelector('.htp46-x').addEventListener('click', function(){ close(false); });
             ov.querySelector('.smi49-cta').addEventListener('click', function(){ close(true); });
