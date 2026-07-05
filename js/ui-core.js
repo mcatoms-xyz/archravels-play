@@ -739,7 +739,7 @@ var UI = {
         };
         var phaseText = phaseMap[Game.state.phase] || Game.state.phase || '';
         if (Game.state.phase !== 'gameOver') {
-            phaseText = 'Round ' + Game.currentRound() + ' — ' + phaseText;
+            phaseText = 'Round ' + Game.currentRound() + ' · ' + phaseText;
         }
         if (navPhase) navPhase.textContent = phaseText;
 
@@ -752,6 +752,11 @@ var UI = {
         var navTimer = document.getElementById('navTimer');
         if (navTimer) {
             navTimer.style.display = (Game.state.gameStartTime && Game.state.phase !== 'gameOver') ? '' : 'none';
+        }
+        // Session 49.7 (Adam): pause button rides with the timer
+        var navPause = document.getElementById('navPauseBtn');
+        if (navPause) {
+            navPause.style.display = (Game.state.gameStartTime && Game.state.phase !== 'gameOver') ? '' : 'none';
         }
     },
 
