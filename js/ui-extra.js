@@ -1152,6 +1152,55 @@ Object.assign(UI, {
 });
 
 /* =========================================================================
+   Session 49.17 (Adam): STORY MODE OVERVIEW — same family as How-to-Play.
+   Auto-shows on the first Story Mode tap; always available from the menu.
+   ========================================================================= */
+Object.assign(UI, {
+    onLandingStory: function() {
+        try {
+            if (!localStorage.getItem('ar_sm_seen')) { UI.showStoryIntro(true); return; }
+        } catch (e) {}
+        Story.start();
+    },
+
+    showStoryIntro: function(firstTime) {
+        var ov = document.getElementById('smiOverlay');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'smiOverlay';
+            ov.className = 'htp46-back';
+            ov.innerHTML =
+              '<div class="htp46 smi49">' +
+                '<button class="htp46-x" aria-label="Close">\u00d7</button>' +
+                '<div class="smi49-head">' +
+                  '<div class="smi49-kicker">Story Mode</div>' +
+                  '<div class="smi49-title">Quest for Craft Circle Champion</div>' +
+                '</div>' +
+                '<div class="smi49-rows">' +
+                  '<div class="smi49-row"><span class="smi49-ico">\ud83e\uddf6</span><div><b>Pick your Raveler.</b> Choose a crafting style and climb with any of the twelve crafters.</div></div>' +
+                  '<div class="smi49-row"><span class="smi49-ico">\u2694\ufe0f</span><div><b>Out-craft the Circle.</b> Beat 11 fellow Ravelers one by one. Each win makes the next rival tougher.</div></div>' +
+                  '<div class="smi49-row"><span class="smi49-ico">\ud83c\udfb4</span><div><b>Win their Favorites.</b> Every rival you beat unlocks their favorite Special Request for your collection.</div></div>' +
+                  '<div class="smi49-row"><span class="smi49-ico">\ud83d\udc51</span><div><b>Face the Stitchmeister.</b> Clear the Circle and Hank himself awaits, with the crown on the line.</div></div>' +
+                '</div>' +
+                '<div class="smi49-save">\u2601\ufe0f Sign in and your climb, score, and achievements follow you to any device.</div>' +
+                '<button class="htp46-cta smi49-cta">Start the Climb!</button>' +
+                '<div class="htp46-again">Find this any time in the \u2630 menu</div>' +
+              '</div>';
+            document.body.appendChild(ov);
+            var close = function(go) {
+                ov.classList.remove('open');
+                try { localStorage.setItem('ar_sm_seen', '1'); } catch (e) {}
+                if (go === true) Story.start();
+            };
+            ov.querySelector('.htp46-x').addEventListener('click', function(){ close(false); });
+            ov.querySelector('.smi49-cta').addEventListener('click', function(){ close(true); });
+            ov.addEventListener('click', function(e){ if (e.target === ov) close(false); });
+        }
+        ov.classList.add('open');
+    }
+});
+
+/* =========================================================================
    Session 48S: YARN BOWL DRAWER (Adam's design, mockup-blessed values).
    Tap the token arc -> the wooden bowl slides in from the left, INSIDE the
    board (own clip layer; wrapper keeps overflow visible for cost dots).
