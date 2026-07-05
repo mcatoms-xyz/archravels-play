@@ -9137,3 +9137,13 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
    the nav menu's Buy button carries that job now) */
 .landing-inner { padding-top: 22px; padding-bottom: 18px; }
 .landing-screen { gap: 12px; }
+
+
+/* Session 49.17: Story Mode overview (htp46 family) */
+.smi49-head { text-align: center; margin-bottom: 14px; }
+.smi49-kicker { font-weight: 800; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: #a4642a; }
+.smi49-title { font-weight: 900; font-size: 1.3rem; color: #30261a; line-height: 1.2; }
+.smi49-rows { display: grid; gap: 10px; margin-bottom: 12px; }
+.smi49-row { display: flex; gap: 10px; align-items: flex-start; background: rgba(201,168,76,.10); border-radius: 10px; padding: 9px 12px; font-size: .9rem; color: #4a3a28; line-height: 1.4; }
+.smi49-ico { font-size: 1.25rem; flex-shrink: 0; line-height: 1.2; }
+.smi49-save { text-align: center; font-size: .8rem; color: #6b5c48; margin-bottom: 12px; }
