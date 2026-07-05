@@ -9122,3 +9122,12 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
     font-family: 'Baloo2', var(--font-system, sans-serif);
     font-weight: 800; font-size: .86rem; color: #fdf6e8; white-space: nowrap;
 }
+
+
+/* Session 49.12: cage Ted — landing chip avatar img scales + crops like the
+   story chip (those rules were #story-root scoped and never applied here) */
+.landing-chip .pc-avatar { overflow: hidden; flex-shrink: 0; }
+.landing-chip .pc-avatar img {
+    width: 100%; height: 100%; object-fit: cover;
+    border-radius: 50%; display: block;
+}
