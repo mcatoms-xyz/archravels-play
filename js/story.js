@@ -635,7 +635,7 @@ var Story = {
       '<h2 class="sm-choose">Choose Your Raveler!</h2>'+
       '<p class="st-sub">Six crafter archetypes, each with their own special crafting abilities. Pick the style that speaks to you.</p>'+
       '<div class="types">'+cards+'</div>');
-    this.setPageTitle('Story Mode');
+    this.setPageTitle('Quest for Craft Circle Champion | Story Mode');
   },
 
   goChars: function(tid){
