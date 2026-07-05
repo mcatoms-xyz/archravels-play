@@ -9131,3 +9131,9 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
     width: 100%; height: 100%; object-fit: cover;
     border-radius: 50%; display: block;
 }
+
+
+/* Session 49.15 (Adam): tighter homepage card (physical-game link removed;
+   the nav menu's Buy button carries that job now) */
+.landing-inner { padding-top: 22px; padding-bottom: 18px; }
+.landing-screen { gap: 12px; }
