@@ -9,14 +9,14 @@
 
 @font-face {
     font-family: 'VintageAvalanche';
-    src: url('../Other Images Textures Details/Fonts - Final/Vintage Avalanche.otf') format('opentype');
+    src: url('../webfonts/VintageAvalanche.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'VintageAvalanche';
-    src: url('../Other Images Textures Details/Fonts - Final/Vintage Avalanche Black.otf') format('opentype');
+    src: url('../webfonts/VintageAvalanche-Black.otf') format('opentype');
     font-weight: 900;
     font-style: normal;
 }
@@ -7444,6 +7444,25 @@ body.cap-native .merged-nav { display: flex; align-items: center; position: rela
 
 /* Session 41: safe-area vars — real env() in the app; the gallery overrides these inline to simulate the notch/home-bar so it matches the sim. */
 body.cap-native { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); }
+/* Session 50 tablet-portrait layout dials (driven by the dev tuner panel) */
+body.cap-native {
+    /* Adam's blessed tablet-portrait values (tuner session 7/5).
+       Three flush rows: bazaar / bowl+board / feed. Vertical rhythm is set
+       ONLY by the three space dials (top, 1: bazaar-row, 2: row-feed). */
+    --tpz-bazaar-w: 100%;
+    --tpz-row-w: 100%;
+    --tpz-board: 64%;
+    --tpz-board-zoom: 1.15;
+    --tpz-bowl-sz: 49%;
+    --tpz-bowl-x: -80%;
+    --tpz-bowl-y: 49.5%;
+    --tpz-pad: 0px;
+    --tpz-feed-w: 99.5%;
+    --tpz-feed-x: 0%;
+    --tpz-space-top: 24px;
+    --tpz-space-1: 72px;
+    --tpz-space-2: -14px;
+}
 
 /* Session 41 (cap-native): force card previews to float dead-center on top, escaping
    the board's overflow:hidden + any stacking trap. Covers both project + SR previews. */
@@ -9164,3 +9183,300 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
 /* Session 49.20 (Adam): every AR logo is a home button */
 .ar-home-logo { cursor: pointer; }
 .ar-home-logo:hover { filter: brightness(1.12); }
+
+/* =================================================================
+   SESSION 50 (Adam/iPad) - cap-native TABLET LANDSCAPE layout, v3.
+   On iPad-class landscape screens the app was inheriting the PHONE
+   column stack. iPad-native arrangement (Adam 7/5): PLAYER BOARD is
+   the focus - big on the LEFT; the RIGHT column stacks the bazaar,
+   action feed, and SR strip. Works INSIDE the Session 41 body-flex
+   shell (body = flex column, overflow hidden, in-flow action bar):
+   the game-layout stays flex:1/min-height:0 and the grid centers
+   within it. v2 mistake: min-height:100dvh pushed the in-flow action
+   bar out of the clipped body - never re-add it.
+   Action bar renders as a centered pill: wrapper band goes clear,
+   the .action-bar panel caps its width.
+   Tune dials: player width 62vw / height factor 1.41 (board aspect
+   2587x1831), bar pill max-width 860px, gaps.
+   ================================================================= */
+/* --- Shared tablet-app chrome (any orientation): action bar becomes a
+       centered, width-capped pill; the full-width band goes transparent.
+       (cap-native + >=768px only ever matches the iPad app.) --- */
+@media (min-width: 600px) {
+    body.cap-native .action-bar-wrapper {
+        /* dark band behind the pill - matches the other modes' backdrop */
+        background: linear-gradient(180deg, #43351f 0%, #2c1f12 100%);
+        align-items: center;
+        min-height: 100px;
+    }
+    body.cap-native .action-bar {
+        width: auto;
+        min-width: min(560px, 90vw);
+        max-width: min(860px, 92vw);
+        border-radius: 16px;
+        padding: 10px 16px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    body.cap-native .tangled-cat-banner {
+        align-self: center;
+        width: auto;
+        min-width: min(560px, 90vw);
+        max-width: min(860px, 92vw);
+        border-radius: 12px;
+    }
+}
+
+/* --- LANDSCAPE tablet: bazaar column LEFT (bazaar / feed / SRs stacked),
+       big player board RIGHT (the focus). --- */
+@media (orientation: landscape) and (min-width: 600px) {
+    body.cap-native .game-layout {
+        display: grid;
+        /* right col shrink-wraps the player board; left col takes the rest */
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-areas:
+            "bazaar player"
+            "feed   player"
+            "sr     player";
+        gap: 12px 16px;
+        align-items: start;
+        align-content: center;      /* split leftover height evenly top/bottom */
+        justify-content: center;
+        padding-left: max(10px, var(--sal, 0px));
+        padding-right: max(10px, var(--sar, 0px));
+    }
+    body.cap-native .player-area {
+        grid-area: player;
+        align-self: center;
+        /* width-driven sizing: as wide as fits the usable height (aspect 1.41 w/h),
+           capped at 62vw so the bazaar column keeps real estate */
+        width: min(64vw, calc((100dvh - 200px) * 1.41));
+        max-width: none;
+    }
+    body.cap-native .board-section {
+        grid-area: bazaar;
+        width: 100%;
+    }
+    body.cap-native .board-section .board-image {
+        max-width: 100%;
+        max-height: none;
+    }
+    body.cap-native .action-feed {
+        grid-area: feed;
+        margin: 0;
+        width: auto;
+        max-width: 100%;
+    }
+    body.cap-native .sr-strip {
+        grid-area: sr;
+        width: 100%;
+        max-width: none;
+        justify-self: stretch;
+    }
+}
+
+/* --- PORTRAIT tablet: single centered column - bazaar, player board,
+       feed, SRs - both boards height-capped so the stack fits between
+       the nav and the action bar without scrolling.
+       Tune dials: bazaar 38dvh, player height budget 40dvh. --- */
+@media (orientation: portrait) and (min-width: 600px) {
+    body.cap-native .game-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "player"
+            "bazaar"
+            "sr";
+        gap: 0;
+        justify-items: center;
+        align-content: start;      /* boards start right under the nav */
+        overflow-y: auto;          /* full-width boards overshoot by ~1 board row - allow scroll */
+        padding-left: max(var(--tpz-pad), var(--sal, 0px));
+        padding-right: max(var(--tpz-pad), var(--sar, 0px));
+        padding-bottom: 8px;
+    }
+    /* WIDTH-DRIVEN (Adam 7/5: fill the width, both boards) */
+    body.cap-native .board-section { grid-area: bazaar; width: var(--tpz-bazaar-w); margin-top: var(--tpz-space-1); }
+    body.cap-native .board-section .board-image {
+        width: 100%;
+        max-width: none;
+        max-height: none;
+    }
+    body.cap-native .player-area {
+        grid-area: player;
+        width: var(--tpz-row-w);
+        max-width: none;
+        margin-top: var(--tpz-space-top);
+    }
+    body.cap-native .action-feed {
+        /* overlaid on the TOP of the bazaar board (shares its grid cell) */
+        grid-area: bazaar;
+        align-self: start;
+        justify-self: center;
+        position: relative;
+        z-index: 15;
+        margin: calc(var(--tpz-space-1) + var(--tpz-space-2)) 0 0;
+        width: var(--tpz-feed-w);
+        max-width: 100%;
+        transform: translateX(var(--tpz-feed-x));
+        background: rgba(24, 16, 8, .62);
+        border-radius: 10px;
+        padding: 5px 10px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+    }
+    body.cap-native .sr-strip { grid-area: sr; width: 100%; max-width: none; }
+
+    /* --- YARN BOWL, tablet portrait v2 (Adam 7/5): the bowl LIVES beside the
+           board full-time. No drawer, no hotzone, no curved token arc - the
+           wedge bowl IS the yarn display. Board takes 66% of the row, bowl
+           fills the freed 34%; together they span the full width.
+           Counts stay live: renderYarnBowl wraps _ybSync every render. --- */
+    body.cap-native .player-area .player-board-wrapper {
+        width: var(--tpz-board);
+        margin-left: calc(100% - var(--tpz-board));
+        transform: scale(var(--tpz-board-zoom));
+        transform-origin: right center;
+    }
+    /* the curved token stack + drawer plumbing retire on this layout */
+    body.cap-native .player-area .yarn-bowl-overlay { display: none; }
+    body.cap-native .player-area .yb-hotzone { display: none; }
+    body.cap-native .player-area .yb-scrim { display: none; }
+    /* free the bowl from the board's clip layer + park it beside the board */
+    body.cap-native .player-area .yb-clip { overflow: visible; }
+    body.cap-native .player-area .yb-drawer,
+    body.cap-native .player-area .yb-drawer.open {
+        width: var(--tpz-bowl-sz);
+        top: var(--tpz-bowl-y);
+        left: 0;
+        opacity: 1;
+        transform: translate(var(--tpz-bowl-x), -50%);
+        transition: none;
+        pointer-events: auto;
+        cursor: default;
+    }
+    body.cap-native .player-area .yb-drawer.yb-refuse { animation: none; }
+}
+
+
+/* =================================================================
+   SESSION 50 polish (Adam 7/5):
+   1. Learn a Pattern - each learnable pattern is a CARD, not a row
+      (grid, tile+arrow+tile across the top, centered info below).
+   2. Modal type pass, completing 48V: Baloo2 headlines + Averia
+      Serif body text in the shared modal stack (buttons keep the
+      system font via their own rule).
+   3. Tablet portrait: Tangled Cat pounces IN FRONT of the exposed
+      yarn bowl (bowl clip layer is z9; cat rides above it).
+   ================================================================= */
+.learn-pattern-content { max-width: 680px; }
+.learn-pattern-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    max-height: 60vh;
+}
+.learn-tile-row {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    padding: 14px 12px;
+    border-radius: 12px;
+}
+.learn-tile-imgs { flex-direction: row; gap: 8px; }
+.learn-tile-arrow-img { transform: rotate(-90deg); width: 26px; }
+.learn-tile-info { align-items: center; }
+.learn-tile-name { font-family: 'Baloo2', var(--font-system); }
+
+.modal-title, .game-moment-title { font-family: 'Baloo2', var(--font-system); }
+.modal-content { font-family: 'AveriaSerif', var(--font-system); }
+
+@media (orientation: portrait) and (min-width: 600px) {
+    body.cap-native .player-area .tangled-board-cat { z-index: 12; }
+}
+
+/* Session 50: bowl-wheel colorblind letter badges (all modes) */
+.yb-wheel .yb-cb { display: none; }
+.colorblind-mode .yb-wheel .yb-cb { display: block; pointer-events: none; }
+
+/* =================================================================
+   SESSION 50: tablet modal TYPE SCALE (Adam 7/5) - modals read too
+   small on iPad. Bigger body/labels/cards + unify faces (Baloo2 on
+   the small-caps section labels; body copy inherits Averia Serif).
+   App tablet only.
+   ================================================================= */
+@media (min-width: 600px) {
+    body.cap-native .modal-content { font-size: 16.5px; }
+    body.cap-native .modal-title { font-size: 30px; }
+    body.cap-native .otc-bowl-label { font-size: 14px; font-family: 'Baloo2', var(--font-system); letter-spacing: 0.8px; }
+    body.cap-native .otc-bowl-total { font-size: 13px; }
+    body.cap-native .otc-chip { font-size: 16px; padding: 4px 12px 4px 6px; gap: 6px; }
+    body.cap-native .otc-chip img { width: 26px; height: 24px; }
+    body.cap-native .otc-section-label { font-size: 14px; font-family: 'Baloo2', var(--font-system); letter-spacing: 0.9px; }
+    body.cap-native .otc-pattern-grid .otc-need-card { padding: 9px 10px; gap: 8px; }
+    body.cap-native .otc-need-card-name,
+    body.cap-native .otc-pattern-grid .otc-need-card-name { font-size: 15px; }
+    body.cap-native .otc-pattern-grid .otc-need-card img { width: 44px; height: 44px; }
+    body.cap-native .otc-pattern-grid .otc-need-card-dots { gap: 3px; }
+    body.cap-native .color-pick-progress .cpp-label { font-size: 16px; }
+    body.cap-native .color-pick-btn { font-size: 16px; }
+    body.cap-native .craft-color-body,
+    body.cap-native .craft-confirm-body,
+    body.cap-native .exchange-body { font-size: 16px; }
+    body.cap-native .learn-tile-name { font-size: 20px; }
+    body.cap-native .learn-tile-trade-in,
+    body.cap-native .learn-tile-cost { font-size: 14px; }
+    body.cap-native .learn-tile-after { font-size: 15px; }
+    body.cap-native .finish-project-info,
+    body.cap-native .frog-item-yarn { font-size: 15px; }
+    body.cap-native .restock-modal-msg { font-size: 15.5px; }
+}
+
+/* Session 50: FO drawer on tablet portrait = near-full-height fixed side
+   sheet. The drawer node is RELOCATED to <body> at boot (ui-extra.js) because
+   the board wrapper's zoom transform hijacks fixed positioning. */
+@media (orientation: portrait) and (min-width: 600px) {
+    body.cap-native > .fo-drawer {
+        position: fixed;
+        top: calc(var(--sat, 0px) + 50px);
+        bottom: calc(var(--ab-h, 100px) + 10px);
+        right: 0;
+        height: auto;
+        width: min(460px, 62vw);
+        border-radius: 16px 0 0 16px;
+        z-index: 760;
+    }
+}
+
+/* =================================================================
+   SESSION 50: modal font unification, pass 2 (Adam 7/5).
+   The crafting / yarn-picking modals were full of elements pinning
+   var(--font-system) individually - they read as "fallback fonts"
+   next to the new faces. Names/labels/points join Baloo2; messages,
+   notes and helper copy join Averia Serif. Board-surface text (yarn
+   counts, craft tile names/costs) intentionally stays on the system
+   font for legibility over art.
+   ================================================================= */
+.color-pick-btn,
+.yarn-color-name,
+.craft-confirm-item-name,
+.craft-color-label,
+.exchange-section-label,
+.sr-take-name,
+.sr-points-label,
+.frog-item-name,
+.finish-project-pts,
+.sr-take-points {
+    font-family: 'Baloo2', var(--font-system);
+}
+.event-modal-msg,
+.event-yarn-pick-summary,
+.donate-note,
+.craft-circle-msg,
+.craft-circle-empty,
+.restock-modal-msg,
+.frog-confirm-note,
+.sr-points-confirm,
+.craft-color-count,
+.finished-empty {
+    font-family: 'AveriaSerif', var(--font-system);
+}

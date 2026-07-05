@@ -1333,6 +1333,24 @@ Object.assign(UI, {
             txt.setAttribute('fill', '#fff'); txt.setAttribute('stroke', '#000'); txt.setAttribute('stroke-width', '3');
             txt.setAttribute('paint-order', 'stroke');
             g.appendChild(txt);
+            // Session 50: colorblind letter badge at the wedge rim (R/O/Y/G/B/P).
+            // Always built; CSS shows it only in body.colorblind-mode. Covers every
+            // bowl context (tablet exposed bowl + phone/desktop drawer).
+            var cbm = pt(a0 + 30, 86);
+            var cbg = document.createElementNS(NS, 'g');
+            cbg.setAttribute('class', 'yb-cb');
+            var cbc = document.createElementNS(NS, 'circle');
+            cbc.setAttribute('cx', cbm[0]); cbc.setAttribute('cy', cbm[1]); cbc.setAttribute('r', '9');
+            cbc.setAttribute('fill', 'rgba(255,255,255,.92)');
+            cbc.setAttribute('stroke', 'rgba(0,0,0,.55)'); cbc.setAttribute('stroke-width', '1.5');
+            var cbt = document.createElementNS(NS, 'text');
+            cbt.setAttribute('x', cbm[0]); cbt.setAttribute('y', cbm[1]);
+            cbt.setAttribute('text-anchor', 'middle'); cbt.setAttribute('dominant-baseline', 'central');
+            cbt.setAttribute('font-size', '11'); cbt.setAttribute('font-weight', '800');
+            cbt.setAttribute('fill', '#241708');
+            cbt.textContent = c.charAt(0).toUpperCase();
+            cbg.appendChild(cbc); cbg.appendChild(cbt);
+            g.appendChild(cbg);
             svg.appendChild(g);
             self._ybCounts[c] = { text: txt, title: ttl, g: g };
         });
@@ -1441,6 +1459,16 @@ Object.assign(UI, {
 (function(){
     function boot() {
         try { UI.buildYarnDrawer(); } catch (e) {}
+        // Session 50: tablet portrait - move the FO drawer up to <body> so it can
+        // be a fixed full-height side sheet (the board wrapper's zoom transform
+        // would otherwise trap/scale it). IDs + class toggles keep working.
+        try {
+            if (document.body.classList.contains('cap-native') &&
+                window.matchMedia('(orientation: portrait) and (min-width: 600px)').matches) {
+                var fod = document.getElementById('foDrawer');
+                if (fod && fod.parentNode !== document.body) document.body.appendChild(fod);
+            }
+        } catch (e) {}
         // any touch of the landing starts the real load
         var landing = document.getElementById('landingScreen');
         if (landing) {
