@@ -9151,9 +9151,6 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
 
 /* Session 49.18 (Adam): grand entry — header font, big. Page title in the
    bar reads as "| Story Mode" via the separator. */
-#story-root .story-page-title:not(:empty)::before {
-    content: '|'; margin-right: 12px; opacity: .45; font-weight: 400;
-}
 #story-root .sm-welcome {
     font-family: 'SantElia', var(--font-system, sans-serif);
     font-size: 2.3rem;                 /* sm-choose is 1.4rem; this is ~65% bigger */
