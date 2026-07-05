@@ -744,15 +744,27 @@ var Story = {
       return;
     }
     if(champ){
+      // Session 49.22 (Adam): champions keep their Circle. Crown banner up
+      // top, full ladder below so any beaten rival is a tap from a rematch
+      // (Story.rematch is climb-safe, Session 44).
       var top2='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
         '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
         '<div class="cc-sub">You are the Champion!</div>'+
         '<div class="cc-bar"><i style="width:100%"></i></div></div></div>';
       var body2='<div class="cc-champ"><div class="cc-crown">🏆</div>'+
         '<div class="cc-champ-t">Champion of your Craft Circle!</div>'+
-        '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister.</div>'+
+        '<div class="cc-champ-s">You out-crafted every Raveler and bested Hank the Stitchmeister. Revisit any rival below for a rematch.</div>'+
         '<button class="cc-go" onclick="Story.goStats()">View your stats →</button></div>';
-      this.screen('<div class="crumb">Your Craft Circle</div>'+top2+body2+this.backBar('Story.goTypes()','↺ Change Raveler'));
+      var lad2='<div class="cc2-title"><span class="cc2-t">The Craft Circle</span>'+
+        '<span class="cc2-hint">Tap any rival for a rematch</span></div>'+
+        '<div class="cc2-stage"><div class="cc2-vs">VS</div>'+
+        '<div class="cc2-youcol">'+this._ccYouHTML(total)+'</div>'+
+        '<div class="cc2-ladcol"><div class="cc2-frame"><div class="cc2-lad" id="opptrack"></div></div></div>'+
+        '</div>';
+      this.screen(top2+body2+lad2+this.backBar('Story.goTypes()','↺ Change Raveler'));
+      this._ccActive=this.currentOpp();
+      this._ccRepaint(false);
+      this._ccWireScroll();
       return;
     }
     var html='<div class="cc2-title"><span class="cc2-t">The Craft Circle</span>'+
