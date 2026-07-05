@@ -9077,7 +9077,7 @@ body.ar-pregame .action-feed { visibility: hidden; }
    panel chrome is gone — home is a PAGE now, not a card.
    ================================================================= */
 .landing-topbar {
-    position: sticky; top: 0; z-index: 20;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 700;   /* 49.10: page header, above the landing overlay (600) */
     display: flex; align-items: center; gap: 12px;
     width: 100%; padding: 10px 16px; box-sizing: border-box;
     background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
@@ -9100,3 +9100,25 @@ body.ar-pregame .action-feed { visibility: hidden; }
 
 /* 49.9: the floating card STAYS (Adam) — it just lives under the header now */
 @media (max-width: 640px) { .landing-topbar-edition { display: none; } }
+
+
+/* Session 49.10: header rules — pre-game only + standalone chip styling
+   (the story-scoped chip CSS never reached the landing, hence the odd render) */
+body:not(.ar-pregame) .landing-topbar { display: none; }
+.landing-screen { padding-top: 78px; }
+.landing-chip {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    background: rgba(255,255,255,.07); border: 1.5px solid rgba(201,168,76,.55);
+    border-radius: 999px; padding: 4px 14px 4px 5px; margin: 0;
+}
+.landing-chip:hover { background: rgba(255,255,255,.14); }
+.landing-chip .pc-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--cream, #f0e6d2); border: 2px solid var(--tan-d, #b49a6a);
+    display: flex; align-items: center; justify-content: center; font-size: .95rem;
+}
+.landing-chip .pc-meta { display: flex; flex-direction: column; line-height: 1.1; }
+.landing-chip .pc-name {
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+    font-weight: 800; font-size: .86rem; color: #fdf6e8; white-space: nowrap;
+}
