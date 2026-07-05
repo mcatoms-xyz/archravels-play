@@ -800,6 +800,9 @@ var UI = {
                 if (lbl) lbl.textContent = live ? 'This Game' : 'ArchRavels';
                 var homeRow = document.getElementById('nmHomeRow');
                 if (homeRow) homeRow.style.display = pre ? 'none' : '';
+                // 49.13: the exit group IS the start group on the homepage
+                var exitHead = document.getElementById('nmExitHead');
+                if (exitHead) exitHead.childNodes[0].textContent = live ? 'Exit Current Game ' : 'Start a Game ';
             } catch (e) {}
         }
 
