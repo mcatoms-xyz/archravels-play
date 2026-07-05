@@ -9025,3 +9025,13 @@ body.ar-pregame .action-feed { visibility: hidden; }
 
 /* Session 48AJ: build stamp on the landing splash */
 .landing-build { font-size: .68rem; color: rgba(253,246,232,.45); text-align: center; margin-top: 4px; letter-spacing: .04em; }
+
+
+/* Session 49.4: widened craft picker gets a tidy 3x2 chip grid (the 48V
+   width change made the chips wrap 4+2, Adam caught it) */
+@media (min-width: 768px) {
+    #craftColorModal .xc-chips {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 10px; justify-items: stretch;
+    }
+}
