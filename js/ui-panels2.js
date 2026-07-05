@@ -796,7 +796,7 @@ Object.assign(UI, {
         var timer = (tEl && tEl.style.display !== 'none' && tEl.textContent) ? tEl.textContent : '';
         var icon = function(p) { var ic = UI._typeIcons[p.characterType]; return ic ? '<img class="mn-ic" src="' + ic + '" alt="">' : ''; };
         host.innerHTML =
-            '<button class="mn-main" type="button" onclick="UI.toggleMergedNav(event)" aria-haspopup="true" aria-label="Round ' + round + ', ' + (active ? active.name : '') + ' — view player boards">' +
+            '<button class="mn-main" type="button" onclick="UI.toggleMergedNav(event)" aria-haspopup="true" aria-label="Round ' + round + ', ' + (active ? active.name : '') + ', view player boards">' +
                 '<span class="mn-round">Round ' + round + '</span>' +
                 (timer ? '<span class="mn-timer">⏱ ' + timer + '</span>' : '') +
                 icon(active) +
