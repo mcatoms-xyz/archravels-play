@@ -9070,3 +9070,37 @@ body.ar-pregame .action-feed { visibility: hidden; }
 }
 .nav-pause:hover { background: rgba(255,255,255,.16); }
 .nav-pause svg { width: 12px; height: 12px; fill: currentColor; }
+
+
+/* =================================================================
+   SESSION 49.8 (Adam): landing gets a real header; the floating
+   panel chrome is gone — home is a PAGE now, not a card.
+   ================================================================= */
+.landing-topbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 10px 16px; box-sizing: border-box;
+    background: linear-gradient(180deg, #241d12 0%, #352c1c 100%);
+    border-bottom: 2px solid rgba(201,168,76,.35);
+}
+.landing-menu {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px; color: #f0e6d2; font-size: 1.05rem; line-height: 1;
+    padding: 6px 11px; cursor: pointer;
+}
+.landing-menu:hover { background: rgba(255,255,255,.16); }
+.landing-topbar-logo { height: 34px; width: auto; }
+.landing-topbar-edition {
+    font-family: 'Baloo2', var(--font-system, sans-serif);
+    font-size: .72rem; letter-spacing: .16em; text-transform: uppercase;
+    color: #cbb891;
+}
+.landing-topbar-spacer { flex: 1; }
+.landing-chip { cursor: pointer; }
+
+/* de-card the hero: full page flow under the header */
+.landing-inner.landing-flat {
+    background: none; background-image: none; border: none; box-shadow: none;
+    border-radius: 0; max-width: 640px; padding: 26px 24px 20px;
+}
+@media (max-width: 640px) { .landing-topbar-edition { display: none; } }
