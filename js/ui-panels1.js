@@ -432,7 +432,7 @@ Object.assign(UI, {
             different: needed + ' different colors',
             any: 'any ' + needed + ' yarn',
         };
-        this.els.craftColorTitle.textContent = overrideTitle || ('Choose Yarn — ' + (ruleLabel[rule] || needed + ' yarn'));
+        this.els.craftColorTitle.textContent = overrideTitle || ('Choose Yarn: ' + (ruleLabel[rule] || needed + ' yarn'));
         this.els.craftColorConfirmBtn.disabled = true;
 
         // Session 22: Inject off-turn context if this is a craft-circle color pick
