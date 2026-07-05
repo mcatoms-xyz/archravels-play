@@ -9159,3 +9159,8 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
     margin: 10px 0 6px; line-height: 1.15;
 }
 @media (max-width: 640px) { #story-root .sm-welcome { font-size: 1.85rem; } }
+
+
+/* Session 49.20 (Adam): every AR logo is a home button */
+.ar-home-logo { cursor: pointer; }
+.ar-home-logo:hover { filter: brightness(1.12); }
