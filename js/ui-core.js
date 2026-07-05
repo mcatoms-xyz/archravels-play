@@ -775,11 +775,33 @@ var UI = {
     /**
      * Session 9b: Toggle the hamburger menu dropdown.
      */
+    /* Session 49.11 (Adam): menu rows confirm-before-leaving ONLY when a
+       game is actually running; otherwise they just go. */
+    nmNav: function(label, fn) {
+        var live = window.Game && Game.state && Game.state.gameStartTime && Game.state.phase !== 'gameOver';
+        if (live && window.NMExit) NMExit.confirm(label, fn);
+        else fn();
+    },
+
     onNavMenuToggle: function() {
         var dd = document.getElementById('navMenuDropdown');
         if (!dd) return;
         var isOpen = dd.style.display !== 'none';
         dd.style.display = isOpen ? 'none' : '';
+
+        // Session 49.11: contextual rows — game items only during a game,
+        // no Home link when you're already home
+        if (!isOpen) {
+            try {
+                var live = window.Game && Game.state && Game.state.gameStartTime && Game.state.phase !== 'gameOver';
+                var pre = document.body.classList.contains('ar-pregame');
+                dd.querySelectorAll('.nm-game-only').forEach(function(el){ el.style.display = live ? '' : 'none'; });
+                var lbl = dd.querySelector('.nm-grp-game .nm-seclabel');
+                if (lbl) lbl.textContent = live ? 'This Game' : 'ArchRavels';
+                var homeRow = document.getElementById('nmHomeRow');
+                if (homeRow) homeRow.style.display = pre ? 'none' : '';
+            } catch (e) {}
+        }
 
         // Close on outside click
         if (!isOpen) {
