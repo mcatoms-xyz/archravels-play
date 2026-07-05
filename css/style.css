@@ -9035,3 +9035,27 @@ body.ar-pregame .action-feed { visibility: hidden; }
         gap: 10px; justify-items: stretch;
     }
 }
+
+
+/* =================================================================
+   SESSION 49.5 (Adam): the app's FO-drawer treatment goes UNIVERSAL —
+   desktop/web get the per-character fabric + wood frame + inline
+   header pill that iOS has had since Session 41.
+   ================================================================= */
+.fo-drawer {
+    background-image: url('../Other Assets/fo/border-leftbottom.png'), var(--fo-fabric, url('../Other Assets/fo/fabric-hank.jpg'));
+    background-repeat: no-repeat, no-repeat;
+    background-size: 100% 100%, cover;
+    background-position: center center, center center;
+    background-blend-mode: normal;
+    background-color: #dfe3c8;
+    border: none;
+    padding-left: 26px;
+    padding-bottom: calc(var(--sab, 0px) + 72px);
+}
+.fo-drawer .finished-objects-grid { padding: 0 6px; }
+.fo-drawer-header { position: relative; align-items: center; padding-right: 34px; min-height: 0; }
+.fo-drawer-title { position: static; left: auto; top: auto; opacity: 1; margin-right: 8px; flex-shrink: 0; }
+.fo-drawer.open .fo-drawer-title { opacity: 1; }
+.fo-drawer-charname { flex: 1 1 auto; padding: 0; min-width: 0; }
+.fo-drawer-close { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); }
