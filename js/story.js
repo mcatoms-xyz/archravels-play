@@ -215,7 +215,7 @@ var Story = {
       '<div class="story-topbar">' +
         '<button class="story-menu" id="storyMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>' +
         '<button class="story-back" id="storyBackBtn" onclick="Story.navBack()" aria-label="Back">‹</button>' +
-        '<div class="story-brand"><img class="story-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="story-page-title" id="storyPageTitle"></span></div>' +
+        '<div class="story-brand"><img class="story-logo ar-home-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels" title="Home" role="button" tabindex="0" onclick="UI.nmNav(\'the Home Screen\', function(){UI.returnToMainMenu();})"><span class="story-page-title" id="storyPageTitle"></span></div>' +
         '<button class="player-chip" title="Account" onclick="Story.openIdentity()">' +
           '<div class="pc-avatar" id="pcAvatar">🧶</div>' +
           '<div class="pc-meta"><span class="pc-name" id="pcName">Sign In</span><span class="pc-note" id="pcNote" style="display:none"></span></div>' +
