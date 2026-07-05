@@ -621,9 +621,9 @@ var Story = {
           '<div class="cardfoot"><span class="pick">Choose this style →</span>'+
           '<img class="marker" src="story-assets/icons/'+tid+'.png" alt=""></div></div></div>';
     }).join('');
-    this.screen('<div class="crumb">Story Mode</div>'+
+    this.screen('<h1 class="sm-welcome">Welcome to ArchRavels!</h1>'+
       '<div class="sm-intro sm-intro-2col">'+
-        '<p class="st-sub sm-copy">Welcome to ArchRavels! A strategy board game set in the colorful &amp; crafty world of fiber arts! Choose from a variety of fiber art crafting specialists, each with their own style. Out-craft 11 fellow Ravelers for your chance to challenge Hank the Stitchmeister for the craft circle crown.</p>'+
+        '<p class="st-sub sm-copy">A strategy board game set in the colorful &amp; crafty world of fiber arts! Choose from a variety of fiber art crafting specialists, each with their own style. Out-craft 11 fellow Ravelers for your chance to challenge Hank the Stitchmeister for the craft circle crown.</p>'+
         '<div class="sm-steps">'+
           '<span class="sm-step"><span class="sm-n">1</span>Pick a Raveler</span><span class="sm-arrow">→</span>'+
           '<span class="sm-step"><span class="sm-n">2</span>Out-craft the Circle</span><span class="sm-arrow">→</span>'+
@@ -635,7 +635,7 @@ var Story = {
       '<h2 class="sm-choose">Choose Your Raveler!</h2>'+
       '<p class="st-sub">Six crafter archetypes, each with their own special crafting abilities. Pick the style that speaks to you.</p>'+
       '<div class="types">'+cards+'</div>');
-    this.setPageTitle('Quest for Craft Circle Champion');
+    this.setPageTitle('Story Mode');
   },
 
   goChars: function(tid){
