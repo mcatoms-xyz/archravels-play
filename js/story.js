@@ -423,6 +423,9 @@ var Story = {
   },
   renderChip: function(){
     var av=document.getElementById('pcAvatar'); if(av) av.innerHTML=this.avatarInner();
+    // Session 49.8: landing header chip mirrors the story chip
+    var lav=document.getElementById('lcAvatar'); if(lav) lav.innerHTML=this.avatarInner();
+    var lnm=document.getElementById('lcName'); if(lnm) lnm.textContent=this.currentUser?this.displayName():'Sign In';
     var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
     if(nm){
       if(this.currentUser){ nm.textContent=this.displayName(); if(note){ note.textContent='View stats'; note.style.display=''; } }
