@@ -9098,9 +9098,5 @@ body.ar-pregame .action-feed { visibility: hidden; }
 .landing-topbar-spacer { flex: 1; }
 .landing-chip { cursor: pointer; }
 
-/* de-card the hero: full page flow under the header */
-.landing-inner.landing-flat {
-    background: none; background-image: none; border: none; box-shadow: none;
-    border-radius: 0; max-width: 640px; padding: 26px 24px 20px;
-}
+/* 49.9: the floating card STAYS (Adam) — it just lives under the header now */
 @media (max-width: 640px) { .landing-topbar-edition { display: none; } }
