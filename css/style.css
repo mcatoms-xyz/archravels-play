@@ -7459,9 +7459,13 @@ body.cap-native {
     --tpz-pad: 0px;
     --tpz-feed-w: 99.5%;
     --tpz-feed-x: 0%;
-    --tpz-space-top: 24px;
-    --tpz-space-1: 72px;
-    --tpz-space-2: -14px;
+    /* spacing is VIEWPORT-PROPORTIONAL (blessed on 820px-wide iPad Air 11:
+       24px/72px/-14px) so the feed pins to the same spot on the bazaar art
+       on minis (744), Airs (820/834) and 13-inch Pros (1024) alike.
+       The tuner still writes px overrides - divide by 8.2 to re-bless. */
+    --tpz-space-top: 2.93vw;
+    --tpz-space-1: 8.78vw;
+    --tpz-space-2: -1.71vw;
 }
 
 /* Session 41 (cap-native): force card previews to float dead-center on top, escaping
