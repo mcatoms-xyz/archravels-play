@@ -7456,15 +7456,15 @@ body.cap-native {
     --tpz-bowl-sz: 49%;
     --tpz-bowl-x: -80%;
     --tpz-bowl-y: 49.5%;
-    --tpz-pad: 0px;
+    --tpz-pad: 12px;
     --tpz-feed-w: 99.5%;
     --tpz-feed-x: 0%;
-    /* spacing: top/space-1 are viewport-proportional (blessed at 820px:
-       24px/72px). The FEED is hard-LOCKED to the bazaar board: --tpz-feed-top
-       is a % of the BOARD's own box (blessed -14px of a 590px board = -2.4%),
-       so it rides the art like a decal at every size. */
-    --tpz-space-top: 2.93vw;
-    --tpz-space-1: 8.78vw;
+    /* spacing (Adam 7/5, 13-inch review): FIXED tight chrome padding -
+       8px above/below the board+bowl unit, 12px sides - identical on every
+       device. The FEED stays hard-LOCKED to the bazaar board: --tpz-feed-top
+       is a % of the BOARD's own box, so it rides the art at every size. */
+    --tpz-space-top: 8px;
+    --tpz-space-1: 8px;
     --tpz-feed-top: -2.4%;
 }
 
