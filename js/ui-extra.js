@@ -1353,34 +1353,13 @@ Object.assign(UI, {
             im.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             p.appendChild(im); defs.appendChild(p);
         });
-        // Session 50 (Adam): rim fade + center-depth shade + hub total.
-        function addStops(gradEl, stops) {
-            stops.forEach(function(sd){
-                var st = document.createElementNS(NS, 'stop');
-                st.setAttribute('offset', sd[0]); st.setAttribute('stop-color', sd[1]); st.setAttribute('stop-opacity', sd[2]);
-                gradEl.appendChild(st);
-            });
-        }
-        var fadeG = document.createElementNS(NS, 'radialGradient');
-        fadeG.setAttribute('id', 'ybfadeg');
-        addStops(fadeG, [['78%','#ffffff','1'],['96%','#ffffff','0.72'],['100%','#ffffff','0.45']]);
-        defs.appendChild(fadeG);
-        var shadeG = document.createElementNS(NS, 'radialGradient');
-        shadeG.setAttribute('id', 'ybshadeg');
-        addStops(shadeG, [['16%','#000000','0.34'],['48%','#000000','0.14'],['78%','#000000','0']]);
-        defs.appendChild(shadeG);
-        var mask = document.createElementNS(NS, 'mask');
-        mask.setAttribute('id', 'ybfade');
-        var mc = document.createElementNS(NS, 'circle');
-        mc.setAttribute('cx','100'); mc.setAttribute('cy','100'); mc.setAttribute('r','102');
-        mc.setAttribute('fill','url(#ybfadeg)');
-        mask.appendChild(mc); defs.appendChild(mask);
+        // Session 50 (Adam 7/6): gradients KILLED — flat wedges over the wood
+        // bowl art; CSS fill-opacity does the blending. Hub total stays.
         svg.appendChild(defs);
         function pt(aDeg, r){ var a = aDeg * Math.PI / 180; return [100 + r * Math.sin(a), 100 - r * Math.cos(a)]; }
         this._ybCounts = {};
         var self = this;
         var pathsLayer = document.createElementNS(NS, 'g');
-        pathsLayer.setAttribute('mask', 'url(#ybfade)');
         svg.appendChild(pathsLayer);
         var labelsLayer = document.createElementNS(NS, 'g');
         order.forEach(function(c, k){
@@ -1429,10 +1408,6 @@ Object.assign(UI, {
             labelsLayer.appendChild(lg);
             self._ybCounts[c] = { text: txt, title: ttl, g: g };
         });
-        var shade = document.createElementNS(NS, 'circle');
-        shade.setAttribute('cx','100'); shade.setAttribute('cy','100'); shade.setAttribute('r','102');
-        shade.setAttribute('fill','url(#ybshadeg)'); shade.setAttribute('pointer-events','none');
-        svg.appendChild(shade);
         svg.appendChild(labelsLayer);
         var dot = document.createElementNS(NS, 'circle');
         dot.setAttribute('cx', '100'); dot.setAttribute('cy', '100'); dot.setAttribute('r', '24');
