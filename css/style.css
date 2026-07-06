@@ -7455,7 +7455,7 @@ body.cap-native {
        scale is layout-true (board share absorbed old zoom: 64% x 1.15). */
     --tpz-unit-scale: 100%;
     --tpz-space-top: 8px;      /* unit Y: gap under the nav, >= 0 */
-    --tpz-unit-x: -46px;
+    --tpz-unit-x: -36px;
     --tpz-board: 67.5%;        /* board share within the unit */
     --tpz-bowl-sz: 49%;
     --tpz-bowl-x: -80%;
