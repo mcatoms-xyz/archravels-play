@@ -13,7 +13,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=223">
+    <link rel="stylesheet" href="css/style.css?v=224">
 </head>
 
 <body class="ar-pregame">
@@ -684,7 +684,7 @@
                 });
             }
         } catch (e) {}
-        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 23 };
+        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 24 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build + (AR_VERSION.rev ? '.' + AR_VERSION.rev : '');
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; var el4 = document.getElementById('landingBuild'); if (el4) el4.textContent = label; }

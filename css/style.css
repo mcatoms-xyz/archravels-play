@@ -7459,13 +7459,13 @@ body.cap-native {
     --tpz-pad: 0px;
     --tpz-feed-w: 99.5%;
     --tpz-feed-x: 0%;
-    /* spacing is VIEWPORT-PROPORTIONAL (blessed on 820px-wide iPad Air 11:
-       24px/72px/-14px) so the feed pins to the same spot on the bazaar art
-       on minis (744), Airs (820/834) and 13-inch Pros (1024) alike.
-       The tuner still writes px overrides - divide by 8.2 to re-bless. */
+    /* spacing: top/space-1 are viewport-proportional (blessed at 820px:
+       24px/72px). The FEED is hard-LOCKED to the bazaar board: --tpz-feed-top
+       is a % of the BOARD's own box (blessed -14px of a 590px board = -2.4%),
+       so it rides the art like a decal at every size. */
     --tpz-space-top: 2.93vw;
     --tpz-space-1: 8.78vw;
-    --tpz-space-2: -1.71vw;
+    --tpz-feed-top: -2.4%;
 }
 
 /* Session 41 (cap-native): force card previews to float dead-center on top, escaping
@@ -9291,7 +9291,7 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
             "player"
             "bazaar"
             "sr";
-        gap: 0;
+        gap: var(--tpz-space-1) 0;   /* row junctions; bazaar area stays == board box */
         justify-items: center;
         align-content: start;      /* boards start right under the nav */
         overflow-y: auto;          /* full-width boards overshoot by ~1 board row - allow scroll */
@@ -9300,7 +9300,7 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
         padding-bottom: 8px;
     }
     /* WIDTH-DRIVEN (Adam 7/5: fill the width, both boards) */
-    body.cap-native .board-section { grid-area: bazaar; width: var(--tpz-bazaar-w); margin-top: var(--tpz-space-1); }
+    body.cap-native .board-section { grid-area: bazaar; width: var(--tpz-bazaar-w); }
     body.cap-native .board-section .board-image {
         width: 100%;
         max-width: none;
@@ -9313,16 +9313,18 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
         margin-top: var(--tpz-space-top);
     }
     body.cap-native .action-feed {
-        /* overlaid on the TOP of the bazaar board (shares its grid cell) */
+        /* LOCKED to the bazaar board: abspos within the bazaar grid AREA,
+           whose box == the board (Adam 7/5: "lock em together"). top is a
+           % of the board's height; width a % of its width. */
         grid-area: bazaar;
-        align-self: start;
-        justify-self: center;
-        position: relative;
+        position: absolute;
+        top: var(--tpz-feed-top);
+        left: 50%;
         z-index: 15;
-        margin: calc(var(--tpz-space-1) + var(--tpz-space-2)) 0 0;
+        margin: 0;
         width: var(--tpz-feed-w);
         max-width: 100%;
-        transform: translateX(var(--tpz-feed-x));
+        transform: translateX(calc(-50% + var(--tpz-feed-x)));
         background: rgba(24, 16, 8, .62);
         border-radius: 10px;
         padding: 5px 10px;
