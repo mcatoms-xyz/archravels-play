@@ -10344,3 +10344,7 @@ body.cap-native .game-layout, body.cap-native .action-bar-wrapper, body.cap-nati
     }
     body.cap-native .ar-bowl-tray .xc-chip[disabled] .xc-tok-num { opacity: .55; }
 }
+
+/* Session 50: wedge fills go sheer - the wood bowl beneath does the glowing */
+.yb-wheel .yb-wedge path { fill-opacity: .52; }
+.yb-wheel { box-shadow: inset 0 6px 20px rgba(0, 0, 0, .35); }
