@@ -10357,3 +10357,56 @@ body.cap-native .game-layout, body.cap-native .action-bar-wrapper, body.cap-nati
    7/6: gradients killed in JS (flat wedges), opacity nudged up per Adam. */
 .yb-wheel .yb-wedge path { fill-opacity: .58; }
 .yb-wheel { box-shadow: inset 0 6px 20px rgba(0, 0, 0, .35); }
+
+/* =================================================================
+   ⭐ iPad MINI - portrait ≤780px (Adam's blessed 7/6 pass).
+   Mini (744pt) shares the tablet layout but is too narrow for the
+   one-row action bar. Two-tier bar instead:
+       [ icon NAME   status message............ ]   <- top bar
+       [ ----------- controls row ------------- ]   <- below
+   Only the dials that DIFFER from the 11" blessed set live here.
+   MUST stay after the min-width:600px bar block (cascade order). */
+@media (orientation: portrait) and (min-width: 600px) and (max-width: 780px) {
+    body.cap-native {
+        --tpz-feed-dy: 36px;
+        --tpz-bar-h: 120px;    /* taller band for the two-tier bar */
+    }
+    /* base + chip states: phase/status share the TOP row, buttons below */
+    body.cap-native .action-bar,
+    body.cap-native .action-bar:has(.ab-middle .action-chip) {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "phase   middle"
+            "buttons buttons";
+        row-gap: 8px;
+    }
+    body.cap-native .action-bar .ab-phase { align-self: center; }
+    body.cap-native .action-bar .ab-middle { align-self: center; }
+    body.cap-native .action-bar .ab-divider { display: none; }
+    body.cap-native .action-bar .ab-buttons {
+        grid-area: buttons;
+        width: 100%;
+        max-width: none;
+        justify-content: center;
+        border-top: 1.5px solid rgba(60, 38, 18, .22);   /* the rule goes horizontal */
+        padding-top: 8px;
+    }
+    /* restock: bonus + main buttons SHARE the control row (bonus left, main right) */
+    body.cap-native .action-bar:has(.ab-restock-actions) {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "phase middle"
+            "bonus buttons";
+    }
+    body.cap-native .action-bar .ab-restock-actions {
+        justify-content: flex-start;
+        border-top: 1.5px solid rgba(60, 38, 18, .22);
+        padding-top: 8px;
+    }
+    body.cap-native .action-bar:has(.ab-restock-actions) .ab-buttons {
+        width: auto;
+        justify-content: flex-end;
+    }
+}
