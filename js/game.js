@@ -1510,13 +1510,13 @@ var Game = {
                     return {
                         status: 'needsInput',
                         inputType: 'tangledCat',
-                        msg: "Tangled Cat! The cat's got YOUR yarn — you can't Craft on your next turn.",
+                        msg: "Tangled Cat! The cat's got YOUR yarn. You can't Craft on your next turn.",
                     };
                 }
                 return {
                     status: 'needsInput',
                     inputType: 'tangledCat',
-                    msg: "Tangled Cat! Choose a player — that player can't Craft on their next turn.",
+                    msg: "Tangled Cat! Choose a player. That player can't Craft on their next turn.",
                 };
 
             case 'yarnSale':

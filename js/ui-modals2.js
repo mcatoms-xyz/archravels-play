@@ -24,11 +24,28 @@ Object.assign(UI, {
         var sel = this._yarnSale, need = 3;
         var total = 0; UI.ROYGBP.forEach(function(c) { total += sel[c] || 0; });
         var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
+        // Session 50 (Adam): selections + button in a ROW ABOVE the tray - the
+        // modal was running too tall with them below.
+        html += '<div class="ys-controls-row">' +
+            '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
+                (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + UI._selectedYarnChips(sel) + '</div>' +
+            '<div class="event-pick-controls"><button class="btn btn-primary" onclick="UI._yarnSaleConfirm()" ' + (total === need ? '' : 'disabled') + '>Take Yarn</button></div>' +
+        '</div>';
         html += UI._yarnChips({ sel: sel, rule: 'any', need: need, addFn: 'UI._yarnSaleAdd', clearFn: 'UI._yarnSaleClear', lockCatNap: true });
-        html += '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
-                (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + UI._selectedYarnChips(sel) + '</div>';
-        html += '<div class="event-pick-controls"><button class="btn btn-primary" onclick="UI._yarnSaleConfirm()" ' + (total === need ? '' : 'disabled') + '>Take Yarn</button></div>';
         this.els.yarnSaleBody.innerHTML = html;
+        // Session 50: supply tray with count badges + minus zones
+        this.els.yarnSaleBody.classList.add('ar-supply-tray');
+        this.els.yarnSaleBody.classList.add('cp-count');
+        this.els.yarnSaleBody.setAttribute('data-minus-fn', '_yarnSaleMinus');
+    },
+
+    _yarnSaleMinus: function(color) {
+        var sel = this._yarnSale;
+        if (sel && sel[color]) {
+            sel[color]--;
+            if (!sel[color]) delete sel[color];
+        }
+        this._buildYarnSaleBody();
     },
 
     _yarnSaleAdd: function(color) {
@@ -98,7 +115,7 @@ Object.assign(UI, {
 
         if (!hasSomething) {
             html += '<div class="event-yarn-pick-summary" style="color:var(--text-muted);font-style:italic">' +
-                'Your stash is empty — nothing to donate!' +
+                'Your stash is empty. Nothing to donate!' +
                 '</div>';
         } else {
             // Standard yarn-chip grid, single-pick: tap a color you have → gives it.
@@ -106,11 +123,16 @@ Object.assign(UI, {
                 single: true, rule: 'any',
                 maxFor: function(c) { return bowl[c] || 0; },
                 sub: function(c) { return 'have ' + (bowl[c] || 0); },
+                tokNum: function(c) { return bowl[c] || 0; },
                 addFn: 'UI._donatePickColor'
             });
         }
 
         this.els.donateBody.innerHTML = html;
+        // Session 50 (Adam): giving from your bowl = the BOWL picker.
+        // Single-pick flavor: tap a token to give it; no +/- badges.
+        this.els.donateBody.classList.add('ar-bowl-tray');
+        this.els.donateBody.classList.add('cp-single');
     },
 
     _donatePickColor: function(color) {
@@ -704,6 +726,12 @@ Object.assign(UI, {
     // strip (onCraftClick / onSRCraftClick). Opened from "View Craft Options".
     // Cost dots for an item/SR option (with data-cb-color so the color letters show).
     // SR: exact dots or a rule label. Item unlearned: exact dots. Item learned: neutral dots x yarnCount.
+    _neutralDots: function(n, same) {
+        var h = '', cls = same ? 'craft-cost-dot craft-cost-dot-same' : 'craft-cost-dot craft-cost-dot-neutral';
+        for (var i = 0; i < n; i++) h += '<span class="' + cls + '"></span>';
+        return h;
+    },
+
     _costDotsHTML: function(opt) {
         var dot = function(c) { return '<span class="craft-cost-dot" data-cb-color="' + c + '" style="background:' + CARDS.COLOR_HEX[c] + '"></span>'; };
         var h = '';
@@ -713,18 +741,22 @@ Object.assign(UI, {
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < (sr.yarn[c] || 0); d++) h += dot(c); });
             } else if (rule === 'sameColorPlus') {
                 // N of one color + fixed extras (extras live in plusYarn). e.g. Ghost: 5 same + 1 red.
+                // Session 50 (Adam): flexible slots = GRAY dots + compact qualifier.
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.plusYarn || {})[c] || 0); d++) h += dot(c); });
-                h += '<span class="craft-cost-label">+' + (sr.yarnCount || 0) + ' same</span>';
+                h += UI._neutralDots(sr.yarnCount || 0, true) + '<span class="craft-cost-label">same</span>';
             } else if (rule === 'specificPlusAny') {
                 // specific colors + N of any OTHER color. e.g. Koi: 3 orange + 2 any.
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.yarn || {})[c] || 0); d++) h += dot(c); });
-                h += '<span class="craft-cost-label">+' + (sr.anyCount || 0) + ' any</span>';
+                h += UI._neutralDots(sr.anyCount || 0) + '<span class="craft-cost-label">any other</span>';
             } else if (rule === 'specificPlusSame') {
                 // specific colors + N of one color. e.g. Dog Bandana: 3 purple + 2 same.
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.yarn || {})[c] || 0); d++) h += dot(c); });
-                h += '<span class="craft-cost-label">+' + (sr.sameCount || 0) + ' same</span>';
+                h += UI._neutralDots(sr.sameCount || 0, true) + '<span class="craft-cost-label">same</span>';
+            } else if (rule === 'any' || rule === 'sameColor' || rule === 'different') {
+                var qual = { any: '', sameColor: 'same', different: 'all diff.' }[rule];
+                h += UI._neutralDots(sr.yarnCount || 0, rule === 'sameColor') + (qual ? '<span class="craft-cost-label">' + qual + '</span>' : '');
             } else {
-                var lbl = { any: sr.yarnCount + ' any', sameColor: sr.yarnCount + ' same', different: sr.yarnCount + ' diff.', give: 'Give ' + sr.yarnCount }[rule] || '';
+                var lbl = { give: 'Give ' + sr.yarnCount }[rule] || '';
                 h += '<span class="craft-cost-label">' + lbl + '</span>';
             }
         } else if (opt.tile && !opt.learned) {
@@ -758,16 +790,26 @@ Object.assign(UI, {
                     (o.itemDef.points ? '<span class="co-pts">' + o.itemDef.points + ' pts</span>' : '') +
                     '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
             });
-            srs.forEach(function(o, i) {
-                var sr = o.sr;
-                var off = !o.canAfford;
-                html += '<button class="craft-option-card' + (off ? ' co-disabled' : '') + '"' +
-                    (off ? ' disabled aria-disabled="true"' : ' onclick="UI._craftOptionPick(\'sr\',' + i + ')"') + '>' +
-                    '<img src="' + sr.img + '" alt=""><span class="co-name">' + sr.name + (sr.isFavorite ? ' ♥' : '') + '</span>' +
-                    '<span class="co-pts">' + sr.points + ' pts</span>' +
-                    '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
-            });
             html += '</div>';
+            // Session 50 (Adam): SRs live in their OWN row below the items -
+            // horizontal cards: SR card art left, name/points/dots right.
+            if (srs.length) {
+                html += '<div class="otc-section-label" style="margin-top:12px;margin-bottom:8px">Special Requests</div>';
+                html += '<div class="craft-options-sr-list">';
+                srs.forEach(function(o, i) {
+                    var sr = o.sr;
+                    var off = !o.canAfford;
+                    html += '<button class="craft-option-sr' + (off ? ' co-disabled' : '') + '"' +
+                        (off ? ' disabled aria-disabled="true"' : ' onclick="UI._craftOptionPick(\'sr\',' + i + ')"') + '>' +
+                        '<img class="co-sr-card" src="' + sr.img + '" alt="">' +
+                        '<span class="co-sr-info">' +
+                            '<span class="co-name">' + sr.name + (sr.isFavorite ? ' ♥' : '') + '</span>' +
+                            '<span class="co-pts">' + sr.points + ' pts</span>' +
+                            '<span class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</span>' +
+                        '</span></button>';
+                });
+                html += '</div>';
+            }
         }
         html += '<div class="confirm-take-buttons"><button class="btn btn-secondary" onclick="UI._closeCraftOptions()">Close</button></div></div>';
         ov.innerHTML = html;

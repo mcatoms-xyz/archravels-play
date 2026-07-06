@@ -553,9 +553,23 @@ Object.assign(UI, {
 
     _buildTake5: function() {
         var grid = document.getElementById('take5ColorGrid');
-        if (grid) grid.innerHTML = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>' +
-            UI._yarnChips({ sel: this._take5, rule: 'any', need: 5, addFn: 'UI.onTake5Pick', clearFn: 'UI.onTake5Clear', lockCatNap: true });
+        if (grid) {
+            grid.innerHTML = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>' +
+                UI._yarnChips({ sel: this._take5, rule: 'any', need: 5, addFn: 'UI.onTake5Pick', clearFn: 'UI.onTake5Clear', lockCatNap: true });
+            // Session 50: supply tray with count badges + minus zones
+            grid.classList.add('ar-supply-tray');
+            grid.classList.add('cp-count');
+            grid.setAttribute('data-minus-fn', 'onTake5Minus');
+        }
         this._updateTake5Display();
+    },
+
+    onTake5Minus: function(color) {
+        if (this._take5 && this._take5[color]) {
+            this._take5[color]--;
+            if (!this._take5[color]) delete this._take5[color];
+        }
+        this._buildTake5();
     },
 
     onTake5Pick: function(color) {
@@ -1263,7 +1277,7 @@ Object.assign(UI, {
             '<div class="yb-scrim" id="ybScrim"></div>' +
             '<div class="yb-drawer" id="ybDrawer" role="dialog" aria-label="Yarn Bowl: your yarn counts" title="Tap to close">' +
                 '<div class="yb-wheel" id="ybWheel"></div>' +
-                '<img class="yb-rim" src="Other Images Textures Details/AR_yarn_bowl_rim.png" alt="" draggable="false">' +
+                '<img class="yb-rim" src="Other Images Textures Details/yarn-bowl-wood.webp" alt="" draggable="false">' +
             '</div>';
         wrap.appendChild(clip);
         var hz = document.createElement('div');
@@ -1282,6 +1296,41 @@ Object.assign(UI, {
         document.getElementById('ybScrim').addEventListener('click', function(){ UI.closeYarnDrawer(); });
         document.getElementById('ybDrawer').addEventListener('click', function(){ UI.closeYarnDrawer(); });
         this._ybBuildWheel();
+    },
+
+    /* Session 50: compact static bowl-wheel SVG for modal contexts (tablet).
+       Same wedge geometry as the drawer wheel; no interactivity. */
+    _miniBowlSVG: function(bowl) {
+        bowl = bowl || {};
+        var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+        function pt(aDeg, r){ var a = aDeg * Math.PI / 180; return [100 + r * Math.sin(a), 100 - r * Math.cos(a)]; }
+        var s = '<svg viewBox="0 0 200 200" aria-hidden="true"><defs>';
+        order.forEach(function(c){
+            s += '<pattern id="mbfab-' + c + '" patternUnits="userSpaceOnUse" width="200" height="200">' +
+                 '<image href="Other Images Textures Details/Textures/FabricPlain0015_ar_' + c + '.png" width="200" height="200" preserveAspectRatio="xMidYMid slice"/></pattern>';
+        });
+        s += '<radialGradient id="mbshadeg"><stop offset="16%" stop-color="#000" stop-opacity="0.34"/><stop offset="48%" stop-color="#000" stop-opacity="0.14"/><stop offset="78%" stop-color="#000" stop-opacity="0"/></radialGradient>';
+        s += '<radialGradient id="mbfadeg"><stop offset="78%" stop-color="#fff" stop-opacity="1"/><stop offset="96%" stop-color="#fff" stop-opacity="0.72"/><stop offset="100%" stop-color="#fff" stop-opacity="0.45"/></radialGradient>';
+        s += '<mask id="mbfade"><circle cx="100" cy="100" r="102" fill="url(#mbfadeg)"/></mask>';
+        s += '</defs><g mask="url(#mbfade)">';
+        order.forEach(function(c, k){
+            var a0 = k * 60, a1 = (k + 1) * 60, R = 102;
+            var p1 = pt(a0, R), p2 = pt(a1, R);
+            var mid = pt(a0 + 30, 62), TW = 34;
+            var n = bowl[c] || 0;
+            s += '<g' + (n === 0 ? ' opacity="0.45"' : '') + '>';
+            s += '<path d="M100,100 L' + p1[0] + ',' + p1[1] + ' A' + R + ',' + R + ' 0 0 1 ' + p2[0] + ',' + p2[1] + ' Z" fill="url(#mbfab-' + c + ')" stroke="rgba(60,38,18,.55)" stroke-width="1.2"/>';
+            s += '<image href="Wood Yarn Tokens PNG/' + c + '.png" x="' + (mid[0] - TW/2) + '" y="' + (mid[1] - TW/2) + '" width="' + TW + '" height="' + TW + '"/>';
+            s += '<text x="' + mid[0] + '" y="' + mid[1] + '" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="800" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">' + n + '</text>';
+            s += '</g>';
+        });
+        s += '</g>';
+        var _total = 0;
+        order.forEach(function(c){ _total += (bowl[c] || 0); });
+        s += '<circle cx="100" cy="100" r="102" fill="url(#mbshadeg)" pointer-events="none"/>';
+        s += '<circle cx="100" cy="100" r="24" fill="#5a3c20" stroke="#3f2a15" stroke-width="3"/>';
+        s += '<text x="100" y="100" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="800" fill="#ffe9c9">' + _total + '</text></svg>';
+        return s;
     },
 
     _ybBuildWheel: function() {
@@ -1304,10 +1353,36 @@ Object.assign(UI, {
             im.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             p.appendChild(im); defs.appendChild(p);
         });
+        // Session 50 (Adam): rim fade + center-depth shade + hub total.
+        function addStops(gradEl, stops) {
+            stops.forEach(function(sd){
+                var st = document.createElementNS(NS, 'stop');
+                st.setAttribute('offset', sd[0]); st.setAttribute('stop-color', sd[1]); st.setAttribute('stop-opacity', sd[2]);
+                gradEl.appendChild(st);
+            });
+        }
+        var fadeG = document.createElementNS(NS, 'radialGradient');
+        fadeG.setAttribute('id', 'ybfadeg');
+        addStops(fadeG, [['78%','#ffffff','1'],['96%','#ffffff','0.72'],['100%','#ffffff','0.45']]);
+        defs.appendChild(fadeG);
+        var shadeG = document.createElementNS(NS, 'radialGradient');
+        shadeG.setAttribute('id', 'ybshadeg');
+        addStops(shadeG, [['16%','#000000','0.34'],['48%','#000000','0.14'],['78%','#000000','0']]);
+        defs.appendChild(shadeG);
+        var mask = document.createElementNS(NS, 'mask');
+        mask.setAttribute('id', 'ybfade');
+        var mc = document.createElementNS(NS, 'circle');
+        mc.setAttribute('cx','100'); mc.setAttribute('cy','100'); mc.setAttribute('r','102');
+        mc.setAttribute('fill','url(#ybfadeg)');
+        mask.appendChild(mc); defs.appendChild(mask);
         svg.appendChild(defs);
         function pt(aDeg, r){ var a = aDeg * Math.PI / 180; return [100 + r * Math.sin(a), 100 - r * Math.cos(a)]; }
         this._ybCounts = {};
         var self = this;
+        var pathsLayer = document.createElementNS(NS, 'g');
+        pathsLayer.setAttribute('mask', 'url(#ybfade)');
+        svg.appendChild(pathsLayer);
+        var labelsLayer = document.createElementNS(NS, 'g');
         order.forEach(function(c, k){
             var a0 = k * 60, a1 = (k + 1) * 60, R = 102;
             var p1 = pt(a0, R), p2 = pt(a1, R);
@@ -1320,22 +1395,22 @@ Object.assign(UI, {
             path.setAttribute('fill', 'url(#ybfab-' + c + ')');
             path.setAttribute('stroke', 'rgba(60,38,18,.55)'); path.setAttribute('stroke-width', '1.2');
             g.appendChild(path);
+            pathsLayer.appendChild(g);
             var mid = pt(a0 + 30, 62), TW = 34;
+            var lg = document.createElementNS(NS, 'g');
+            lg.setAttribute('pointer-events', 'none');
             var tok = document.createElementNS(NS, 'image');
             tok.setAttribute('href', 'Wood Yarn Tokens PNG/' + c + '.png');
             tok.setAttribute('x', mid[0] - TW/2); tok.setAttribute('y', mid[1] - TW/2);
             tok.setAttribute('width', TW); tok.setAttribute('height', TW);
-            g.appendChild(tok);
+            lg.appendChild(tok);
             var txt = document.createElementNS(NS, 'text');
             txt.setAttribute('x', mid[0]); txt.setAttribute('y', mid[1]);
             txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('dominant-baseline', 'central');
             txt.setAttribute('font-size', '15'); txt.setAttribute('font-weight', '800');
             txt.setAttribute('fill', '#fff'); txt.setAttribute('stroke', '#000'); txt.setAttribute('stroke-width', '3');
             txt.setAttribute('paint-order', 'stroke');
-            g.appendChild(txt);
-            // Session 50: colorblind letter badge at the wedge rim (R/O/Y/G/B/P).
-            // Always built; CSS shows it only in body.colorblind-mode. Covers every
-            // bowl context (tablet exposed bowl + phone/desktop drawer).
+            lg.appendChild(txt);
             var cbm = pt(a0 + 30, 86);
             var cbg = document.createElementNS(NS, 'g');
             cbg.setAttribute('class', 'yb-cb');
@@ -1350,14 +1425,26 @@ Object.assign(UI, {
             cbt.setAttribute('fill', '#241708');
             cbt.textContent = c.charAt(0).toUpperCase();
             cbg.appendChild(cbc); cbg.appendChild(cbt);
-            g.appendChild(cbg);
-            svg.appendChild(g);
+            lg.appendChild(cbg);
+            labelsLayer.appendChild(lg);
             self._ybCounts[c] = { text: txt, title: ttl, g: g };
         });
+        var shade = document.createElementNS(NS, 'circle');
+        shade.setAttribute('cx','100'); shade.setAttribute('cy','100'); shade.setAttribute('r','102');
+        shade.setAttribute('fill','url(#ybshadeg)'); shade.setAttribute('pointer-events','none');
+        svg.appendChild(shade);
+        svg.appendChild(labelsLayer);
         var dot = document.createElementNS(NS, 'circle');
         dot.setAttribute('cx', '100'); dot.setAttribute('cy', '100'); dot.setAttribute('r', '24');
         dot.setAttribute('fill', '#5a3c20'); dot.setAttribute('stroke', '#3f2a15'); dot.setAttribute('stroke-width', '3');
         svg.appendChild(dot);
+        var tot = document.createElementNS(NS, 'text');
+        tot.setAttribute('x','100'); tot.setAttribute('y','100');
+        tot.setAttribute('text-anchor','middle'); tot.setAttribute('dominant-baseline','central');
+        tot.setAttribute('font-size','17'); tot.setAttribute('font-weight','800');
+        tot.setAttribute('fill','#ffe9c9');
+        svg.appendChild(tot);
+        this._ybTotal = tot;
         host.appendChild(svg);
         this._ybSync();
     },
@@ -1373,6 +1460,11 @@ Object.assign(UI, {
             self._ybCounts[c].title.textContent = label;
             self._ybCounts[c].g.setAttribute('aria-label', label);
         });
+        if (this._ybTotal) {
+            var _tt = 0;
+            Object.keys(this._ybCounts).forEach(function(c){ _tt += (bowl[c] || 0); });
+            this._ybTotal.textContent = _tt;
+        }
     },
 
     openYarnDrawer: function() {
@@ -1459,6 +1551,29 @@ Object.assign(UI, {
 (function(){
     function boot() {
         try { UI.buildYarnDrawer(); } catch (e) {}
+        // Session 50: GLOBAL supply-tray zone listener (capture) - bottom of a
+        // well = minus (per-tray handler via data-minus-fn); review-locked
+        // trays (cp-full) swallow plus taps.
+        document.addEventListener('click', function(e){
+            try {
+                if (!document.body.classList.contains('cap-native')) return;
+                if (!(window.matchMedia && window.matchMedia('(min-width: 600px)').matches)) return;
+                var tray = e.target && e.target.closest ? e.target.closest('[data-minus-fn]') : null;
+                if (!tray) return;
+                var btn = e.target.closest('.xc-chip');
+                if (!btn || btn.disabled) return;
+                var rect = btn.getBoundingClientRect();
+                var minus = (e.clientY - rect.top) / rect.height > 0.74;
+                if (minus) {
+                    e.stopPropagation(); e.preventDefault();
+                    var fn = tray.getAttribute('data-minus-fn');
+                    var col = btn.getAttribute('data-cb-color');
+                    if (fn && col && typeof UI[fn] === 'function') UI[fn](col);
+                } else if (tray.classList.contains('cp-full')) {
+                    e.stopPropagation(); e.preventDefault();
+                }
+            } catch (err) {}
+        }, true);
         // Session 50: tablet portrait - move the FO drawer up to <body> so it can
         // be a fixed full-height side sheet (the board wrapper's zoom transform
         // would otherwise trap/scale it). IDs + class toggles keep working.

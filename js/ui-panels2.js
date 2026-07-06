@@ -401,6 +401,7 @@ Object.assign(UI, {
             h += '<button class="xc-chip' + (cur > 0 ? ' active' : '') + '" ' + (disabled ? 'disabled' : '') +
                  ' onclick="' + opts.addFn + '(\'' + color + '\')" data-cb-color="' + color + '" aria-label="' + cn + '">';
             h += '<img class="xc-yarn" src="Wood Yarn Tokens PNG/' + color + '.png" alt="" data-cb-color="' + color + '">';
+            if (opts.tokNum) h += '<span class="xc-tok-num">' + opts.tokNum(color) + '</span>';
             h += '<span class="xc-name">' + cn + '</span>';
             if (sub != null) h += '<span class="xc-sub">' + sub + '</span>';
             h += '</button>';
@@ -440,6 +441,26 @@ Object.assign(UI, {
         html += '<div class="otc-bowl-label">Your Yarn Bowl</div>';
         html += '<div class="otc-bowl-total">' + total + ' total</div>';
         html += '</div>';
+        // Session 50 (Adam): on tablets the modal shows the REAL bowl - the
+        // wood-bowl + wedge-wheel from the peek drawer - instead of the chip strip.
+        var _tabletBowl = document.body.classList.contains('cap-native') &&
+            window.matchMedia && window.matchMedia('(min-width: 600px)').matches;
+        if (_tabletBowl) {
+            // Adam 7/5: the PEEK-DRAWER bowl (wide wood board, tokens 3+3,
+            // counts ON the tokens) - same classes as the opponent viewer.
+            var _pkOrder = UI._yarnBowlOrder || CARDS.COLORS;
+            html += '<div class="opp-yarn-bowl otc-peek-bowl"><div class="opp-yarn-grid opp-yarn-arc">';
+            _pkOrder.forEach(function(color){
+                var n = bowl[color] || 0;
+                var cn = color.charAt(0).toUpperCase() + color.slice(1);
+                html += '<div class="opp-yarn-cell" title="' + cn + ': ' + n + '" aria-label="' + cn + ': ' + n + ' yarn">' +
+                    '<img class="opp-yarn-img" src="Wood Yarn Tokens PNG/' + color + '.png" alt="">' +
+                    '<span class="opp-yarn-num">' + n + '</span></div>';
+            });
+            html += '</div></div>';
+            html += '</div>';   /* close otc-bowl */
+            html += '<div style="display:none">';
+        }
         html += '<div class="otc-bowl-chips">';
         CARDS.COLORS.forEach(function(color) {
             var count = bowl[color] || 0;
@@ -448,7 +469,7 @@ Object.assign(UI, {
             html += '<span>' + count + '</span>';
             html += '</span>';
         });
-        html += '</div></div>';
+        html += '</div></div>';   /* non-tablet: closes chips + bowl; tablet: closes chips + hidden wrap */
 
         if (mode === 'color-pick') {
             // Your Patterns — show ALL pattern tiles. Unlearned → have/short color dots.
@@ -632,6 +653,9 @@ Object.assign(UI, {
         // Session 43: every showColorPicker use is a GAIN flow (clerk, take-3, wild picks) →
         // Cat Nap locks apply here.
         grid.innerHTML = UI._yarnChips({ single: true, rule: 'any', addFn: 'UI.onColorPick', lockCatNap: true });
+        // Session 50: this grid is a supply tray (global zone listener in ui-extra)
+        grid.classList.add('ar-supply-tray');
+        grid.setAttribute('data-minus-fn', '_wildUnpick');
     },
 
     /**

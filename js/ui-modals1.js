@@ -337,15 +337,60 @@ Object.assign(UI, {
      * Sequentially collect color choices for wild card picks.
      * Opens the color picker once per pick (a 2-any card = 2 picks).
      */
+    /* Session 50 (Adam): minus zone on the tray wells - undo the LAST pick
+       of that color in the current wild multi-pick flow and step back. */
+    _wildConfirm: function() {
+        var g = document.getElementById('colorPickerGrid');
+        if (g) { g.classList.remove('cp-full'); g.classList.remove('cp-multi'); }
+        var modal = this.els && this.els.colorModal;
+        if (modal) modal.style.display = 'none';
+        this.showConfirmTake();
+    },
+
+    _wildUnpick: function(color) {
+        var pending = this._pendingTake;
+        if (!pending || !pending.wildChoices || !pending.wildChoices.length) return;
+        var i = pending.wildChoices.lastIndexOf(color);
+        if (i < 0) return;
+        pending.wildChoices.splice(i, 1);
+        this._collectWildChoices(pending.wildChoices.length);
+    },
+
     _collectWildChoices: function(index) {
         var pending = this._pendingTake;
         if (!pending) return;
 
         if (index >= pending.wildPicksTotal) {
-            // All choices made — show full confirmation
-            this.showConfirmTake();
+            // Session 50 (Adam): on tablet MULTI-pick flows, do NOT jump ahead -
+            // stay in the picker in a REVIEW state (minus zones still live) with
+            // an explicit Confirm that leads to the shopping summary.
+            var _tabletMulti = pending.wildPicksTotal > 1 &&
+                document.body.classList.contains('cap-native') &&
+                window.matchMedia && window.matchMedia('(min-width: 600px)').matches;
+            if (!_tabletMulti) {
+                this.showConfirmTake();
+                return;
+            }
+            this.showColorPicker(function(){}, 'Your picks — all set!', Game.state.player, true);
+            this._colorPickerCallback = null;   // full: well taps add nothing
+            var _g = document.getElementById('colorPickerGrid');
+            if (_g) { _g.classList.add('cp-multi'); _g.classList.add('cp-full'); }
+            var _pe = document.getElementById('colorPickerProgress');
+            if (_pe) {
+                var _ph = '<span class="cpp-label">Your picks:</span>';
+                pending.wildChoices.forEach(function(col) {
+                    var hex = CARDS.COLOR_HEX[col] || '#888';
+                    _ph += '<span class="confirm-yarn-tag" style="background:' + hex + '">+1 ' +
+                        col.charAt(0).toUpperCase() + col.slice(1) + '</span>';
+                });
+                _ph += '<button class="btn btn-cta" id="cpConfirmBtn" style="margin-left:10px" onclick="UI._wildConfirm()">Confirm Picks →</button>';
+                _pe.innerHTML = _ph;
+                _pe.style.display = 'flex';
+            }
             return;
         }
+        var _gClr = document.getElementById('colorPickerGrid');
+        if (_gClr) _gClr.classList.remove('cp-full');
 
         var pickNum = index + 1;
         var total = pending.wildPicksTotal;
@@ -355,6 +400,9 @@ Object.assign(UI, {
             pending.wildChoices.push(color);
             UI._collectWildChoices(index + 1);
         }, title, Game.state.player, true);
+        // Session 50 (Adam): tray wells get a minus zone in multi-pick flows
+        var _cpGrid = document.getElementById('colorPickerGrid');
+        if (_cpGrid) _cpGrid.classList.toggle('cp-multi', total > 1);
 
         // Session 35: when more than one wild pick is needed, show a live
         // "your picks" row so the player sees colors already chosen this take.

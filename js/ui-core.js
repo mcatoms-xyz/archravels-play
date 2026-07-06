@@ -1483,6 +1483,11 @@ var UI = {
         }
         // Session 47: ↩ Change retired — while the choice is soft, the other
         // legal action spaces are live hop targets (the marker IS the change UI).
+        // Session 50 (Adam): belt-and-suspenders CRAFT button - opens the
+        // craft-anything modal (showCraftOptionsModal already crafts on tap).
+        if (actions.canCraft && actions.craftUsed < actions.craftLimit) {
+            buttonsHtml += '<button class="btn btn-primary" onclick="UI.showCraftOptionsModal()">🧶 Craft</button>';
+        }
         buttonsHtml += '<button class="btn btn-cta" onclick="UI.onEndActions()">End Actions →</button>';
 
         bar.innerHTML =

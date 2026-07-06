@@ -504,6 +504,12 @@ Object.assign(UI, {
             sub: isReceive ? null : function(color) {
                 var av = (bowl[color] || 0) - (reserved[color] || 0); return 'have ' + (av < 0 ? 0 : av);
             },
+            // Session 50 (Adam): LIVE remaining count rendered ON the token
+            // (bowl-tray CSS hides the words + shows this instead)
+            tokNum: isReceive ? null : function(color) {
+                var av = (bowl[color] || 0) - (reserved[color] || 0) - (alloc[color] || 0);
+                return av < 0 ? 0 : av;
+            },
             addFn: 'UI._craftChipAdd', clearFn: 'UI._craftChipClear'
         });
 
@@ -515,6 +521,10 @@ Object.assign(UI, {
                 (valid ? '<span class="xc-hint ok">Ready ✓</span>' : (rule === 'twoColors' ? '<span class="xc-hint">use exactly 2 colors</span>' : '')) + UI._selectedYarnChips(alloc) + '</div>';
 
         this.els.craftColorBody.innerHTML = html;
+        // Session 50 (Adam): bowl-SPEND picker skin - the peek bowl with +/- zones
+        this.els.craftColorBody.classList.add('ar-bowl-tray');
+        this.els.craftColorBody.classList.add('cp-count');
+        this.els.craftColorBody.setAttribute('data-minus-fn', '_craftChipMinus');
         this.els.craftColorConfirmBtn.disabled = !valid;
     },
 
@@ -548,6 +558,19 @@ Object.assign(UI, {
         if ((alloc[color] || 0) >= avail) return;
         alloc[color] = (alloc[color] || 0) + 1;
         this._buildCraftColorBody(def);
+    },
+
+    _craftChipMinus: function(color) {
+        var pending = this._pendingCraft; if (!pending) return;
+        var alloc = this._craftColorAlloc;
+        if (!alloc || !alloc[color]) return;
+        if (pending.itemDef && pending.itemDef.colorRule === 'oneColor') {
+            // oneColor allocs auto-fill: minus clears the whole pick
+            CARDS.COLORS.forEach(function(c) { alloc[c] = 0; });
+        } else {
+            alloc[color]--;
+        }
+        this._buildCraftColorBody(pending.itemDef);
     },
 
     _craftChipClear: function(color) {
