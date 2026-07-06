@@ -7453,17 +7453,18 @@ body.cap-native {
        slide it up UNDER the feed. Page never scrolls; bazaar may clip
        behind the action-bar band deliberately. NO transform zoom - unit
        scale is layout-true (board share absorbed old zoom: 64% x 1.15). */
-    --tpz-unit-scale: 100%;
-    --tpz-space-top: 8px;      /* unit Y: gap under the nav, >= 0 */
-    --tpz-unit-x: -36px;
+    /* ⭐ BLESSED: iPad 11" targets (Adam 7/6, post-500px-cap bugfix) */
+    --tpz-unit-scale: 103%;
+    --tpz-space-top: 18px;     /* unit Y: gap under the nav, >= 0 */
+    --tpz-unit-x: -30px;
     --tpz-board: 67.5%;        /* board share within the unit */
     --tpz-bowl-sz: 49%;
     --tpz-bowl-x: -80%;
     --tpz-bowl-y: 49.5%;
-    --tpz-gap-mid: 56px;       /* the ONE gap: unit -> bazaar */
+    --tpz-gap-mid: 60px;       /* the ONE gap: unit -> bazaar */
     --tpz-feed-w: 99%;
     --tpz-feed-x: 0%;
-    --tpz-feed-dy: 40px;      /* feed hover: 0 = bazaar top edge; - up into the gap, + down the whole board */
+    --tpz-feed-dy: 55px;      /* feed hover: 0 = bazaar top edge; - up into the gap, + down the whole board */
     --tpz-bazaar-w: 100%;
     --tpz-pad: 0px;
     --tpz-bar-h: 80px;        /* action-bar band: constant, sized to the tallest (restock) state */
@@ -9455,9 +9456,16 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
     body.cap-native .player-area .player-board-wrapper {
         width: var(--tpz-board);
         margin-left: calc(100% - var(--tpz-board));
+        /* 7/6 BUGFIX: the old phone stack block (@media max-width:880px)
+           was pinning this wrapper at max-width:500px — iPad 11" portrait
+           (834pt) falls INSIDE that query, so unit scale silently froze
+           whenever the wrapper hit 500px. Board is dial-driven here. */
+        max-width: none;
         /* zoom transform RETIRED (Adam spec): it overflowed the layout box
            and crept under the nav. Scale lives in --tpz-unit-scale + share. */
     }
+    /* same phone-block liberation for the bowl's plumbing (max-width:300px) */
+    body.cap-native .player-area .yarn-bowl-section { max-width: none; }
     /* the curved token stack + drawer plumbing retire on this layout */
     body.cap-native .player-area .yarn-bowl-overlay { display: none; }
     body.cap-native .player-area .yb-hotzone { display: none; }
