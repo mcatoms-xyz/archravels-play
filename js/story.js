@@ -321,6 +321,28 @@ var Story = {
   // stats (free & paid both play + save locally without an account). Only a truly
   // blank guest lands on the sign-in screen.
   account: function(){ this.open(); if(this.currentUser || this._hasLocalStats()) this.goStats(); else this.goSignIn(); },
+  // Crafter IDs the player has already started a climb with (excludes Hank).
+  _startedCrafters: function(){
+    var cr = this.profile && this.profile.crafters; if(!cr) return [];
+    return Object.keys(cr).filter(function(c){ return c!=='hank' && cr[c]; });
+  },
+  // #1 (Adam 7/6): the profile-header "Play Story" button. A returning player's
+  // crafter grid ("Your Crafters") is already on THIS profile page — so scroll them
+  // down to it to pick up where they left off, instead of restarting at the archetype
+  // select (which felt like starting over). Brand-new players still get the intro.
+  playStory: function(){
+    if(this._startedCrafters().length){
+      var roster = document.querySelector('#story-screen .pf-roster');
+      if(roster){
+        var head = roster.previousElementSibling;   // the "Your Crafters" heading
+        (head || roster).scrollIntoView({ behavior:'smooth', block:'start' });
+        roster.classList.add('pf-roster-flash');
+        setTimeout(function(){ roster.classList.remove('pf-roster-flash'); }, 1500);
+        return;
+      }
+    }
+    this.goTypes();   // new player (or roster not on screen) → archetype intro
+  },
   _hasLocalStats: function(){
     if(this.profile){ var p=this.profile; return !!(p._totalWins || (p.matches&&p.matches.length) || (p.crafters&&Object.keys(p.crafters).length) || p.handle || p.lifetimeStoryScore || p.bank); }
     try{
@@ -1451,7 +1473,7 @@ var Story = {
       '<div class="pf-id"><div class="pf-name" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="pf-pen">✎</span></div>'+
         '<div class="pf-sub">'+(this.currentUser?('Synced · '+(this.currentUser.email||'your account')):'Playing as a guest')+' · <span class="pf-editlink" onclick="Story.goEditName()">Change name</span></div></div>'+
       '<div class="pf-herocta">'+
-        '<button class="btn btn-gold" onclick="Story.goTypes()">Play Story →</button>'+
+        '<button class="btn btn-gold" onclick="Story.playStory()">'+(self._startedCrafters().length?'Continue Story →':'Play Story →')+'</button>'+
         (this.currentUser
           ? '<button class="btn btn-ghost" onclick="Story.signOut()">Sign out</button>'
           : '<button class="btn btn-ghost" onclick="Story.goSignIn()">Sign in</button>')+

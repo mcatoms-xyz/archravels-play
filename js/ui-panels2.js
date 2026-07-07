@@ -443,7 +443,9 @@ Object.assign(UI, {
         html += '</div>';
         // Session 50 (Adam): on tablets the modal shows the REAL bowl - the
         // wood-bowl + wedge-wheel from the peek drawer - instead of the chip strip.
-        var _tabletBowl = document.body.classList.contains('cap-native') &&
+        // Adam 7/6 QA: web-rich (desktop web) gets the real bowl too.
+        var _tabletBowl = (document.body.classList.contains('cap-native') ||
+            document.body.classList.contains('web-rich')) &&
             window.matchMedia && window.matchMedia('(min-width: 600px)').matches;
         if (_tabletBowl) {
             // Adam 7/5: the PEEK-DRAWER bowl (wide wood board, tokens 3+3,

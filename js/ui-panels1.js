@@ -521,8 +521,11 @@ Object.assign(UI, {
                 (valid ? '<span class="xc-hint ok">Ready ✓</span>' : (rule === 'twoColors' ? '<span class="xc-hint">use exactly 2 colors</span>' : '')) + UI._selectedYarnChips(alloc) + '</div>';
 
         this.els.craftColorBody.innerHTML = html;
-        // Session 50 (Adam): bowl-SPEND picker skin - the peek bowl with +/- zones
-        this.els.craftColorBody.classList.add('ar-bowl-tray');
+        // Session 50 (Adam): bowl-SPEND picker skin - the peek bowl with +/- zones.
+        // Adam 7/7: RECEIVE flows (Frog It) pull from the SUPPLY, not your bowl,
+        // so they get the Bazaar supply-tray skin instead.
+        this.els.craftColorBody.classList.remove('ar-bowl-tray', 'ar-supply-tray');
+        this.els.craftColorBody.classList.add(isReceive ? 'ar-supply-tray' : 'ar-bowl-tray');
         this.els.craftColorBody.classList.add('cp-count');
         this.els.craftColorBody.setAttribute('data-minus-fn', '_craftChipMinus');
         this.els.craftColorConfirmBtn.disabled = !valid;

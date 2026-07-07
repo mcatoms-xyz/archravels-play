@@ -1524,7 +1524,7 @@ var Game = {
                 return {
                     status: 'needsInput',
                     inputType: 'yarnSale',
-                    msg: 'Yarn Sale! Take 3 Yarn tokens of any color(s) from the supply.',
+                    msg: 'Take 3 Yarn tokens of any color(s) from the supply.',
                 };
 
             case 'donate':

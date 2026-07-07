@@ -1098,6 +1098,15 @@ var UI = {
                     bc.className = 'tangled-board-cat';
                     bc.src = 'Other Images Textures Details/AR_cat_meeple_GRAY_3D.png';
                     bc.alt = 'Tangled Cat'; bc.draggable = false;
+                    // #2 (Adam 7/6): poke the tangled cat on your board → annoyed meow.
+                    // The cat only exists while this player is tangled, so a tap here
+                    // always means "tangled." Override the class pointer-events:none.
+                    bc.style.pointerEvents = 'auto';
+                    bc.style.cursor = 'pointer';
+                    bc.title = 'Don’t poke the cat…';
+                    bc.addEventListener('click', function () {
+                        try { if (window.Sound) Sound.play('ev-tangled-cat'); } catch (e) {}
+                    });
                     wrap.appendChild(bc);
                 }
             }

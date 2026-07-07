@@ -13,7 +13,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=279">
+    <link rel="stylesheet" href="css/style.css?v=297">
 </head>
 
 <body class="ar-pregame">
@@ -636,16 +636,16 @@
          Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
          ============================================================= -->
     <script src="js/cards.js?v=200"></script>
-    <script src="js/game.js?v=259"></script>
+    <script src="js/game.js?v=260"></script>
     <script src="js/audio.js?v=200"></script>
     <script src="js/ai.js?v=200"></script>
     <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
          load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=236"></script>
+    <script src="js/ui-core.js?v=237"></script>
     <script src="js/ui-modals1.js?v=249"></script>
     <script src="js/ui-modals2.js?v=272"></script>
-    <script src="js/ui-panels1.js?v=272"></script>
-    <script src="js/ui-panels2.js?v=272"></script>
+    <script src="js/ui-panels1.js?v=273"></script>
+    <script src="js/ui-panels2.js?v=273"></script>
     <script src="js/ui-extra.js?v=260"></script>
 
     <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
@@ -660,7 +660,7 @@
 
     <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=200"></script>
+    <script src="js/story.js?v=201"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
@@ -684,7 +684,7 @@
                 });
             }
         } catch (e) {}
-        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 82 };
+        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 101 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build + (AR_VERSION.rev ? '.' + AR_VERSION.rev : '');
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; var el4 = document.getElementById('landingBuild'); if (el4) el4.textContent = label; }
@@ -730,14 +730,20 @@
             function phoneWeb(){ return !native && !!mq && mq.matches; }
             // TABLET-WEB (Session 50, Adam): any tablet-class touch viewport gets the
             // native tablet layout — iPad Safari test-drives the app UI, no wrapper needed.
+            // DESKTOP opt-in test via ?tabletui (Adam QA 7/6): forces the tablet layout on
+            // a mouse browser. To ship to ALL wide browsers, drop the "?tabletui" gate below.
             var mqTab = window.matchMedia ? window.matchMedia('(min-width:600px) and (pointer:coarse)') : null;
-            function tabletWeb(){ return !native && !!mqTab && mqTab.matches; }
+            var tabletUiForced = /[?&]tabletui\b/.test(location.search);
+            function tabletWeb(){ return !native && ((!!mqTab && mqTab.matches) || tabletUiForced); }
             function apply(){
                 if (!document.body) return;
                 var on = native || phoneWeb() || tabletWeb();
                 document.body.classList.toggle('cap-native', on);
                 document.body.classList.toggle('phone-web', !native && phoneWeb());
                 document.body.classList.toggle('tablet-web', !native && tabletWeb());
+                // web-rich (Adam 7/6): S50 MODAL system (picker tray/bowl, Learn,
+                // Craft Circle, event modals) on ALL web browsers — layout untouched.
+                document.body.classList.toggle('web-rich', !native);
             }
             apply();
             if (!native && !phoneWeb() && !tabletWeb()) {

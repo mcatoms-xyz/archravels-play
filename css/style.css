@@ -59,6 +59,23 @@
     src: url('../webfonts/AveriaSerifLibre-Bold.woff2') format('woff2');
     font-weight: 700; font-style: normal; font-display: swap;
 }
+/* Font-rule sweep (7/6): flavor face — Averia Light 300, upright + italic.
+   Flavor/story/event-narration ONLY. Functional text = Baloo2 (SantElia). */
+@font-face {
+    font-family: 'AveriaSerif';
+    src: url('../webfonts/AveriaSerifLibre-Light.woff2') format('woff2');
+    font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'AveriaSerif';
+    src: url('../webfonts/AveriaSerifLibre-LightItalic.woff2') format('woff2');
+    font-weight: 300; font-style: italic; font-display: swap;
+}
+/* Flavor helper — the blessed flavor voice. Apply to story/flavor/narration. */
+.ar-flavor, .flavor-text {
+    font-family: 'AveriaSerif', var(--font-system);
+    font-weight: 300; font-style: italic;
+}
 
 /* =====================================================================
    ArchRavels Digital Prototype — Stylesheet (continued)
@@ -8401,6 +8418,10 @@ body.cap-native .snag-pill, body.phone-web .snag-pill { font-size: 11px; padding
 
 /* crafter roster */
 #story-root .pf-roster{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+/* #1 (Adam 7/6): brief highlight when "Continue Story" scrolls a returning player here. */
+#story-root .pf-roster.pf-roster-flash{ animation: pfRosterFlash 1.5s ease-out; border-radius:14px; }
+@keyframes pfRosterFlash{ 0%{ box-shadow:0 0 0 3px rgba(201,168,76,0); } 25%{ box-shadow:0 0 0 3px rgba(201,168,76,.85); } 100%{ box-shadow:0 0 0 3px rgba(201,168,76,0); } }
+@media (prefers-reduced-motion: reduce){ #story-root .pf-roster.pf-roster-flash{ animation:none; } }
 #story-root .pf-craf{ background:#fffaf0; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.24); cursor:pointer; transition:transform .1s; }
 #story-root .pf-craf:hover{ transform:translateY(-3px); }
 #story-root .pf-cp{ position:relative; height:100px; }
@@ -9517,7 +9538,11 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
 .learn-tile-name { font-family: 'Baloo2', var(--font-system); }
 
 .modal-title, .game-moment-title { font-family: 'Baloo2', var(--font-system); }
-.modal-content { font-family: 'AveriaSerif', var(--font-system); }
+/* Font-rule sweep (7/6): modal body defaults to FUNCTIONAL (Baloo2).
+   Was 'AveriaSerif' — that made every modal render serif by default, the
+   anti-pattern the sweep hunts. Flavor/narration selectors opt into Averia
+   Light italic explicitly (see .event-modal-msg, .craft-circle-msg, etc.). */
+.modal-content { font-family: 'Baloo2', var(--font-system); }
 
 @media (orientation: portrait) and (min-width: 600px) {
     body.cap-native .player-area .tangled-board-cat { z-index: 12; }
@@ -9615,17 +9640,28 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
 .sr-take-points {
     font-family: 'Baloo2', var(--font-system);
 }
+/* Font-rule sweep (7/6): FLAVOR / narration → Averia Light 300 italic.
+   Removed from this group (functional — now inherit Baloo2 from .modal-content):
+   .event-yarn-pick-summary, .sr-points-confirm, .craft-color-count. */
 .event-modal-msg,
-.event-yarn-pick-summary,
 .donate-note,
 .craft-circle-msg,
 .craft-circle-empty,
 .restock-modal-msg,
 .frog-confirm-note,
-.sr-points-confirm,
-.craft-color-count,
 .finished-empty {
     font-family: 'AveriaSerif', var(--font-system);
+    font-weight: 300;
+    font-style: italic;
+}
+/* Adam QA 7/6 r2 (B50.86): EVENT narration = same BODY font as the SR modal
+   (Baloo2 via the modal base), NOT Averia flavor. Upright, 18px. Other flavor
+   spots (donate, craft circle msg, frog, restock) keep the Averia italic. */
+.event-modal-msg {
+    font-family: 'Baloo2', var(--font-system);
+    font-weight: 600;
+    font-style: normal;
+    font-size: 18px;
 }
 
 /* =================================================================
@@ -9634,30 +9670,30 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
    earmarked for the future "yarn picker" upgrade.
    ================================================================= */
 @media (min-width: 600px) {
-    body.cap-native #colorPickerModal .modal-content {
+    body:is(.cap-native, .web-rich) #colorPickerModal .modal-content {
         width: min(94vw, 780px);
         max-width: 780px;
     }
-    body.cap-native #colorPickerModal .modal-title { font-size: 26px; }
-    body.cap-native .color-picker-grid {
+    body:is(.cap-native, .web-rich) #colorPickerModal .modal-title { font-size: 26px; }
+    body:is(.cap-native, .web-rich) .color-picker-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
         width: 100%;
         margin-top: 6px;
     }
-    body.cap-native .color-pick-btn {
+    body:is(.cap-native, .web-rich) .color-pick-btn {
         font-size: 18px;
         padding: 18px 10px;
         border-radius: 14px;
     }
-    body.cap-native .color-pick-btn img { width: 58px; height: auto; }
-    body.cap-native .color-pick-progress { padding: 10px 12px; gap: 8px; }
-    body.cap-native .color-pick-progress .cpp-label { font-size: 17px; }
-    body.cap-native .color-pick-progress .cpp-empty { font-size: 16px; padding: 4px 16px; }
-    body.cap-native #colorPickerModal .otc-need-card img { width: 52px; height: 52px; }
-    body.cap-native #colorPickerModal .otc-need-card-name,
-    body.cap-native #colorPickerModal .otc-chip { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .color-pick-btn img { width: 58px; height: auto; }
+    body:is(.cap-native, .web-rich) .color-pick-progress { padding: 10px 12px; gap: 8px; }
+    body:is(.cap-native, .web-rich) .color-pick-progress .cpp-label { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .color-pick-progress .cpp-empty { font-size: 16px; padding: 4px 16px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-need-card img { width: 52px; height: 52px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-need-card-name,
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-chip { font-size: 17px; }
 }
 
 /* =================================================================
@@ -9668,17 +9704,17 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
    graphic = the coming "yarn picker" upgrade.
    ================================================================= */
 @media (min-width: 600px) {
-    body.cap-native #colorPickerModal .modal-content {
+    body:is(.cap-native, .web-rich) #colorPickerModal .modal-content {
         font-family: 'Baloo2', var(--font-system);
     }
-    body.cap-native .ar-supply-tray {
+    body:is(.cap-native, .web-rich) .ar-supply-tray {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 14px;
         width: 100%;
         margin-top: 8px;
     }
-    body.cap-native .ar-supply-tray .color-pick-btn {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .color-pick-btn {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -9689,27 +9725,27 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
         font-family: 'Baloo2', var(--font-system);
         padding: 18px 10px;
     }
-    body.cap-native #colorPickerModal .color-pick-progress,
-    body.cap-native #colorPickerModal .color-pick-progress .cpp-label {
+    body:is(.cap-native, .web-rich) #colorPickerModal .color-pick-progress,
+    body:is(.cap-native, .web-rich) #colorPickerModal .color-pick-progress .cpp-label {
         font-family: 'Baloo2', var(--font-system);
         font-size: 17px;
     }
     /* the "what you need" cost dots on the pattern cards - BIG */
-    body.cap-native #colorPickerModal .craft-cost-dot {
+    body:is(.cap-native, .web-rich) #colorPickerModal .craft-cost-dot {
         width: 24px;
         height: 24px;
         font-size: 13px;
     }
-    body.cap-native #colorPickerModal .otc-pattern-grid .otc-need-card .craft-cost-dot {
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-pattern-grid .otc-need-card .craft-cost-dot {
         width: 24px;
         height: 24px;
     }
-    body.cap-native #colorPickerModal .otc-dot { width: 24px; height: 24px; }
-    body.cap-native #colorPickerModal .craft-cost-dot::after,
-    body.cap-native #colorPickerModal .otc-dot::after { font-size: 13px; }
-    body.cap-native #colorPickerModal .otc-need-card { padding: 12px 12px; gap: 10px; }
-    body.cap-native #colorPickerModal .otc-need-card img { width: 58px; height: 58px; }
-    body.cap-native #colorPickerModal .otc-need-card-name { font-size: 19px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-dot { width: 24px; height: 24px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .craft-cost-dot::after,
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-dot::after { font-size: 13px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-need-card { padding: 12px 12px; gap: 10px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-need-card img { width: 58px; height: 58px; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .otc-need-card-name { font-size: 19px; }
 }
 
 /* =================================================================
@@ -9720,10 +9756,10 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
    token visible in each well.
    ================================================================= */
 @media (min-width: 600px) {
-    body.cap-native .ar-supply-tray {
+    body:is(.cap-native, .web-rich) .ar-supply-tray {
         display: block;
     }
-    body.cap-native .ar-supply-tray .xc-chips {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chips {
         position: relative;
         display: block;
         width: 100%;
@@ -9732,14 +9768,14 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
         aspect-ratio: 1445 / 977;
         background: url('../Other Images Textures Details/yarn-picker-tray.webp') no-repeat center / contain;
     }
-    body.cap-native .ar-supply-tray .xc-chip-wrap {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap {
         position: absolute;
         width: 27%;
         aspect-ratio: 1 / 1;
         transform: translate(-50%, -50%);
         margin: 0;
     }
-    body.cap-native .ar-supply-tray .xc-chip {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip {
         /* unrotated square clipped to a diamond: content stays upright,
            hit area matches the well (clip-path clips clicks too) */
         position: absolute;
@@ -9760,13 +9796,13 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
         gap: 4%;
         transition: filter .15s, background .15s;
     }
-    body.cap-native .ar-supply-tray .xc-chip .xc-yarn {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip .xc-yarn {
         display: block;
         width: 40%;
         height: auto;
         filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .35));
     }
-    body.cap-native .ar-supply-tray .xc-chip .xc-name {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip .xc-name {
         display: block;
         font-family: 'Baloo2', var(--font-system);
         font-size: clamp(13px, 2.6vw, 19px);
@@ -9775,29 +9811,29 @@ body:not(.ar-pregame) .landing-topbar { display: none; }
         text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
         line-height: 1;
     }
-    body.cap-native .ar-supply-tray .xc-chip .xc-sub {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip .xc-sub {
         display: block;
         font-size: 12px;
         color: #6b4a2a;
     }
-    body.cap-native .ar-supply-tray .xc-chip:hover,
-    body.cap-native .ar-supply-tray .xc-chip:focus-visible,
-    body.cap-native .ar-supply-tray .xc-chip:active {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip:hover,
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip:focus-visible,
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip:active {
         background: radial-gradient(circle at 50% 50%, rgba(255, 240, 200, .38), rgba(255, 211, 122, .12) 70%);
         filter: brightness(1.06);
     }
-    body.cap-native .ar-supply-tray .xc-chip[disabled] {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip[disabled] {
         background: rgba(38, 24, 10, .5);
         cursor: default;
     }
-    body.cap-native .ar-supply-tray .xc-chip[disabled] .xc-yarn { filter: grayscale(.7) brightness(.8); }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip[disabled] .xc-yarn { filter: grayscale(.7) brightness(.8); }
     /* wells, by color (art coords, 1445x977) */
-    body.cap-native .ar-supply-tray .xc-chip-wrap:has([data-cb-color="purple"]) { left: 50%;   top: 72.5%; }
-    body.cap-native .ar-supply-tray .xc-chip-wrap:has([data-cb-color="blue"])   { left: 33.8%; top: 50%; }
-    body.cap-native .ar-supply-tray .xc-chip-wrap:has([data-cb-color="red"])    { left: 65.6%; top: 49.5%; }
-    body.cap-native .ar-supply-tray .xc-chip-wrap:has([data-cb-color="green"])  { left: 17.6%; top: 28%; }
-    body.cap-native .ar-supply-tray .xc-chip-wrap:has([data-cb-color="yellow"]) { left: 49.8%; top: 27.5%; }
-    body.cap-native .ar-supply-tray .xc-chip-wrap:has([data-cb-color="orange"]) { left: 81.8%; top: 27.5%; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap:has([data-cb-color="purple"]) { left: 50%;   top: 72.5%; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap:has([data-cb-color="blue"])   { left: 33.8%; top: 50%; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap:has([data-cb-color="red"])    { left: 65.6%; top: 49.5%; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap:has([data-cb-color="green"])  { left: 17.6%; top: 28%; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap:has([data-cb-color="yellow"]) { left: 49.8%; top: 27.5%; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip-wrap:has([data-cb-color="orange"]) { left: 81.8%; top: 27.5%; }
 }
 
 /* Session 50: Adam's turned-wood bowl art replaces the rim. The bowl is now
@@ -9818,23 +9854,23 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
 /* Session 50: the PEEK-DRAWER bowl (wide board + 3+3 tokens w/ counts)
    inside picker-modal contexts (Adam 7/5). Reuses the opp-yarn classes. */
 @media (min-width: 600px) {
-    body.cap-native .otc-bowl { padding: 8px 0 0; }
-    body.cap-native .otc-bowl .otc-bowl-header { padding: 0 12px; }
-    body.cap-native .otc-peek-bowl {
+    body:is(.cap-native, .web-rich) .otc-bowl { padding: 8px 0 0; }
+    body:is(.cap-native, .web-rich) .otc-bowl .otc-bowl-header { padding: 0 12px; }
+    body:is(.cap-native, .web-rich) .otc-peek-bowl {
         width: 100%;
         margin: 4px 0 0;
         border-radius: 0 0 10px 10px;
         filter: none;
     }
-    body.cap-native .otc-peek-bowl .opp-yarn-arc { gap: 38px 0; padding: 6% 5% 0; }
-    body.cap-native .otc-peek-bowl .opp-yarn-img { width: 96px; height: 96px; }
-    body.cap-native .otc-peek-bowl .opp-yarn-num { font-size: 25px; }
+    body:is(.cap-native, .web-rich) .otc-peek-bowl .opp-yarn-arc { gap: 38px 0; padding: 6% 5% 0; }
+    body:is(.cap-native, .web-rich) .otc-peek-bowl .opp-yarn-img { width: 96px; height: 96px; }
+    body:is(.cap-native, .web-rich) .otc-peek-bowl .opp-yarn-num { font-size: 25px; }
 }
 
 /* Session 50: +/- badges on the tray wells. + always (tap = add);
    - appears in multi-pick flows and its bottom zone undoes that color. */
 @media (min-width: 600px) {
-    body.cap-native .ar-supply-tray .xc-chip::before {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip::before {
         content: '+';
         position: absolute;
         top: 6.5%;
@@ -9854,7 +9890,7 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         text-align: center;
         pointer-events: none;
     }
-    body.cap-native .ar-supply-tray .xc-chip::after {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip::after {
         content: '\2212';
         position: absolute;
         bottom: 6.5%;
@@ -9875,9 +9911,9 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         pointer-events: none;
         display: none;
     }
-    body.cap-native .ar-supply-tray.cp-multi .xc-chip::after { display: block; }
-    body.cap-native .ar-supply-tray .xc-chip[disabled]::before,
-    body.cap-native .ar-supply-tray .xc-chip[disabled]::after { display: none; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray.cp-multi .xc-chip::after { display: block; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip[disabled]::before,
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip[disabled]::after { display: none; }
 }
 
 /* =================================================================
@@ -9889,7 +9925,7 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
    ================================================================= */
 @media (min-width: 600px) {
     /* count-flow trays: badge on the well, minus always available */
-    body.cap-native .ar-supply-tray .xc-badge {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-badge {
         position: absolute;
         top: 15%;
         left: 63%;
@@ -9909,31 +9945,31 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         box-sizing: border-box;
         pointer-events: none;
     }
-    body.cap-native .ar-supply-tray .xc-remove { display: none; }
-    body.cap-native .ar-supply-tray .xc-help { display: none; }
-    body.cap-native .ar-supply-tray.cp-count .xc-chip::after { display: block; }
-    body.cap-native .ar-supply-tray .xc-chip.active { filter: brightness(1.05); }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-remove { display: none; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-help { display: none; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray.cp-count .xc-chip::after { display: block; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip.active { filter: brightness(1.05); }
 
     /* Yarn Sale / Take 5 modals: same size + type as the color picker */
-    body.cap-native .yarn-sale-content,
-    body.cap-native .take5-content {
+    body:is(.cap-native, .web-rich) .yarn-sale-content,
+    body:is(.cap-native, .web-rich) .take5-content {
         width: min(94vw, 780px);
         max-width: 780px;
         font-family: 'Baloo2', var(--font-system);
     }
-    body.cap-native .yarn-sale-content .xc-balance,
-    body.cap-native .take5-content .xc-balance,
-    body.cap-native .take5-content .take5-picks { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .yarn-sale-content .xc-balance,
+    body:is(.cap-native, .web-rich) .take5-content .xc-balance,
+    body:is(.cap-native, .web-rich) .take5-content .take5-picks { font-size: 17px; }
 
     /* pattern cards + cost dots at picker scale in EVERY modal context */
-    body.cap-native .modal-overlay .otc-need-card { padding: 12px 12px; gap: 10px; }
-    body.cap-native .modal-overlay .otc-need-card img { width: 58px; height: 58px; }
-    body.cap-native .modal-overlay .otc-need-card-name { font-size: 19px; }
-    body.cap-native .modal-overlay .otc-chip { font-size: 17px; }
-    body.cap-native .modal-overlay .craft-cost-dot,
-    body.cap-native .modal-overlay .otc-dot { width: 24px; height: 24px; }
-    body.cap-native .modal-overlay .craft-cost-dot::after,
-    body.cap-native .modal-overlay .otc-dot::after { font-size: 13px; }
+    body:is(.cap-native, .web-rich) .modal-overlay .otc-need-card { padding: 12px 12px; gap: 10px; }
+    body:is(.cap-native, .web-rich) .modal-overlay .otc-need-card img { width: 58px; height: 58px; }
+    body:is(.cap-native, .web-rich) .modal-overlay .otc-need-card-name { font-size: 19px; }
+    body:is(.cap-native, .web-rich) .modal-overlay .otc-chip { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .modal-overlay .craft-cost-dot,
+    body:is(.cap-native, .web-rich) .modal-overlay .otc-dot { width: 24px; height: 24px; }
+    body:is(.cap-native, .web-rich) .modal-overlay .craft-cost-dot::after,
+    body:is(.cap-native, .web-rich) .modal-overlay .otc-dot::after { font-size: 13px; }
 }
 
 /* =================================================================
@@ -9946,43 +9982,44 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
    - "What you can make": one scrollable ROW of proper cards.
    ================================================================= */
 @media (min-width: 600px) {
-    body.cap-native .learn-pattern-content,
-    body.cap-native .finish-project-content,
-    body.cap-native .frog-it-content,
-    body.cap-native .craft-circle-content,
-    body.cap-native #craftOptionsModal .modal-content {
+    body:is(.cap-native, .web-rich) .learn-pattern-content,
+    body:is(.cap-native, .web-rich) .finish-project-content,
+    body:is(.cap-native, .web-rich) .frog-it-content,
+    body:is(.cap-native, .web-rich) .craft-circle-content,
+    body:is(.cap-native, .web-rich) #craftOptionsModal .modal-content {
         min-width: min(76vw, 760px);
     }
 
     /* Craft Circle */
-    body.cap-native .craft-circle-content { max-width: min(94vw, 840px); }
-    body.cap-native .craft-circle-msg {
+    body:is(.cap-native, .web-rich) .craft-circle-content { max-width: min(94vw, 840px); }
+    body:is(.cap-native, .web-rich) .craft-circle-msg {
         background: none;
         border: none;
         padding: 4px 0;
         font-family: 'AveriaSerif', var(--font-system);
         font-size: 18px;
-        font-weight: 700;
+        font-weight: 300;   /* sweep: flavor = Light italic */
+        font-style: italic;
         color: var(--text);
     }
-    body.cap-native .event-bonus {
+    body:is(.cap-native, .web-rich) .event-bonus {
         font-family: 'AveriaSerif', var(--font-system);
         font-size: 17px;
     }
-    body.cap-native .craft-circle-empty {
+    body:is(.cap-native, .web-rich) .craft-circle-empty {
         font-family: 'AveriaSerif', var(--font-system);
         font-size: 16.5px;
     }
-    body.cap-native .craft-circle-grid { flex-wrap: wrap; gap: 12px; }
-    body.cap-native .craft-circle-grid .craft-slot { width: 140px; padding: 10px; }
-    body.cap-native .craft-circle-grid .craft-slot img { width: 76px; height: auto; }
-    body.cap-native .craft-circle-grid .craft-slot-name {
+    body:is(.cap-native, .web-rich) .craft-circle-grid { flex-wrap: wrap; gap: 12px; }
+    body:is(.cap-native, .web-rich) .craft-circle-grid .craft-slot { width: 140px; padding: 10px; }
+    body:is(.cap-native, .web-rich) .craft-circle-grid .craft-slot img { width: 76px; height: auto; }
+    body:is(.cap-native, .web-rich) .craft-circle-grid .craft-slot-name {
         font-family: 'Baloo2', var(--font-system);
         font-size: 15px;
     }
 
     /* What you can make: one row of real cards (scrolls if crowded) */
-    body.cap-native .craft-options-grid {
+    body:is(.cap-native, .web-rich) .craft-options-grid {
         flex-wrap: nowrap;
         overflow-x: auto;
         justify-content: safe center;
@@ -9990,49 +10027,49 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         padding: 4px 2px 10px;
         scrollbar-width: none;
     }
-    body.cap-native .craft-options-grid::-webkit-scrollbar { display: none; }
-    body.cap-native .craft-option-card { width: 152px; flex: 0 0 auto; padding: 12px 10px; }
-    body.cap-native .craft-option-card img { width: 80px; height: 80px; }
-    body.cap-native .craft-option-card .co-name {
+    body:is(.cap-native, .web-rich) .craft-options-grid::-webkit-scrollbar { display: none; }
+    body:is(.cap-native, .web-rich) .craft-option-card { width: 152px; flex: 0 0 auto; padding: 12px 10px; }
+    body:is(.cap-native, .web-rich) .craft-option-card img { width: 80px; height: 80px; }
+    body:is(.cap-native, .web-rich) .craft-option-card .co-name {
         font-size: 16px;
         font-family: 'Baloo2', var(--font-system);
     }
-    body.cap-native .craft-option-card .co-pts { font-size: 14px; }
+    body:is(.cap-native, .web-rich) .craft-option-card .co-pts { font-size: 14px; }
 }
 
 /* Session 50: Learn a Pattern on tablets = horizontal cards.
    [tile -> arrow -> tile]  |  name / trade-in / was / after (left-aligned) */
 @media (min-width: 600px) {
-    body.cap-native .learn-pattern-content { max-width: min(94vw, 760px); }
-    body.cap-native .learn-pattern-list {
+    body:is(.cap-native, .web-rich) .learn-pattern-content { max-width: min(94vw, 760px); }
+    body:is(.cap-native, .web-rich) .learn-pattern-list {
         display: flex;
         flex-direction: column;
         gap: 12px;
         max-height: 60vh;
     }
-    body.cap-native .learn-tile-row {
+    body:is(.cap-native, .web-rich) .learn-tile-row {
         flex-direction: row;
         align-items: center;
         text-align: left;
         gap: 18px;
         padding: 14px 18px;
     }
-    body.cap-native .learn-tile-imgs {
+    body:is(.cap-native, .web-rich) .learn-tile-imgs {
         flex-direction: row;
         gap: 10px;
         flex-shrink: 0;
     }
-    body.cap-native .learn-tile-img { width: 84px; }
-    body.cap-native .learn-tile-arrow-img { transform: rotate(-90deg); width: 30px; }
-    body.cap-native .learn-tile-info {
+    body:is(.cap-native, .web-rich) .learn-tile-img { width: 84px; }
+    body:is(.cap-native, .web-rich) .learn-tile-arrow-img { transform: rotate(-90deg); width: 30px; }
+    body:is(.cap-native, .web-rich) .learn-tile-info {
         align-items: flex-start;
         text-align: left;
         gap: 4px;
     }
-    body.cap-native .learn-tile-name { font-size: 21px; }
-    body.cap-native .learn-tile-trade-in { font-size: 15px; }
-    body.cap-native .learn-tile-cost { font-size: 15px; }
-    body.cap-native .learn-tile-after { font-size: 16px; }
+    body:is(.cap-native, .web-rich) .learn-tile-name { font-size: 21px; }
+    body:is(.cap-native, .web-rich) .learn-tile-trade-in { font-size: 15px; }
+    body:is(.cap-native, .web-rich) .learn-tile-cost { font-size: 15px; }
+    body:is(.cap-native, .web-rich) .learn-tile-after { font-size: 16px; }
 }
 
 /* Session 50: font check pass - headers use the Baloo2 EXTRABOLD face
@@ -10043,19 +10080,19 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
     font-weight: 800;
 }
 @media (min-width: 600px) {
-    body.cap-native .restock-modal-msg { font-size: 17px; line-height: 1.45; }
-    body.cap-native .learn-tile-name { font-size: 24px; }
-    body.cap-native .learn-tile-trade-in { font-size: 17px; }
-    body.cap-native .learn-tile-cost { font-size: 17px; }
-    body.cap-native .learn-tile-after { font-size: 18px; }
-    body.cap-native .learn-tile-info { gap: 6px; }
+    body:is(.cap-native, .web-rich) .restock-modal-msg { font-size: 17px; line-height: 1.45; }
+    body:is(.cap-native, .web-rich) .learn-tile-name { font-size: 24px; }
+    body:is(.cap-native, .web-rich) .learn-tile-trade-in { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .learn-tile-cost { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .learn-tile-after { font-size: 18px; }
+    body:is(.cap-native, .web-rich) .learn-tile-info { gap: 6px; }
 }
 
 /* Session 50: craft-options polish - dots never wrap on item cards;
    SR section = horizontal rows (card art left, details right). */
 @media (min-width: 600px) {
-    body.cap-native .craft-option-card .co-cost { flex-wrap: nowrap; }
-    body.cap-native .craft-option-card .co-cost .craft-cost-dot { width: 20px; height: 20px; }
+    body:is(.cap-native, .web-rich) .craft-option-card .co-cost { flex-wrap: nowrap; }
+    body:is(.cap-native, .web-rich) .craft-option-card .co-cost .craft-cost-dot { width: 20px; height: 20px; }
 }
 .craft-options-sr-list { display: flex; flex-direction: column; gap: 10px; }
 .craft-option-sr {
@@ -10086,39 +10123,42 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
    - Event reveal modal (Craft Circle etc.): compact width, MUCH bigger copy.
    - "Forget Something?" warns: bigger copy (width already back to small). */
 @media (min-width: 600px) {
-    body.cap-native .xc-chips { justify-content: center; }
-    body.cap-native .event-modal-content { max-width: 580px; min-width: 0; }
-    body.cap-native .event-modal-msg {
-        font-family: 'AveriaSerif', var(--font-system);
+    body:is(.cap-native, .web-rich) .xc-chips { justify-content: center; }
+    body:is(.cap-native, .web-rich) .event-modal-content { max-width: 580px; min-width: 0; }
+    body:is(.cap-native, .web-rich) .event-modal-msg {
+        font-family: 'Baloo2', var(--font-system);  /* Adam QA 7/6 r2: SR-modal body font */
+        font-weight: 600;
         font-size: 19px;
         line-height: 1.45;
     }
-    body.cap-native .event-extra-body { font-size: 17px; }
-    body.cap-native .end-warn-body {
+    body:is(.cap-native, .web-rich) .event-extra-body { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .end-warn-body {
         font-size: 18px;
         line-height: 1.5;
     }
-    body.cap-native .end-warn-chip { font-size: 17px; }
-    body.cap-native .end-warn-chips { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .end-warn-chip { font-size: 17px; }
+    body:is(.cap-native, .web-rich) .end-warn-chips { font-size: 17px; }
 }
 
 /* Session 50 (midnight round): small-dialog font pass + tray counts
    go back to THE BAR (Adam: "I liked the bar before") - no floating
    count pills on wells; selected wells glow, the balance bar narrates. */
 @media (min-width: 600px) {
-    body.cap-native .end-warn-body {
+    body:is(.cap-native, .web-rich) .end-warn-body {
         font-family: 'Baloo2', var(--font-system);
         font-size: 17px;
         line-height: 1.45;
     }
-    body.cap-native .event-modal-content { min-width: 0; max-width: 520px; }
-    body.cap-native .event-modal-msg {
-        font-family: 'Baloo2', var(--font-system);
-        font-size: 18px;
+    body:is(.cap-native, .web-rich) .event-modal-content { min-width: 0; max-width: 520px; }
+    body:is(.cap-native, .web-rich) .event-modal-msg {
+        font-family: 'Baloo2', var(--font-system);  /* Adam QA 7/6 r2: SR-modal body font */
+        font-weight: 600;
+        font-style: normal;
+        font-size: 20px;
         line-height: 1.4;
     }
-    body.cap-native .ar-supply-tray .xc-badge { display: none; }
-    body.cap-native .ar-supply-tray .xc-chip.active {
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-badge { display: none; }
+    body:is(.cap-native, .web-rich) .ar-supply-tray .xc-chip.active {
         background: radial-gradient(circle at 50% 50%, rgba(255, 240, 200, .42), rgba(255, 211, 122, .14) 72%);
     }
 }
@@ -10131,9 +10171,9 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
     margin-bottom: 10px;
 }
 @media (min-width: 600px) {
-    body.cap-native .sr-take-subtitle { font-size: 18.5px; }
-    body.cap-native .sr-take-points { font-size: 18px; }
-    body.cap-native .sr-take-yarn { font-size: 16px; }
+    body:is(.cap-native, .web-rich) .sr-take-subtitle { font-size: 18.5px; }
+    body:is(.cap-native, .web-rich) .sr-take-points { font-size: 18px; }
+    body:is(.cap-native, .web-rich) .sr-take-yarn { font-size: 16px; }
 }
 
 /* Session 50: SOLID BLACK dots = "matched set" (same color) slots;
@@ -10150,7 +10190,7 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
    Same rules engine (_yarnChips) - this is a skin + minus fn.
    ================================================================= */
 @media (min-width: 600px) {
-    body.cap-native .ar-bowl-tray .xc-chips {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chips {
         background: url('../Other Images Textures Details/yarnbowl_bg_pb_peek_drawer.png') no-repeat center / contain;
         aspect-ratio: 772 / 352;
         display: block;
@@ -10160,7 +10200,7 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         padding: 0;
         box-sizing: border-box;
     }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap {
         position: absolute;
         width: 26%;
         height: 46%;
@@ -10168,13 +10208,13 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         margin: 0;
         display: block;
     }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="red"])    { left: 21.5%; top: 32%; }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="orange"]) { left: 50%; top: 32%; }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="yellow"]) { left: 78.5%; top: 32%; }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="green"])  { left: 21.5%; top: 74%; }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="blue"])   { left: 50%; top: 74%; }
-    body.cap-native .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="purple"]) { left: 78.5%; top: 74%; }
-    body.cap-native .ar-bowl-tray .xc-chip {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="red"])    { left: 21.5%; top: 32%; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="orange"]) { left: 50%; top: 32%; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="yellow"]) { left: 78.5%; top: 32%; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="green"])  { left: 21.5%; top: 74%; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="blue"])   { left: 50%; top: 74%; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip-wrap:has([data-cb-color="purple"]) { left: 78.5%; top: 74%; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip {
         background: none;
         border: none;
         box-shadow: none;
@@ -10190,14 +10230,14 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         gap: 1px;
         cursor: pointer;
     }
-    body.cap-native .ar-bowl-tray .xc-chip .xc-yarn,
-    body.cap-native .ar-bowl-tray .xc-chip[disabled] .xc-yarn,
-    body.cap-native .ar-bowl-tray .xc-chip.active .xc-yarn {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip .xc-yarn,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip[disabled] .xc-yarn,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip.active .xc-yarn {
         width: 58%;
         height: auto;
     }
-    body.cap-native .ar-bowl-tray .xc-chip .xc-name { display: none; }
-    body.cap-native .ar-bowl-tray .xc-chip .xc-sub {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip .xc-name { display: none; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip .xc-sub {
         color: #f0e0c0;
         font-family: 'Baloo2', var(--font-system);
         font-size: 12.5px;
@@ -10205,15 +10245,15 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         line-height: 1.1;
         text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
     }
-    body.cap-native .ar-bowl-tray .xc-chip[disabled] {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip[disabled] {
         filter: grayscale(.85) brightness(.72);
         cursor: default;
     }
-    body.cap-native .ar-bowl-tray .xc-chip.active .xc-yarn { filter: drop-shadow(0 0 10px rgba(255, 211, 122, .9)); }
-    body.cap-native .ar-bowl-tray .xc-badge,
-    body.cap-native .ar-bowl-tray .xc-remove,
-    body.cap-native .ar-bowl-tray .xc-help { display: none; }
-    body.cap-native .ar-bowl-tray .xc-chip::before {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip.active .xc-yarn { filter: drop-shadow(0 0 10px rgba(255, 211, 122, .9)); }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-badge,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-remove,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-help { display: none; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip::before {
         content: '+';
         position: absolute;
         top: 0;
@@ -10229,7 +10269,7 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         font-size: 17px; font-weight: 800; line-height: 19px; text-align: center;
         pointer-events: none;
     }
-    body.cap-native .ar-bowl-tray .xc-chip::after {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip::after {
         content: '\2212';
         position: absolute;
         bottom: 4%;
@@ -10245,40 +10285,40 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
         font-size: 17px; font-weight: 800; line-height: 19px; text-align: center;
         pointer-events: none;
     }
-    body.cap-native .ar-bowl-tray .xc-chip[disabled]::before,
-    body.cap-native .ar-bowl-tray .xc-chip[disabled]::after { display: none; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip[disabled]::before,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip[disabled]::after { display: none; }
 
     /* SR detail modal + on-board SR reminders (Adam: +25%) */
-    body.cap-native .sr-detail-img { width: 74%; max-width: 320px; }
-    body.cap-native .sr-detail-name { font-size: 26px; font-family: 'Baloo2', var(--font-system); font-weight: 800; }
-    body.cap-native .sr-detail-pts { font-size: 19px; }
-    body.cap-native .sr-detail-req { font-size: 16.5px; }
-    body.cap-native .sr-detail-note { font-size: 15.5px; font-family: 'Baloo2', var(--font-system); }
-    body.cap-native .sr-reminder-card { width: clamp(70px, 8.8vw, 108px); }
+    body:is(.cap-native, .web-rich) .sr-detail-img { width: 74%; max-width: 320px; }
+    body:is(.cap-native, .web-rich) .sr-detail-name { font-size: 26px; font-family: 'Baloo2', var(--font-system); font-weight: 800; }
+    body:is(.cap-native, .web-rich) .sr-detail-pts { font-size: 19px; }
+    body:is(.cap-native, .web-rich) .sr-detail-req { font-size: 16.5px; }
+    body:is(.cap-native, .web-rich) .sr-detail-note { font-size: 15.5px; font-family: 'Baloo2', var(--font-system); }
+    body:is(.cap-native, .web-rich) .sr-reminder-card { width: clamp(70px, 8.8vw, 108px); }
 }
 
 /* Session 50: Learn-card detail lines = Baloo (data, not storybook);
    Available Projects rows sized up + Baloo names (missed by otc pass). */
 @media (min-width: 600px) {
-    body.cap-native .learn-tile-trade-in,
-    body.cap-native .learn-tile-cost,
-    body.cap-native .learn-tile-after {
+    body:is(.cap-native, .web-rich) .learn-tile-trade-in,
+    body:is(.cap-native, .web-rich) .learn-tile-cost,
+    body:is(.cap-native, .web-rich) .learn-tile-after {
         font-family: 'Baloo2', var(--font-system);
     }
-    body.cap-native .otc-project-row { padding: 8px 2px; gap: 12px; }
-    body.cap-native .otc-project-name {
+    body:is(.cap-native, .web-rich) .otc-project-row { padding: 8px 2px; gap: 12px; }
+    body:is(.cap-native, .web-rich) .otc-project-name {
         font-family: 'Baloo2', var(--font-system);
         font-weight: 800;
         font-size: 18px;
     }
-    body.cap-native .otc-proj-item { width: 44px; height: 44px; }
-    body.cap-native .otc-proj-item img { width: 38px; height: 38px; }
-    body.cap-native .otc-project-count {
+    body:is(.cap-native, .web-rich) .otc-proj-item { width: 44px; height: 44px; }
+    body:is(.cap-native, .web-rich) .otc-proj-item img { width: 38px; height: 38px; }
+    body:is(.cap-native, .web-rich) .otc-project-count {
         font-family: 'Baloo2', var(--font-system);
         font-weight: 800;
         font-size: 17px;
     }
-    body.cap-native .otc-projects .otc-section-label { font-size: 14px; }
+    body:is(.cap-native, .web-rich) .otc-projects .otc-section-label { font-size: 14px; }
 }
 
 /* Session 50: Yarn Sale - controls row between context and tray; tray capped */
@@ -10292,18 +10332,18 @@ body { --ybw-s: 85%; --ybw-x: 50%; --ybw-y: 50%; }
 .ys-controls-row .xc-balance { flex: 1 1 auto; margin: 0; }
 .ys-controls-row .event-pick-controls { margin: 0; flex: 0 0 auto; }
 @media (min-width: 600px) {
-    body.cap-native #yarnSaleBody .xc-chips { max-width: none; }
+    body:is(.cap-native, .web-rich) #yarnSaleBody .xc-chips { max-width: none; }
 }
 
 /* Session 50: multi-pick color modal - same height diet as Yarn Sale */
 @media (min-width: 600px) {
-    body.cap-native #colorPickerModal .xc-chips { max-width: none; }
-    body.cap-native .otc-peek-bowl .opp-yarn-arc { gap: 32px 0; }
+    body:is(.cap-native, .web-rich) #colorPickerModal .xc-chips { max-width: none; }
+    body:is(.cap-native, .web-rich) .otc-peek-bowl .opp-yarn-arc { gap: 32px 0; }
 }
 
 /* Session 50: SR preview modal - NAME first, then the card, then reqs */
-body.cap-native .sr-detail-content .sr-detail-name { order: -2; }
-body.cap-native .sr-detail-content .sr-detail-img { order: -1; margin-top: 2px; }
+body:is(.cap-native, .web-rich) .sr-detail-content .sr-detail-name { order: -2; }
+body:is(.cap-native, .web-rich) .sr-detail-content .sr-detail-img { order: -1; margin-top: 2px; }
 
 /* Session 50: kill pinch/double-tap zoom in the app - it's a game surface.
    (touch-action also covers tablet-web Safari, which ignores user-scalable.) */
@@ -10314,20 +10354,20 @@ body.cap-native .game-layout, body.cap-native .action-bar-wrapper, body.cap-nati
 
 /* Session 50: single-pick bowl trays (Donate) - tap gives; no +/- badges */
 @media (min-width: 600px) {
-    body.cap-native .ar-bowl-tray.cp-single .xc-chip::before,
-    body.cap-native .ar-bowl-tray.cp-single .xc-chip::after { display: none; }
-    body.cap-native .ar-bowl-tray.cp-single .xc-chip:not([disabled]):hover .xc-yarn,
-    body.cap-native .ar-bowl-tray.cp-single .xc-chip:not([disabled]):active .xc-yarn {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray.cp-single .xc-chip::before,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray.cp-single .xc-chip::after { display: none; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray.cp-single .xc-chip:not([disabled]):hover .xc-yarn,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray.cp-single .xc-chip:not([disabled]):active .xc-yarn {
         filter: drop-shadow(0 0 12px rgba(255, 211, 122, .95));
     }
 }
 
 /* Session 50: bowl picker 20% up + data-font fix (Adam, 00:15 edition) */
 @media (min-width: 600px) {
-    body.cap-native .craft-color-content { min-width: 0; max-width: min(94vw, 740px); }
-    body.cap-native .ar-bowl-tray .xc-chip .xc-sub { font-size: 15px; }
-    body.cap-native .ar-bowl-tray .xc-chip::before,
-    body.cap-native .ar-bowl-tray .xc-chip::after { width: 28px; height: 28px; line-height: 23px; font-size: 19px; }
+    body:is(.cap-native, .web-rich) .craft-color-content { min-width: 0; max-width: min(94vw, 740px); }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip .xc-sub { font-size: 15px; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip::before,
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip::after { width: 28px; height: 28px; line-height: 23px; font-size: 19px; }
 }
 .xc-balance, .xc-balance .xc-tot, .xc-balance .xc-hint, .take5-picks {
     font-family: 'Baloo2', var(--font-system);
@@ -10336,8 +10376,8 @@ body.cap-native .game-layout, body.cap-native .action-bar-wrapper, body.cap-nati
 /* Session 50: bowl picker - count ON the token, no words in the bowl */
 .xc-tok-num { display: none; }
 @media (min-width: 600px) {
-    body.cap-native .ar-bowl-tray .xc-chip .xc-sub { display: none; }
-    body.cap-native .ar-bowl-tray .xc-chip .xc-tok-num {
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip .xc-sub { display: none; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip .xc-tok-num {
         display: block;
         position: absolute;
         left: 50%;
@@ -10350,7 +10390,7 @@ body.cap-native .game-layout, body.cap-native .action-bar-wrapper, body.cap-nati
         text-shadow: 0 0 3px rgba(0,0,0,.85), 0 2px 4px rgba(0,0,0,.6);
         pointer-events: none;
     }
-    body.cap-native .ar-bowl-tray .xc-chip[disabled] .xc-tok-num { opacity: .55; }
+    body:is(.cap-native, .web-rich) .ar-bowl-tray .xc-chip[disabled] .xc-tok-num { opacity: .55; }
 }
 
 /* Session 50: wedge fills go sheer - the wood bowl beneath does the glowing.
@@ -10419,5 +10459,272 @@ body.cap-native .game-layout, body.cap-native .action-bar-wrapper, body.cap-nati
     body.cap-native .action-bar:has(.ab-restock-actions) .ab-buttons {
         width: auto;
         justify-content: flex-end;
+    }
+}
+
+
+
+
+/* =================================================================
+   DESKTOP VERTICAL-FIT for picker modals (Adam QA 7/6, B50.93).
+   Measured budget (title 48 + context + controls + tray <= 94vh):
+   bowl caps ~20vh, supply tray ~34vh, bowl tray ~24vh, tighter
+   pattern cards + controls. Everything visible at once, no scroll
+   on a normal desktop window; overflow-y stays as the safety net.
+   ================================================================= */
+@media (pointer: fine) {
+    body.web-rich:not(.cap-native) .modal-content {
+        max-height: 94vh;
+        overflow-y: auto;
+    }
+    /* context wood bowl — ~20vh tall */
+    body.web-rich:not(.cap-native) .modal-overlay .otc-peek-bowl {
+        max-width: min(100%, calc(20vh * 2.19));
+        margin-left: auto; margin-right: auto;
+    }
+    body.web-rich:not(.cap-native) .modal-overlay .otc-peek-bowl .opp-yarn-img {
+        width: clamp(34px, 6vh, 58px); height: auto;
+    }
+    body.web-rich:not(.cap-native) .modal-overlay .otc-peek-bowl .opp-yarn-num {
+        font-size: clamp(13px, 2vh, 18px);
+    }
+    body.web-rich:not(.cap-native) .modal-overlay .otc-peek-bowl .opp-yarn-arc {
+        gap: clamp(8px, 2vh, 20px) 0; padding: 4% 5% 0;
+    }
+    /* pattern cards — tighter */
+    body.web-rich:not(.cap-native) .modal-overlay .otc-need-card { padding: 8px 10px; gap: 8px; }
+    body.web-rich:not(.cap-native) .modal-overlay .otc-need-card img { width: 44px; height: 44px; }
+    body.web-rich:not(.cap-native) .modal-overlay .otc-need-card-name { font-size: 16px; }
+    /* selection/controls row — tighter */
+    body.web-rich:not(.cap-native) .modal-overlay .ys-controls-row { margin: 2px 0; }
+    body.web-rich:not(.cap-native) .modal-overlay .xc-balance { padding: 6px 10px; }
+    body.web-rich:not(.cap-native) .modal-overlay .otc-bowl { margin-bottom: 4px; }
+    /* SUPPLY tray (take yarn) — ~34vh tall */
+    body.web-rich:not(.cap-native) .ar-supply-tray .xc-chips {
+        max-width: min(100%, calc(34vh * 1.479));
+        margin-left: auto; margin-right: auto;
+    }
+    /* BOWL-SPEND tray (craft/donate) — ~38vh tall; these modals are short
+       (no context stack above), so give the tray real size. 24vh was
+       crushing the SR/craft spend modal (Adam QA 7/7). */
+    body.web-rich:not(.cap-native) .ar-bowl-tray .xc-chips {
+        max-width: min(100%, calc(38vh * 2.19));
+        margin-left: auto; margin-right: auto;
+    }
+}
+
+/* =================================================================
+   DESKTOP SIDE-BY-SIDE PICKER v2 (Adam's spec, 7/6 QA, B50.94).
+   LEFT = what you have (name/bowl/patterns ~25% smaller + "Your
+   picks"). RIGHT = the tray you pick from. Robust placement: every
+   child spans full width by default, then the three known parts are
+   placed explicitly — unknown/hidden extras can't scatter the grid.
+   Color picker + Yarn Sale, wide fine-pointer web only.
+   ================================================================= */
+@media (min-width: 1000px) and (pointer: fine) {
+    body.web-rich:not(.cap-native) #colorPickerModal .modal-content,
+    body.web-rich:not(.cap-native) .yarn-sale-content {
+        width: min(96vw, 1460px);
+        max-width: 1460px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;   /* Adam 7/7: EQUAL halves */
+        gap: 8px 28px;
+        align-items: center;
+        align-content: start;
+    }
+    /* default: everything spans (title, help text, hidden extras) */
+    body.web-rich:not(.cap-native) #colorPickerModal .modal-content > *,
+    body.web-rich:not(.cap-native) .yarn-sale-content > * {
+        grid-column: 1 / -1;
+    }
+    /* LEFT: context + picks */
+    body.web-rich:not(.cap-native) #colorPickerModal .modal-content > .otc-container,
+    body.web-rich:not(.cap-native) .yarn-sale-content > .otc-container {
+        grid-column: 1;
+        grid-row: 2;
+        align-self: start;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .modal-content > .color-pick-progress {
+        grid-column: 1;
+        grid-row: 3;
+        align-self: start;
+    }
+    /* RIGHT: the tray (spans both left rows) */
+    body.web-rich:not(.cap-native) #colorPickerModal .modal-content > .color-picker-grid {
+        grid-column: 2;
+        grid-row: 2 / span 2;
+    }
+    body.web-rich:not(.cap-native) .yarn-sale-content > #yarnSaleBody {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    /* tray fills its (equal) column */
+    body.web-rich:not(.cap-native) #colorPickerModal .ar-supply-tray .xc-chips,
+    body.web-rich:not(.cap-native) .yarn-sale-content .ar-supply-tray .xc-chips {
+        max-width: min(100%, calc(73vh * 1.479));  /* Adam 7/7: +10% */
+    }
+    /* context scaled ~25% down */
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-peek-bowl,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-peek-bowl {
+        max-width: min(100%, calc(16vh * 2.19));
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card img,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card img {
+        width: 38px; height: 38px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card-name,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card-name {
+        font-size: 14px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card {
+        padding: 6px 8px; gap: 6px;
+    }
+}
+
+/* Desktop: "What you can make" shows ALL options at once — cards
+   flex-share the row and shrink to fit, no side-scroll (Adam QA 7/7, B50.95). */
+@media (min-width: 1000px) and (pointer: fine) {
+    body.web-rich:not(.cap-native) #craftOptionsModal .modal-content {
+        min-width: 0;
+        width: min(96vw, 1140px);
+        max-width: 1140px;
+    }
+    body.web-rich:not(.cap-native) .craft-options-grid {
+        overflow-x: visible;
+        flex-wrap: nowrap;
+    }
+    body.web-rich:not(.cap-native) .craft-option-card {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 200px;
+    }
+    body.web-rich:not(.cap-native) .craft-option-card img {
+        width: clamp(52px, 6.5vw, 84px);
+        height: auto;
+    }
+}
+
+/* =================================================================
+   DESKTOP CRAFT CIRCLE side-by-side (Adam's spec 7/7, B50.96).
+   LEFT = context (bowl + available projects). RIGHT = the craftable
+   patterns as a vertical STACK of row-cards. Title/msg/Skip span.
+   ================================================================= */
+@media (min-width: 1000px) and (pointer: fine) {
+    body.web-rich:not(.cap-native) .craft-circle-content {
+        min-width: 0;
+        width: min(96vw, 1220px);
+        max-width: 1220px;
+        max-height: 94vh;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 6px 30px;
+        align-content: start;
+        align-items: start;
+    }
+    body.web-rich:not(.cap-native) .craft-circle-content > * { grid-column: 1 / -1; }
+    body.web-rich:not(.cap-native) .craft-circle-content > .otc-container {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    body.web-rich:not(.cap-native) .craft-circle-content > .craft-circle-grid {
+        grid-column: 2;
+        grid-row: 3;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 10px;
+        justify-content: center;
+        align-self: stretch;
+    }
+    /* pattern slots become horizontal row-cards in the stack */
+    body.web-rich:not(.cap-native) .craft-circle-grid .craft-slot {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        padding: 8px 14px;
+    }
+    body.web-rich:not(.cap-native) .craft-circle-grid .craft-slot img {
+        width: 52px;
+        height: auto;
+    }
+    body.web-rich:not(.cap-native) .craft-circle-grid .craft-slot-name {
+        flex: 1 1 auto;
+        text-align: left;
+        font-size: 17px;
+    }
+}
+
+/* Desktop: the craft/SR yarn-SPEND modal gets room for the full bowl tray
+   (Adam QA 7/7, B50.97) — it was rendering cramped with badges overlapping. */
+@media (min-width: 700px) and (pointer: fine) {
+    body.web-rich:not(.cap-native) .craft-color-content {
+        min-width: min(92vw, 860px);
+        max-width: min(94vw, 900px);
+    }
+}
+
+/* Desktop side-by-side pickers: tray internals at desktop proportions
+   (Adam QA 7/7, B50.99) — smaller tokens/labels/badges so the wells
+   breathe in the narrower column. */
+@media (min-width: 1000px) and (pointer: fine) {
+    body.web-rich:not(.cap-native) #colorPickerModal .ar-supply-tray .xc-chip .xc-yarn,
+    body.web-rich:not(.cap-native) .yarn-sale-content .ar-supply-tray .xc-chip .xc-yarn {
+        width: 34%;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .ar-supply-tray .xc-chip .xc-name,
+    body.web-rich:not(.cap-native) .yarn-sale-content .ar-supply-tray .xc-chip .xc-name {
+        font-size: clamp(12px, 1.25vw, 16px);
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .ar-supply-tray .xc-chip::before,
+    body.web-rich:not(.cap-native) #colorPickerModal .ar-supply-tray .xc-chip::after,
+    body.web-rich:not(.cap-native) .yarn-sale-content .ar-supply-tray .xc-chip::before,
+    body.web-rich:not(.cap-native) .yarn-sale-content .ar-supply-tray .xc-chip::after {
+        width: 22px;
+        height: 22px;
+        line-height: 17px;
+        font-size: 15px;
+        border-width: 2px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .ar-supply-tray .xc-badge,
+    body.web-rich:not(.cap-native) .yarn-sale-content .ar-supply-tray .xc-badge {
+        min-width: 26px;
+        height: 26px;
+        font-size: 15px;
+        line-height: 22px;
+    }
+}
+
+/* Side-by-side pickers: pattern cards sized so COST DOTS always fit inside
+   the card (Adam QA 7/7, B50.100) — smaller dots/img/name in the left column. */
+@media (min-width: 1000px) and (pointer: fine) {
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card {
+        min-width: 0;
+        padding: 6px 8px;
+        gap: 6px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card img,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card img {
+        width: 32px; height: 32px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card-name,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card-name {
+        font-size: 13px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card .craft-cost-dot,
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card .otc-dot,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card .craft-cost-dot,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card .otc-dot {
+        width: 18px; height: 18px;
+    }
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card .craft-cost-dot::after,
+    body.web-rich:not(.cap-native) #colorPickerModal .otc-need-card .otc-dot::after,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card .craft-cost-dot::after,
+    body.web-rich:not(.cap-native) .yarn-sale-content .otc-need-card .otc-dot::after {
+        font-size: 10px;
     }
 }
