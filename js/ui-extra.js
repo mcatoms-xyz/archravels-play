@@ -1178,6 +1178,24 @@ Object.assign(UI, {
         try {
             if (!localStorage.getItem('ar_sm_seen')) { UI.showStoryIntro(true); return; }
         } catch (e) {}
+        // Session 51 (Adam): a signed-in player taps Story Mode → take them to THEIR
+        // profile page, anchored to the "Your Crafters" grid (pick up the climb), instead
+        // of the archetype intro. Guests / not-signed-in keep the normal start (goTypes).
+        if (window.Story && Story.currentUser) {
+            Story.open();
+            Promise.resolve(Story.goStats()).then(function(){
+                setTimeout(function(){
+                    var roster = document.querySelector('#story-screen .pf-roster');
+                    if (roster) {
+                        var head = roster.previousElementSibling;   // "Your Crafters" heading
+                        (head || roster).scrollIntoView({ behavior:'smooth', block:'start' });
+                        roster.classList.add('pf-roster-flash');
+                        setTimeout(function(){ roster.classList.remove('pf-roster-flash'); }, 1500);
+                    }
+                }, 60);
+            });
+            return;
+        }
         Story.start();
     },
 
