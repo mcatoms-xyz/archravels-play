@@ -1239,8 +1239,43 @@ var Story = {
     var tb=document.getElementById('takeoverBar'); if(tb) tb.style.display='none';
     // beginMatch bypasses onSetupStart's "if player 0 is AI, kick off" logic — do it here
     // so a rival-first match actually starts.
+    // Session 51 (Adam): when the rival leads (rung 6+), don't just silently auto-start the
+    // AI — show an "opponent goes first" beat so the board doesn't start moving unannounced.
+    // The AI's first turn fires only when the player acknowledges. Story-only, rival-first only.
     if (Game.state.player && Game.state.player.isAI) {
-      setTimeout(function(){ try{ AI.takeTurn(function(){}); }catch(e){} }, 500);
+      var rivalName = (this.char(oppId) && this.char(oppId).name) || 'Your rival';
+      this._showOppFirstBeat(rivalName, function(){
+        setTimeout(function(){ try{ AI.takeTurn(function(){}); }catch(e){} }, 300);
+      });
+    }
+  },
+  // Session 51 (Adam): the "opponent goes first" beat. Mirrors the "Setting up the Yarn
+  // Bazaar…" loader (ld48) so it reads as the same cozy ritual. Board sits frozen behind
+  // it; the AI's first turn only fires once the player taps "I'm ready".
+  _showOppFirstBeat: function(rivalName, onReady){
+    var fired = false;
+    var go = function(){ if(fired) return; fired = true; if(typeof onReady==='function') onReady(); };
+    try {
+      var ov = document.createElement('div');
+      ov.className = 'ld48';
+      ov.innerHTML = '<div class="ld48-in">'+
+        '<img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt="">'+
+        '<div><b>'+rivalName+'</b> goes first!'+
+        '<br><span style="opacity:.8;font-size:.85em">Watch their opening moves — then it’s your turn.</span>'+
+        '</div></div>';
+      document.body.appendChild(ov);
+      var btn = document.createElement('button');
+      btn.className = 'btn btn-cta ld48-go';
+      btn.textContent = 'I’m ready →';
+      btn.addEventListener('click', function(){
+        if (ov.parentNode) ov.parentNode.removeChild(ov);
+        go();
+      });
+      ov.querySelector('.ld48-in').appendChild(btn);
+      try { btn.focus(); } catch(e){}
+    } catch(e) {
+      // Fail-safe: never strand the match if the beat can't render.
+      go();
     }
   },
   onMatchOver: function(){
