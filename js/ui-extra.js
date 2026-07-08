@@ -264,6 +264,9 @@ Object.assign(UI, {
         body.appendChild(scoreSection.section);
 
         // 9. Take Over / Give Back button
+        // Session 51 (Adam): Story Mode locks seats — the whole point is to beat the
+        // computer yourself, so no "Take Over" / "Give to Computer" affordance here.
+        if (!(window.Story && Story.storyGame)) {
         var takeoverSection = document.createElement('div');
         takeoverSection.className = 'opp-takeover-section';
         var takeoverBtn = document.createElement('button');
@@ -302,6 +305,7 @@ Object.assign(UI, {
         })(playerIdx, p);
         takeoverSection.appendChild(takeoverBtn);
         body.appendChild(takeoverSection);
+        }
 
         // --- Show panel + backdrop ---
         var panel = document.getElementById('opponentPanel');
