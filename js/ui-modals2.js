@@ -1,5 +1,5 @@
 /* ui-modals2.js — UI module (split from the Session-40 LIVE monolith).
-   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+ ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
     _yarnSale: {},
     _yarnSaleCallback: null,
@@ -7,7 +7,7 @@ Object.assign(UI, {
     showYarnSaleModal: function(callback) {
         this._yarnSale = {};
         this._yarnSaleCallback = callback;
-        // Session 24: Inject off-turn context so player can see board state
+        // Inject off-turn context so player can see board state
         var player = Game.state.player;
         if (this.els.yarnSaleContext && player) {
             try {
@@ -24,7 +24,7 @@ Object.assign(UI, {
         var sel = this._yarnSale, need = 3;
         var total = 0; UI.ROYGBP.forEach(function(c) { total += sel[c] || 0; });
         var html = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>';
-        // Session 50 (Adam): selections + button in a ROW ABOVE the tray - the
+        // selections + button in a ROW ABOVE the tray - the
         // modal was running too tall with them below.
         html += '<div class="ys-controls-row">' +
             '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
@@ -33,7 +33,7 @@ Object.assign(UI, {
         '</div>';
         html += UI._yarnChips({ sel: sel, rule: 'any', need: need, addFn: 'UI._yarnSaleAdd', clearFn: 'UI._yarnSaleClear', lockCatNap: true });
         this.els.yarnSaleBody.innerHTML = html;
-        // Session 50: supply tray with count badges + minus zones
+        // supply tray with count badges + minus zones
         this.els.yarnSaleBody.classList.add('ar-supply-tray');
         this.els.yarnSaleBody.classList.add('cp-count');
         this.els.yarnSaleBody.setAttribute('data-minus-fn', '_yarnSaleMinus');
@@ -65,7 +65,7 @@ Object.assign(UI, {
         var arr = [];
         UI.ROYGBP.forEach(function(c) { var n = UI._yarnSale[c] || 0; for (var i = 0; i < n; i++) arr.push(c); });
         var changed = Game.applyYarnSale(arr);
-        // Session 43 Hank automa: solo rule — BOTH of you shop the sale. Hank +3.
+        // Hank automa: solo rule — BOTH of you shop the sale. Hank +3.
         if (Game.state.hankAutoma) Game.hankEventYarn(3, 'Yarn Sale');
         UI.renderYarnBowl(changed); UI.renderCraftGrid(); UI.renderSpecialRequests();
         var cb = this._yarnSaleCallback; this._yarnSaleCallback = null;
@@ -74,17 +74,17 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       DONATE MODAL
-       Active player picks 1 yarn color from their stash to give.
-       SP: yarn goes to the supply (no other player).
-       MP (Session 9): will add player selector after color pick.
-       ========================================================= */
+ DONATE MODAL
+ Active player picks 1 yarn color from their stash to give.
+ SP: yarn goes to the supply (no other player).
+ MP will add player selector after color pick.
+ ========================================================= */
 
     _donateCallback: null,
 
     showDonateModal: function(callback) {
         this._donateCallback = callback;
-        // Session 24: Inject off-turn context so player can see board state
+        // Inject off-turn context so player can see board state
         var player = Game.state.player;
         if (this.els.donateContext && player) {
             try {
@@ -129,7 +129,7 @@ Object.assign(UI, {
         }
 
         this.els.donateBody.innerHTML = html;
-        // Session 50 (Adam): giving from your bowl = the BOWL picker.
+        // giving from your bowl = the BOWL picker.
         // Single-pick flavor: tap a token to give it; no +/- badges.
         this.els.donateBody.classList.add('ar-bowl-tray');
         this.els.donateBody.classList.add('cp-single');
@@ -138,7 +138,7 @@ Object.assign(UI, {
     _donatePickColor: function(color) {
         this.els.donateModal.style.display = 'none';
 
-        // Session 43 Hank automa: solo rule — the donated yarn goes straight to
+        // Hank automa: solo rule — the donated yarn goes straight to
         // Hank's bowl. Only one possible recipient, so skip the picker.
         if (Game.state.hankAutoma) {
             var hankIdx = Game.state.players.findIndex(function(p) { return p.isAutoma; });
@@ -158,7 +158,7 @@ Object.assign(UI, {
             this._donateCallback = null;
             if (cb) cb();
         } else {
-            // Session 9 MP: pick which player to give yarn to
+            // MP: pick which player to give yarn to
             this._donateColor = color;
             var activeIdx = Game.state.activePlayerIndex;
             var html = '<div class="restock-modal-msg">Give 1 ' +
@@ -215,18 +215,18 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       CRAFT CIRCLE MODAL
-       Each player may immediately craft 1 item using current yarn.
-       Skippable. Iterates through all players in sequence.
-       Does NOT consume a normal craft action.
-       ========================================================= */
+ CRAFT CIRCLE MODAL
+ Each player may immediately craft 1 item using current yarn.
+ Skippable. Iterates through all players in sequence.
+ Does NOT consume a normal craft action.
+ ========================================================= */
 
     _craftCircleCallback: null,
 
     /**
-     * @param {number}   playerIndex — which player's turn in the queue
-     * @param {function} callback    — called after all players have resolved
-     */
+ * @param {number} playerIndex — which player's turn in the queue
+ * @param {function} callback — called after all players have resolved
+ */
     showCraftCircleModal: function(playerIndex, callback) {
         if (playerIndex >= Game.state.playerCount) {
             if (callback) callback();
@@ -235,7 +235,7 @@ Object.assign(UI, {
 
         var player = Game.state.players[playerIndex];
 
-        // Session 43 Hank automa: solo rule — Hank crafts a Blanket for FREE
+        // Hank automa: solo rule — Hank crafts a Blanket for FREE
         // (no yarn spent). Announced as a game moment so the player sees the hit.
         if (player.isAutoma) {
             var blanket = Game.hankCraftFreeBlanket();
@@ -257,7 +257,7 @@ Object.assign(UI, {
             return;
         }
 
-        // Session 9b: AI players auto-resolve — craft best affordable item or skip
+        // AI players auto-resolve — craft best affordable item or skip
         if (player.isAI) {
             var aiOptions = Game.getCraftCircleOptions(playerIndex);
             var aiAffordable = aiOptions.filter(function(o) { return o.canAfford; });
@@ -288,7 +288,7 @@ Object.assign(UI, {
         }
 
         this._craftCircleCallback = callback;
-        this._craftCircleCurrentPlayer = playerIndex;  // Session 9b: track for Skip/Cancel
+        this._craftCircleCurrentPlayer = playerIndex;  // track for Skip/Cancel
         var options = Game.getCraftCircleOptions(playerIndex);
         var affordable = options.filter(function(o) { return o.canAfford; });
 
@@ -304,7 +304,7 @@ Object.assign(UI, {
             headerEl.textContent = header;
         }
 
-        // Session 22/24: Inject off-turn context (yarn bowl + project intel)
+        // /24: Inject off-turn context (yarn bowl + project intel)
         var contextContainer = document.getElementById('craftCircleContext');
         if (contextContainer) {
             try {
@@ -356,10 +356,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Player clicked an item in the Craft Circle modal.
-     * For items with exact cost: go straight to craft confirm.
-     * For general-color items: open the craft color picker first.
-     */
+ * Player clicked an item in the Craft Circle modal.
+ * For items with exact cost: go straight to craft confirm.
+ * For general-color items: open the craft color picker first.
+ */
     _craftCirclePickItem: function(option, playerIndex) {
         this.els.craftCircleModal.style.display = 'none';
 
@@ -413,24 +413,24 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 6: SPECIAL REQUEST TAKE MODAL
-       Shown when an SR is revealed during Restock.
-       In single-player, player always takes it.
-       ========================================================= */
+ SESSION 6: SPECIAL REQUEST TAKE MODAL
+ Shown when an SR is revealed during Restock.
+ In single-player, player always takes it.
+ ========================================================= */
 
     _srTakeCallback: null,
 
     /**
-     * Show the Special Request take modal.
-     * @param {Object}   card     — SR card object
-     * @param {function} callback — called after player takes the SR
-     */
+ * Show the Special Request take modal.
+ * @param {Object} card — SR card object
+ * @param {function} callback — called after player takes the SR
+ */
     showSRTakeModal: function(card, callback) {
         this._srTakeCallback = callback;
         this._srTakeCard = card;
         try{ if(window.Sound) Sound.play('sr-find'); }catch(e){}
 
-        // Session 21: Title = SR name, subtitle = "[Player] found a Special Request"
+        // Title = SR name, subtitle = "[Player] found a Special Request"
         var titleEl = document.getElementById('srTakeTitle');
         if (titleEl) titleEl.textContent = card.name;
 
@@ -439,21 +439,21 @@ Object.assign(UI, {
         this.els.srTakeName.textContent = card.name;
         this.els.srTakePoints.textContent = card.points + ' pts';
 
-        // Session 9: Show favorite badge — check against active player's character
+        // Show favorite badge — check against active player's character
         var isFav = card.favoriteOf
             ? card.favoriteOf === Game.state.player.characterId
             : card.isFavorite;
         if (isFav) {
             this.els.srTakeFavorite.textContent = '♥ ' + Game.state.player.name + '\'s Favorite!';
             this.els.srTakeFavorite.style.display = 'flex';
-            // Session 47k: revealing YOUR favorite deserves the WOW
+            // revealing YOUR favorite deserves the WOW
             if (window.Sound) { try { Sound.play('fav-wow'); } catch (e) {} }
         } else {
             this.els.srTakeFavorite.style.display = 'none';
         }
 
         // Show yarn requirement — handle all colorRules
-        // Session 47j: compound rules (specificPlusSame / specificPlusAny /
+        // compound rules (specificPlusSame / specificPlusAny /
         // sameColorPlus) fell through to "No yarn required" (Dog Bandana bug).
         var yarnHtml = '';
         var srRule = card.colorRule || 'specific';
@@ -489,12 +489,12 @@ Object.assign(UI, {
         }
         this.els.srTakeYarn.innerHTML = yarnHtml || '<span style="opacity:0.7">No yarn required</span>';
 
-        // Session 21: Subtitle shows who found it
+        // Subtitle shows who found it
         var giveBtn = document.getElementById('srGiveBtn');
         var subtitle = document.getElementById('srTakeSubtitle');
         var playerName = Game.state.player ? Game.state.player.name : 'You';
         if (subtitle) subtitle.textContent = playerName + ' found a Special Request!';
-        // Session 42: Hank automa boss match — rulebook solo rule: keep the revealed SR
+        // Hank automa boss match — rulebook solo rule: keep the revealed SR
         // or give it to Hank (he claims it + completes it FREE at end of game, so it's a
         // real trade-off). High Demand / Emergency! Gnome Rules force a keep.
         this._srGiveHankMode = false;
@@ -524,18 +524,18 @@ Object.assign(UI, {
     },
 
     onSRTakeConfirm: function() {
-        // Session 21: Show confirmation "[SR Name] given to [Player Name]"
+        // Show confirmation "[SR Name] given to [Player Name]"
         var card = this._srTakeCard;
         var player = Game.state.player;
         this._showSRAssignConfirm(card ? card.name : 'Special Request', player ? player.name : 'You');
     },
 
     /**
-     * Session 21: Brief confirmation overlay after SR assignment.
-     * Shows "[SR Name] given to [Player Name]" then auto-closes.
-     * @param {string} srName — name of the SR card
-     * @param {string} playerName — name of the player receiving it
-     */
+ * Brief confirmation overlay after SR assignment.
+ * Shows "[SR Name] given to [Player Name]" then auto-closes.
+ * @param {string} srName — name of the SR card
+ * @param {string} playerName — name of the player receiving it
+ */
     _showSRAssignConfirm: function(srName, playerName) {
         var titleEl = document.getElementById('srTakeTitle');
         if (titleEl) titleEl.textContent = srName + ' given to ' + playerName;
@@ -560,10 +560,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 9b: Toggle the "Give to..." player picker in SR Take modal.
-     */
+ * Toggle the "Give to..." player picker in SR Take modal.
+ */
     onSRGiveToggle: function() {
-        // Session 42 Hank automa: only one possible recipient — skip the picker,
+        // Hank automa: only one possible recipient — skip the picker,
         // give straight to Hank via the rulebook path.
         if (this._srGiveHankMode) { this.onSRGiveToHank(); return; }
         var picker = document.getElementById('srGivePicker');
@@ -573,7 +573,7 @@ Object.assign(UI, {
 
         // Build a button for each OTHER player
         var activeIdx = Game.state.activePlayerIndex;
-        var giveCard = this._srTakeCard;   // Session 47k: flag each player's favorite
+        var giveCard = this._srTakeCard;   // flag each player's favorite
         Game.state.players.forEach(function(p, i) {
             if (i === activeIdx) return;
             var btn = document.createElement('button');
@@ -594,23 +594,23 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 9b: Cancel give — back to Keep/Give buttons.
-     */
+ * Cancel give — back to Keep/Give buttons.
+ */
     onSRGiveCancel: function() {
         document.getElementById('srGivePicker').style.display = 'none';
         document.getElementById('srTakeButtons').style.display = 'flex';
     },
 
     /**
-     * Session 9b: Give the pending SR card to another player.
-     * @param {number} targetPlayerIndex — who receives the SR
-     */
+ * Give the pending SR card to another player.
+ * @param {number} targetPlayerIndex — who receives the SR
+ */
     onSRGiveTo: function(targetPlayerIndex) {
         this._srGiveTargetIndex = targetPlayerIndex;
-        // Session 21: Show confirmation with target player's name
+        // Show confirmation with target player's name
         var card = this._srTakeCard;
         var targetPlayer = Game.state.players[targetPlayerIndex];
-        // Session 47k: handing someone their FAVORITE = WOW moment
+        // handing someone their FAVORITE = WOW moment
         if (card && targetPlayer && card.favoriteOf === targetPlayer.characterId && window.Sound) {
             try { Sound.play('fav-wow'); } catch (e) {}
         }
@@ -621,11 +621,11 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 42: Give the revealed SR to Hank (rulebook solo automa rule).
-     * Routes through Game.giveSRToHank — Hank claims it and free-completes it at
-     * end of game — NOT the normal player-give (takeSpecialRequest), which would
-     * treat him like a burdened opponent.
-     */
+ * Give the revealed SR to Hank (rulebook solo automa rule).
+ * Routes through Game.giveSRToHank — Hank claims it and free-completes it at
+ * end of game — NOT the normal player-give (takeSpecialRequest), which would
+ * treat him like a burdened opponent.
+ */
     onSRGiveToHank: function() {
         var card = this._srTakeCard || UI._pendingSRCard;
         if (card) Game.giveSRToHank(card);
@@ -635,8 +635,8 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       YARN BOWL
-       ========================================================= */
+ YARN BOWL
+ ========================================================= */
 
     // ROYGBIV order for yarn bowl display
     _yarnBowlOrder: ['red', 'orange', 'yellow', 'green', 'blue', 'purple'],
@@ -649,7 +649,7 @@ Object.assign(UI, {
             var slot = document.createElement('div');
             slot.className = 'yarn-token-slot';
             slot.setAttribute('data-color', color);
-            // Session 48S (Adam's recipe): tokens sit on an ARC tracing the
+            // tokens sit on an ARC tracing the
             // bowl-edge art. Even vertical spacing, smooth 0-1-0 bulge.
             var A = (window.UI && UI.YB_ARC) || { depth: 4.8, peak: 0.5, w: 10 };
             var tt = _i / 5;
@@ -666,7 +666,7 @@ Object.assign(UI, {
                         'src="Wood Yarn Tokens PNG/' + color + '.png" ' +
                         'alt="' + color.charAt(0).toUpperCase() + color.slice(1) + ' Yarn">' +
                     '<span class="yarn-count" id="yarnCount_' + color + '">0</span>' +
-                    // Playtest 6/29: colorblind key — reuses the .craft-cost-dot
+                    // colorblind key — reuses the .craft-cost-dot
                     // CB treatment (shape + color + pattern + letter) so the bowl
                     // column carries the same combo as the preview dots. Hidden
                     // unless colorblind-mode is on (see .yarn-cb-key CSS).
@@ -694,7 +694,7 @@ Object.assign(UI, {
                 el.classList.add('pulse');
             }
 
-            // Session 43: Cat Nap — badge + dim the napped-on bowl columns
+            // Cat Nap — badge + dim the napped-on bowl columns
             var slot = el.closest('.yarn-token-slot');
             if (slot) slot.classList.toggle('catnap-locked', !!(Game.catNapLocked && Game.catNapLocked(color)));
         });
@@ -702,8 +702,8 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       DECK COUNTER
-       ========================================================= */
+ DECK COUNTER
+ ========================================================= */
 
     renderDeckCounter: function() {
         var el = this.els.deckCounter;
@@ -711,15 +711,15 @@ Object.assign(UI, {
         var count = Game.state.deck.length;
         el.textContent = count + ' card' + (count !== 1 ? 's' : '') + ' left';
 
-        // Session 15b: Update yarn deck card back count
+        // Update yarn deck card back count
         var deckCount = document.getElementById('yarnDeckCount');
         if (deckCount) deckCount.textContent = count + ' in deck';
     },
 
 
     /* =========================================================
-       CRAFT GRID (regular items: hat, bear, mittens, scarf, blanket)
-       ========================================================= */
+ CRAFT GRID (regular items: hat, bear, mittens, scarf, blanket)
+ ========================================================= */
 
     // "What you can make" — a modal listing every item + SR the player can
     // currently afford. Tapping one runs the SAME craft path as the on-board
@@ -741,7 +741,7 @@ Object.assign(UI, {
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < (sr.yarn[c] || 0); d++) h += dot(c); });
             } else if (rule === 'sameColorPlus') {
                 // N of one color + fixed extras (extras live in plusYarn). e.g. Ghost: 5 same + 1 red.
-                // Session 50 (Adam): flexible slots = GRAY dots + compact qualifier.
+                // flexible slots = GRAY dots + compact qualifier.
                 CARDS.COLORS.forEach(function(c) { for (var d = 0; d < ((sr.plusYarn || {})[c] || 0); d++) h += dot(c); });
                 h += UI._neutralDots(sr.yarnCount || 0, true) + '<span class="craft-cost-label">same</span>';
             } else if (rule === 'specificPlusAny') {
@@ -769,7 +769,7 @@ Object.assign(UI, {
     },
 
     showCraftOptionsModal: function() {
-        // Session 40: show ALL of the player's patterns + held SRs, dimming the ones
+        // show ALL of the player's patterns + held SRs, dimming the ones
         // they can't currently afford — rather than silently dropping them. Keeps the
         // list consistent (all 3 patterns always visible) instead of one vanishing.
         var items = Game.getCraftOptions();
@@ -791,7 +791,7 @@ Object.assign(UI, {
                     '<div class="craft-slot-cost co-cost">' + UI._costDotsHTML(o) + '</div></button>';
             });
             html += '</div>';
-            // Session 50 (Adam): SRs live in their OWN row below the items -
+            // SRs live in their OWN row below the items -
             // horizontal cards: SR card art left, name/points/dots right.
             if (srs.length) {
                 html += '<div class="otc-section-label" style="margin-top:12px;margin-bottom:8px">Special Requests</div>';
@@ -832,7 +832,7 @@ Object.assign(UI, {
         if (!grid) return;
         grid.innerHTML = '';
 
-        // Session 36: Hank boss — no craft-row grid on his board. He's AI-only (no human
+        // Hank boss — no craft-row grid on his board. He's AI-only (no human
         // ever plays him, and that strip is a human control), and he crafts with no color
         // requirements anyway, so the pattern grid is meaningless on his solo board.
         if (Game.state.player && Game.state.player.isHank) return;
@@ -845,10 +845,10 @@ Object.assign(UI, {
 
             var slot = document.createElement('div');
             var canClick = opt.canAfford && craftEnabled;
-            // Session 22: Three states — clickable (can-afford + craft phase), affordable but wrong phase, unaffordable
+            // Three states — clickable (can-afford + craft phase), affordable but wrong phase, unaffordable
             var slotClass = 'craft-slot';
             if (canClick) {
-                // Playtest 6/29: pulse craftable items so it's clear a craft
+                // pulse craftable items so it's clear a craft
                 // action is available after choosing a craft space.
                 slotClass += ' can-afford craft-slot-pulse';
             } else if (!opt.canAfford) {
@@ -866,11 +866,11 @@ Object.assign(UI, {
                 // Unlearned: show the exact (front) side of the pattern tile
                 imgSrc = opt.tile.img;
             } else if (opt.tile && opt.learned && opt.tile.backImg) {
-                // Session 10b: Learned pattern — show the BACK of the pattern tile
+                // Learned pattern — show the BACK of the pattern tile
                 // (general side), NOT the item art
                 imgSrc = opt.tile.backImg;
             } else if (opt.itemDef.tileImg) {
-                // Session 20: Hat/blanket have dedicated tile images for blank board overlay
+                // Hat/blanket have dedicated tile images for blank board overlay
                 imgSrc = opt.itemDef.tileImg;
             } else {
                 imgSrc = opt.itemDef.img;
@@ -911,7 +911,7 @@ Object.assign(UI, {
                 });
             } else {
                 // Learned pattern or generic item: show neutral grey dots
-                // Session 15b: dots instead of number label — use yarnCount (numeric)
+                // dots instead of number label — use yarnCount (numeric)
                 var dotCount = opt.itemDef.yarnCount || 0;
                 for (var n = 0; n < dotCount; n++) {
                     var neutralDot = document.createElement('span');
@@ -939,7 +939,7 @@ Object.assign(UI, {
         var actions = Game.getAvailableActions();
         if (!actions.canCraft) return;
 
-        // Session 8c: craftAnyColors — always use 'any' color picker, ignore normal rules
+        // craftAnyColors — always use 'any' color picker, ignore normal rules
         if (Game.state.craftAnyColors) {
             this._pendingCraft = {
                 type: 'item',

@@ -1,18 +1,18 @@
 /* ui-panels1.js — UI module (split from the Session-40 LIVE monolith).
-   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+ ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
     _pendingCraft: null,
 
 
     /* =========================================================
-       SESSION 6: SPECIAL REQUESTS PANEL
-       Shows held SRs (not yet crafted) in a strip below the craft strip.
-       ========================================================= */
+ SESSION 6: SPECIAL REQUESTS PANEL
+ Shows held SRs (not yet crafted) in a strip below the craft strip.
+ ========================================================= */
 
     /**
-     * Render the Special Requests panel.
-     * Shows if player has held SRs; hidden when empty.
-     */
+ * Render the Special Requests panel.
+ * Shows if player has held SRs; hidden when empty.
+ */
     renderSpecialRequests: function() {
         var strip = this.els.srStrip;
         var grid = this.els.srGrid;
@@ -20,7 +20,7 @@ Object.assign(UI, {
 
         var srOptions = Game.getSRCraftOptions();
 
-        // Session 15b: Update the board overlay SR reminder
+        // Update the board overlay SR reminder
         this._renderSRBoardReminder();
 
         if (srOptions.length === 0) {
@@ -117,9 +117,9 @@ Object.assign(UI, {
     },
 
     /**
-     * Handle clicking an SR to craft it.
-     * Routes to color picker for non-specific colorRules.
-     */
+ * Handle clicking an SR to craft it.
+ * Routes to color picker for non-specific colorRules.
+ */
     onSRCraftClick: function(sr) {
         var actions = Game.getAvailableActions();
         if (!actions.canCraft) return;
@@ -127,7 +127,7 @@ Object.assign(UI, {
         var rule = sr.colorRule || 'specific';
         var baseItemDef = { id: sr.id, name: sr.name, img: sr.img, points: sr.points };
 
-        // Session 8c: craftAnyColors — override to 'any' picker for SRs too
+        // craftAnyColors — override to 'any' picker for SRs too
         if (Game.state.craftAnyColors) {
             var srYarnCount = sr.yarnCount || 0;
             if (!srYarnCount && sr.yarn) {
@@ -172,7 +172,7 @@ Object.assign(UI, {
             this.showCraftColorPicker(this._pendingCraft.itemDef, giveTitle);
 
         } else if (rule === 'specificPlusAny' || rule === 'specificPlusSame' || rule === 'sameColorPlus') {
-            // Session 36: compound expansion rules (Koi/Mallard/Dog Bandana/Skelly/Ghost).
+            // compound expansion rules (Koi/Mallard/Dog Bandana/Skelly/Ghost).
             // These pair a FIXED required yarn with a FLEXIBLE pick. The old picker had no
             // target count for the first two → couldn't select anything. Fix: reserve the
             // fixed yarn, open the picker for ONLY the flexible portion (capped by bowl minus
@@ -220,8 +220,8 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       CRAFT CONFIRMATION MODAL
-       ========================================================= */
+ CRAFT CONFIRMATION MODAL
+ ========================================================= */
 
     showCraftConfirm: function() {
         var pending = this._pendingCraft;
@@ -283,7 +283,7 @@ Object.assign(UI, {
         var isFrogIt      = pending.context === 'frogIt';
         var ccPlayerIdx   = pending.craftCirclePlayerIndex || 0;
 
-        // Session 17: Capture SR data before crafting (for moment modal)
+        // Capture SR data before crafting (for moment modal)
         var srData = null;
         if (pending.type === 'sr' && pending.srUid && !isFrogIt) {
             srData = UI._findSRInHand(pending.srUid);
@@ -318,7 +318,7 @@ Object.assign(UI, {
         }
 
         if (changed) {
-            // Session 8c: clear craftAnyColors after using it
+            // clear craftAnyColors after using it
             if (pending.context === 'craftAnyColors') {
                 Game.state.craftAnyColors = false;
             }
@@ -330,7 +330,7 @@ Object.assign(UI, {
             UI.renderActionBar();
         }
 
-        // Session 43: Emergency! craft-order blocked this craft — explain, don't fail silently.
+        // Emergency! craft-order blocked this craft — explain, don't fail silently.
         if (!changed && Game.state._lastCraftBlock === 'emergency') {
             Game.state._lastCraftBlock = null;
             this._pendingCraft = null;
@@ -338,7 +338,7 @@ Object.assign(UI, {
             return;
         }
 
-        // Session 17: Show SR completion moment (not for regular items or frog it)
+        // Show SR completion moment (not for regular items or frog it)
         if (changed && srData && !isCraftCircle) {
             var isFav = srData.isFavorite;
             var savedPending = pending;
@@ -400,16 +400,16 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       CRAFT COLOR PICKER MODAL
-       ========================================================= */
+ CRAFT COLOR PICKER MODAL
+ ========================================================= */
 
     _craftColorAlloc: {},
 
     /**
-     * @param {Object} itemDef — item (or SR pseudo-item) with colorRule and yarnCount
-     * @param {string} [overrideTitle] — optional title to use instead of auto-generated one
-     */
-    // Session 36: pretty-print a fixed yarn map, e.g. {orange:3} → "3 Orange".
+ * @param {Object} itemDef — item (or SR pseudo-item) with colorRule and yarnCount
+ * @param {string} [overrideTitle] — optional title to use instead of auto-generated one
+ */
+    // pretty-print a fixed yarn map, e.g. {orange:3} → "3 Orange".
     _fixedYarnLabel: function(map) {
         return Object.keys(map || {}).map(function(c) {
             return map[c] + ' ' + c.charAt(0).toUpperCase() + c.slice(1);
@@ -435,7 +435,7 @@ Object.assign(UI, {
         this.els.craftColorTitle.textContent = overrideTitle || ('Choose Yarn: ' + (ruleLabel[rule] || needed + ' yarn'));
         this.els.craftColorConfirmBtn.disabled = true;
 
-        // Session 22: Inject off-turn context if this is a craft-circle color pick
+        // Inject off-turn context if this is a craft-circle color pick
         var ccContent = this.els.craftColorModal.querySelector('.craft-color-content');
         var contextContainer = ccContent.querySelector('.otc-container');
         if (!contextContainer) {
@@ -504,7 +504,7 @@ Object.assign(UI, {
             sub: isReceive ? null : function(color) {
                 var av = (bowl[color] || 0) - (reserved[color] || 0); return 'have ' + (av < 0 ? 0 : av);
             },
-            // Session 50 (Adam): LIVE remaining count rendered ON the token
+            // LIVE remaining count rendered ON the token
             // (bowl-tray CSS hides the words + shows this instead)
             tokNum: isReceive ? null : function(color) {
                 var av = (bowl[color] || 0) - (reserved[color] || 0) - (alloc[color] || 0);
@@ -521,8 +521,8 @@ Object.assign(UI, {
                 (valid ? '<span class="xc-hint ok">Ready ✓</span>' : (rule === 'twoColors' ? '<span class="xc-hint">use exactly 2 colors</span>' : '')) + UI._selectedYarnChips(alloc) + '</div>';
 
         this.els.craftColorBody.innerHTML = html;
-        // Session 50 (Adam): bowl-SPEND picker skin - the peek bowl with +/- zones.
-        // Adam 7/7: RECEIVE flows (Frog It) pull from the SUPPLY, not your bowl,
+        // bowl-SPEND picker skin - the peek bowl with +/- zones.
+        // RECEIVE flows (Frog It) pull from the SUPPLY, not your bowl,
         // so they get the Bazaar supply-tray skin instead.
         this.els.craftColorBody.classList.remove('ar-bowl-tray', 'ar-supply-tray');
         this.els.craftColorBody.classList.add(isReceive ? 'ar-supply-tray' : 'ar-bowl-tray');
@@ -611,7 +611,7 @@ Object.assign(UI, {
         CARDS.COLORS.forEach(function(c) {
             if (UI._craftColorAlloc[c] > 0) spend[c] = UI._craftColorAlloc[c];
         });
-        // Session 36: fold in the reserved fixed yarn (compound SR rules) so the final
+        // fold in the reserved fixed yarn (compound SR rules) so the final
         // spend = fixed portion + the player's flexible pick.
         if (pending.reservedYarn) {
             Object.keys(pending.reservedYarn).forEach(function(c) {
@@ -641,8 +641,8 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       EXCHANGE MODAL
-       ========================================================= */
+ EXCHANGE MODAL
+ ========================================================= */
 
     _exchangeGive: {},
     _exchangeReceive: {},
@@ -771,10 +771,10 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       Session 15b: SR BOARD REMINDER OVERLAY
-       Mini thumbnails of held SRs overlaid on the player board
-       so human players can't miss them (like physical game).
-       ========================================================= */
+ SR BOARD REMINDER OVERLAY
+ Mini thumbnails of held SRs overlaid on the player board
+ so human players can't miss them (like physical game).
+ ========================================================= */
 
     _renderSRBoardReminder: function() {
         var el = this.els.srBoardReminder;
@@ -811,7 +811,7 @@ Object.assign(UI, {
                 card.appendChild(heart);
             }
 
-            // Session 15b: Hover preview tooltip — pops up above the thumbnail
+            // Hover preview tooltip — pops up above the thumbnail
             var tooltip = document.createElement('div');
             tooltip.className = 'sr-hover-preview';
 
@@ -936,13 +936,13 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       FINISHED OBJECTS
-       ========================================================= */
+ FINISHED OBJECTS
+ ========================================================= */
 
     /**
-     * Session 10b: Finished Objects — 3 distinct zones (Projects, Items, SRs)
-     * with stacked duplicates and ×N count badges.
-     */
+ * Finished Objects — 3 distinct zones (Projects, Items, SRs)
+ * with stacked duplicates and ×N count badges.
+ */
     renderFinishedObjects: function() {
         var items = Game.state.player.items;
         var craftedSRs = Game.state.player.craftedSpecialRequests;
@@ -952,7 +952,7 @@ Object.assign(UI, {
         var totalEl = this.els.finishedTotal;
         if (!grid) return;
 
-        // Session 15c: Color-match pill and show character name
+        // Color-match pill and show character name
         var charType = Game.state.player ? Game.state.player.characterType : null;
         var charId = Game.state.player ? Game.state.player.characterId : null;
         var accent = charType ? (this._typeAccentColors[charType] || null) : null;
@@ -1029,7 +1029,7 @@ Object.assign(UI, {
             return;
         }
 
-        // --- Helper: group an array by a key, preserving order of first appearance ---
+        // Helper: group an array by a key, preserving order of first appearance ---
         function groupBy(arr, keyFn) {
             var groups = {};
             var order = [];
@@ -1044,7 +1044,7 @@ Object.assign(UI, {
             return { groups: groups, order: order };
         }
 
-        // --- Helper: render a zone section ---
+        // Helper: render a zone section ---
         function renderZone(label, icon, zoneClass) {
             var zone = document.createElement('div');
             zone.className = 'fo-zone ' + (zoneClass || '');
@@ -1058,8 +1058,8 @@ Object.assign(UI, {
             return { zone: zone, content: content };
         }
 
-        // --- Helper: render a stacked item card ---
-        // Session 15c: Items show as silhouettes with no point tag at rest.
+        // Helper: render a stacked item card ---
+        // Items show as silhouettes with no point tag at rest.
         // Point tag appears on hover after zoom completes. Projects/SRs keep borders.
         function renderCard(item, count, tagClass, isItem) {
             var wrap = document.createElement('div');
@@ -1083,7 +1083,7 @@ Object.assign(UI, {
                 (count > 1 ? ' ×' + count + ' = ' + totalPts : '');
             wrap.appendChild(img);
 
-            // Session 15c/17: Items get hover-only point tags via data-pts.
+            // /17: Items get hover-only point tags via data-pts.
             // Projects/SRs: no point tag — values already printed on card art.
             if (isItem) {
                 wrap.setAttribute('data-pts', totalPts);
@@ -1100,7 +1100,7 @@ Object.assign(UI, {
             return { wrap: wrap, points: totalPts };
         }
 
-        // Session 15c: Zone order is Items → SRs → Projects
+        // Zone order is Items → SRs → Projects
         // Items are what you need to make projects, SRs are a point of pride,
         // projects are a nice reminder of what you accomplished.
 
@@ -1154,7 +1154,7 @@ Object.assign(UI, {
             grid.appendChild(note);
         }
 
-        // Session 15c: Update total with point tag badge
+        // Update total with point tag badge
         if (totalEl) {
             totalEl.className = 'finished-objects-total has-points';
             totalEl.innerHTML = '';
@@ -1164,7 +1164,7 @@ Object.assign(UI, {
             totalEl.appendChild(totalNum);
         }
 
-        // Session 15c: Attach hover point tags to item tokens
+        // Attach hover point tags to item tokens
         grid.querySelectorAll('.fo-item-token[data-pts]').forEach(function(item) {
             var tag = document.createElement('div');
             tag.className = 'fo-hover-tag';
@@ -1184,14 +1184,14 @@ Object.assign(UI, {
             });
         });
 
-        // Session 15b: Update drawer count badge
+        // Update drawer count badge
         this._updateDrawerCount();
     },
 
     /**
-     * Session 15b: Toggle the Finished Objects drawer open/closed.
-     * @param {boolean} [forceState] — true = open, false = close, undefined = toggle
-     */
+ * Toggle the Finished Objects drawer open/closed.
+ * @param {boolean} [forceState] — true = open, false = close, undefined = toggle
+ */
     toggleFinishedDrawer: function(forceState) {
         var drawer = this.els.foDrawer;
         if (!drawer) return;
@@ -1219,9 +1219,9 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 15b: Update the count badge on the drawer tab.
-     * Also applies character-color styling to the badge and tab border.
-     */
+ * Update the count badge on the drawer tab.
+ * Also applies character-color styling to the badge and tab border.
+ */
     _updateDrawerCount: function() {
         var badge = this.els.foDrawerCount;
         var tab = this.els.foDrawerTab;
@@ -1259,11 +1259,11 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 8: PROJECT BOARD OVERLAY
-       Renders 3 face-up project cards as absolute overlays
-       directly on the board image's bottom card zones — the
-       same approach used for Bazaar cards. The old floating
-       #projectStrip (Session 7) has been removed from the HTML.
-       ========================================================= */
+ SESSION 8: PROJECT BOARD OVERLAY
+ Renders 3 face-up project cards as absolute overlays
+ directly on the board image's bottom card zones — the
+ same approach used for Bazaar cards. The old floating
+ #projectStrip has been removed from the HTML.
+ ========================================================= */
 
 });

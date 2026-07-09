@@ -1,12 +1,12 @@
 /* ui-extra.js — UI module (split from the Session-40 LIVE monolith).
-   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+ ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
     _opponentPanelIdx: -1,
 
     /**
-     * Open the slide-out panel showing the specified player's board state.
-     * @param {number} playerIdx — index into Game.state.players[]
-     */
+ * Open the slide-out panel showing the specified player's board state.
+ * @param {number} playerIdx — index into Game.state.players[]
+ */
     showOpponentPanel: function(playerIdx) {
         var players = Game.state.players;
         if (!players || playerIdx < 0 || playerIdx >= players.length) return;
@@ -15,7 +15,7 @@ Object.assign(UI, {
         var p = players[playerIdx];
         var character = CARDS.getCharacter(p.characterId);
 
-        // --- Header (with character type accent color) ---
+        // Header (with character type accent color) ---
         var headerEl = document.querySelector('.opponent-panel-header');
         var accentColor = this._typeAccentColors[p.characterType] || 'rgba(255,255,255,0.2)';
         if (headerEl) {
@@ -46,7 +46,7 @@ Object.assign(UI, {
             titleEl.appendChild(nameSpan);
         }
 
-        // --- Body ---
+        // Body ---
         var body = document.getElementById('opponentPanelBody');
         body.innerHTML = '';
 
@@ -101,7 +101,7 @@ Object.assign(UI, {
             cell.innerHTML =
                 '<img class="opp-yarn-img" src="Wood Yarn Tokens PNG/' + color + '.png" alt="' + color + ' yarn">' +
                 '<span class="opp-yarn-num">' + count + '</span>';
-            // Session 48AD (Adam): back to two rows of three, no dip —
+            // back to two rows of three, no dip —
             // the tall bowl art holds them
             yarnGrid.appendChild(cell);
         });
@@ -264,7 +264,7 @@ Object.assign(UI, {
         body.appendChild(scoreSection.section);
 
         // 9. Take Over / Give Back button
-        // Session 51 (Adam): Story Mode locks seats — the whole point is to beat the
+        // Story Mode locks seats — the whole point is to beat the
         // computer yourself, so no "Take Over" / "Give to Computer" affordance here.
         if (!(window.Story && Story.storyGame)) {
         var takeoverSection = document.createElement('div');
@@ -307,7 +307,7 @@ Object.assign(UI, {
         body.appendChild(takeoverSection);
         }
 
-        // --- Show panel + backdrop ---
+        // Show panel + backdrop ---
         var panel = document.getElementById('opponentPanel');
         var backdrop = document.getElementById('opponentPanelBackdrop');
         panel.style.display = 'block';
@@ -320,8 +320,8 @@ Object.assign(UI, {
     },
 
     /**
-     * Close the opponent board viewer panel.
-     */
+ * Close the opponent board viewer panel.
+ */
     hideOpponentPanel: function() {
         this._opponentPanelIdx = -1;
         var panel = document.getElementById('opponentPanel');
@@ -336,10 +336,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Helper: create an opponent panel section with a label and content container.
-     * @param {string} label — section header text
-     * @returns {{ section: HTMLElement, content: HTMLElement }}
-     */
+ * Helper: create an opponent panel section with a label and content container.
+ * @param {string} label — section header text
+ * @returns {{ section: HTMLElement, content: HTMLElement }}
+ */
     _oppSection: function(label) {
         var section = document.createElement('div');
         section.className = 'opp-section';
@@ -356,13 +356,13 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 13: TURN HISTORY PANEL
-       Slide-out panel from right, accessible from nav menu.
-       ========================================================= */
+ SESSION 13: TURN HISTORY PANEL
+ Slide-out panel from right, accessible from nav menu.
+ ========================================================= */
 
     /**
-     * Show the turn history panel.
-     */
+ * Show the turn history panel.
+ */
     showTurnHistory: function() {
         var panel = document.getElementById('historyPanel');
         var backdrop = document.getElementById('historyPanelBackdrop');
@@ -378,8 +378,8 @@ Object.assign(UI, {
     },
 
     /**
-     * Hide the turn history panel.
-     */
+ * Hide the turn history panel.
+ */
     hideTurnHistory: function() {
         var panel = document.getElementById('historyPanel');
         var backdrop = document.getElementById('historyPanelBackdrop');
@@ -388,10 +388,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Render turn history entries into the panel body, grouped by round.
-     * A "round" = one complete pass around all players.
-     * Called via Game.render.turnHistory delegate at end of each turn.
-     */
+ * Render turn history entries into the panel body, grouped by round.
+ * A "round" = one complete pass around all players.
+ * Called via Game.render.turnHistory delegate at end of each turn.
+ */
     renderTurnHistory: function() {
         var body = document.getElementById('historyPanelBody');
         var emptyMsg = document.getElementById('historyEmpty');
@@ -464,15 +464,15 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 22: ACTION FEED TICKER
-       Rolling horizontal strip of recent game actions for all players.
-       Replaces the old AI overlay panel.
-       ========================================================= */
+ SESSION 22: ACTION FEED TICKER
+ Rolling horizontal strip of recent game actions for all players.
+ Replaces the old AI overlay panel.
+ ========================================================= */
 
     /**
-     * Render the action feed ticker with the latest entries from Game.state.actionFeed.
-     * Shows last ~8 entries as horizontal chips with player type colors.
-     */
+ * Render the action feed ticker with the latest entries from Game.state.actionFeed.
+ * Shows last ~8 entries as horizontal chips with player type colors.
+ */
     renderActionFeed: function() {
         var feedEl = document.getElementById('actionFeed');
         var entriesEl = document.getElementById('feedEntries');
@@ -538,9 +538,9 @@ Object.assign(UI, {
     },
 
     /* =========================================================
-       SESSION 13: TAKE 5 ANY COLORS MODAL
-       Expert unique: player picks 5 yarn colors (repeats OK).
-       ========================================================= */
+ SESSION 13: TAKE 5 ANY COLORS MODAL
+ Expert unique: player picks 5 yarn colors (repeats OK).
+ ========================================================= */
 
     /** Temporary state for the Take5 picker */
     _take5: {},
@@ -560,7 +560,7 @@ Object.assign(UI, {
         if (grid) {
             grid.innerHTML = '<div class="xc-help">Tap a color to add &middot; <span class="xc-x-ico">×</span> to clear</div>' +
                 UI._yarnChips({ sel: this._take5, rule: 'any', need: 5, addFn: 'UI.onTake5Pick', clearFn: 'UI.onTake5Clear', lockCatNap: true });
-            // Session 50: supply tray with count badges + minus zones
+            // supply tray with count badges + minus zones
             grid.classList.add('ar-supply-tray');
             grid.classList.add('cp-count');
             grid.setAttribute('data-minus-fn', 'onTake5Minus');
@@ -611,20 +611,20 @@ Object.assign(UI, {
 
 
 /* =========================================================
-   BOOT — Initialize game and UI when the page loads
-   =========================================================
-   The SR take flow needs a bridge: showSRTakeModal captures
-   the card reference, and onSRTakeConfirm needs to call
-   Game.takeSpecialRequest with it. We store the card on UI.
-   ========================================================= */
+ BOOT — Initialize game and UI when the page loads
+ =========================================================
+ The SR take flow needs a bridge: showSRTakeModal captures
+ the card reference, and onSRTakeConfirm needs to call
+ Game.takeSpecialRequest with it. We store the card on UI.
+ ========================================================= */
 
 /* =========================================================
-   SESSION 21: ACCESSIBILITY — Colorblind Mode, Keyboard Nav,
-   Focus Trapping, Screen Reader Helpers
-   ========================================================= */
+ SESSION 21: ACCESSIBILITY — Colorblind Mode, Keyboard Nav,
+ Focus Trapping, Screen Reader Helpers
+ ========================================================= */
 
 /**
- * Session 21: Colorblind mode symbols map.
+ * Colorblind mode symbols map.
  * Used by rendering functions to add data-cb-color attributes.
  */
 UI._CB_SYMBOLS = {
@@ -633,7 +633,7 @@ UI._CB_SYMBOLS = {
 };
 
 /**
- * Session 21: Toggle colorblind mode on/off.
+ * Toggle colorblind mode on/off.
  * Adds .colorblind-mode class to <body> and re-renders all color indicators.
  */
 UI.onToggleColorblind = function() {
@@ -655,7 +655,7 @@ UI.onToggleColorblind = function() {
 };
 
 /**
- * Session 21: Restore colorblind mode preference from localStorage.
+ * Restore colorblind mode preference from localStorage.
  */
 UI._restoreColorblindPref = function() {
     try {
@@ -668,7 +668,7 @@ UI._restoreColorblindPref = function() {
 };
 
 /**
- * Session 21: Add data-cb-color attribute to an element for colorblind CSS symbols.
+ * Add data-cb-color attribute to an element for colorblind CSS symbols.
  * @param {HTMLElement} el — the element to annotate
  * @param {string} color — yarn color name (red, blue, green, yellow, orange, purple)
  */
@@ -679,7 +679,7 @@ UI._setCBColor = function(el, color) {
 };
 
 /**
- * Session 21: Keyboard navigation handler.
+ * Keyboard navigation handler.
  * Handles arrow keys, Enter/Space, Escape within the game.
  */
 UI._handleKeyDown = function(e) {
@@ -725,7 +725,7 @@ UI._handleKeyDown = function(e) {
 };
 
 /**
- * Session 21: Close the topmost (last opened) visible modal.
+ * Close the topmost (last opened) visible modal.
  * Returns true if a modal was closed, false if none were open.
  */
 UI._closeTopmostModal = function() {
@@ -779,7 +779,7 @@ UI._closeTopmostModal = function() {
 };
 
 /**
- * Session 21: Focus trap inside open modals.
+ * Focus trap inside open modals.
  * When Tab is pressed inside a modal, cycle focus among focusable elements within it.
  */
 UI._handleModalFocusTrap = function(e) {
@@ -830,7 +830,7 @@ UI._handleModalFocusTrap = function(e) {
 };
 
 /**
- * Session 21: Focus the first focusable element inside a newly opened modal.
+ * Focus the first focusable element inside a newly opened modal.
  * @param {string} modalId — the id of the modal overlay element
  */
 UI._focusModal = function(modalId) {
@@ -875,13 +875,13 @@ UI.onSRGiveTo = function(targetPlayerIndex) {
 };
 
 window.addEventListener('DOMContentLoaded', function() {
-    // Session 9: Game.init() is now called from UI.onSetupStart()
+    // Game.init is now called from UI.onSetupStart
     // after the player picks characters on the setup screen.
     UI.init();
 });
 
 
-// Session 40: re-render the player strip on resize/orientation change so the
+// re-render the player strip on resize/orientation change so the
 // "active card + menu" collapse toggles live when crossing the mobile breakpoint.
 (function () {
     var t;
@@ -900,9 +900,9 @@ window.addEventListener('DOMContentLoaded', function() {
 
 
 /* =========================================================================
-   Session 46: How-to-Play overlay + first-game coach mark + beat chip.
-   Adam-blessed designs (b46 mockup rounds 1-8 + marker review rounds 1-7).
-   ========================================================================= */
+ How-to-Play overlay + first-game coach mark + beat chip.
+ Adam-blessed designs (b46 mockup rounds 1-8 + marker review rounds 1-7).
+ ========================================================================= */
 Object.assign(UI, {
 
     showHowToPlay: function(firstGame) {
@@ -963,7 +963,7 @@ Object.assign(UI, {
             var close = function(){
                 ov.classList.remove('open');
                 ov._first = false;
-                // Session 47q: closing How-to ALWAYS flows into the action-space
+                // closing How-to ALWAYS flows into the action-space
                 // coach when the player is at a choose-space moment (contextual:
                 // "you just read the rules — here's your board"). Not gated on
                 // the seen-flag; the flag only controls the AUTO-show.
@@ -976,7 +976,7 @@ Object.assign(UI, {
                         setTimeout(function(){ if (UI.showActionTour) UI.showActionTour(); }, 300);
                     } else {
                         // not the player's choose moment yet — hand off to the
-                        // next choose-space render (Session 48M, single-fire)
+                        // next choose-space render , single-fire)
                         UI._tourPending = true;
                     }
                 } catch (e) {}
@@ -989,10 +989,10 @@ Object.assign(UI, {
         ov.classList.add('open');
     },
 
-    /* Session 48i: How-to-Play auto-show rule (Adam):
-       1) first-ever game on this device, ANY mode, and
-       2) EVERY Quick Play game unless the player is signed in.
-       (Signed-in players know the game; booth iPads stay in teaching mode.) */
+    /* How-to-Play auto-show rule :
+ 1) first-ever game on this device, ANY mode, and
+ 2) EVERY Quick Play game unless the player is signed in.
+ (Signed-in players know the game; booth iPads stay in teaching mode.) */
     maybeShowFirstGameHelp: function() {
         try {
             var firstEver = !localStorage.getItem('ar_htp_seen');
@@ -1006,11 +1006,11 @@ Object.assign(UI, {
     },
 
     /* =====================================================================
-       Session 48: ACTION TOUR (Adam's design, replaces the static coach mark).
-       The marker ANIMATES from space to space; a persistent box explains each
-       space as it lands. Dwells ~2.6s, loops. Touch/hover a space to jump the
-       marker + explanation there. Tap outside the highlighted zone to close.
-       ===================================================================== */
+ ACTION TOUR .
+ The marker ANIMATES from space to space; a persistent box explains each
+ space as it lands. Dwells ~2.6s, loops. Touch/hover a space to jump the
+ marker + explanation there. Tap outside the highlighted zone to close.
+ ===================================================================== */
     _tourSpaceCopy: function(sp) {
         var acts = [], notes = [];
         if (sp.shop) acts.push('take ' + sp.shop + ' yarn card' + (sp.shop > 1 ? 's' : '') + ' from the Bazaar');
@@ -1066,7 +1066,7 @@ Object.assign(UI, {
         if (sideFits) {
             box.style.top = Math.max(12, gr.top + gr.height * 0.12) + 'px';
         } else {
-            // Session 48AI (Adam): mobile — ABOVE the grid, never covering it.
+            // mobile — ABOVE the grid, never covering it.
             // Only drop below if there's no headroom.
             var above = gr.top - 226;
             if (above < 12) above = Math.min(gr.top + gr.height + 14, window.innerHeight - 226);
@@ -1097,7 +1097,7 @@ Object.assign(UI, {
                 '<div class="t48-space"><b>' + (sp.label || '') + '</b><br>' + UI._tourSpaceCopy(sp) + '</div>' +
                 '<div class="t48-tap">tap a space to peek \u00b7 tap outside to play</div>';
         }
-        // Session 48b (Adam): no auto-loop — the tour is interaction-driven.
+        // no auto-loop — the tour is interaction-driven.
         // Marker starts on the first space; tap/hover a space to move it.
         place(0, true);
         void mk.offsetWidth;   // lock initial position before enabling transitions
@@ -1145,11 +1145,11 @@ Object.assign(UI, {
 
 
 /* =========================================================================
-   Session 48d: LIGHT HOMEPAGE (Adam). Heavy board art is deferred — the
-   landing screen loads light; touching ANY landing button starts the real
-   asset load (the setup screen is the natural loading window). Start Game
-   gates briefly on a cozy loading beat only if assets aren't ready yet.
-   ========================================================================= */
+ LIGHT HOMEPAGE . Heavy board art is deferred — the
+ landing screen loads light; touching ANY landing button starts the real
+ asset load (the setup screen is the natural loading window). Start Game
+ gates briefly on a cozy loading beat only if assets aren't ready yet.
+ ========================================================================= */
 Object.assign(UI, {
     _arAssetsLoaded: false,
     _deferredAssetsGo: function() {
@@ -1170,15 +1170,15 @@ Object.assign(UI, {
 });
 
 /* =========================================================================
-   Session 49.17 (Adam): STORY MODE OVERVIEW — same family as How-to-Play.
-   Auto-shows on the first Story Mode tap; always available from the menu.
-   ========================================================================= */
+ : STORY MODE OVERVIEW — same family as How-to-Play.
+ Auto-shows on the first Story Mode tap; always available from the menu.
+ ========================================================================= */
 Object.assign(UI, {
     onLandingStory: function() {
         try {
             if (!localStorage.getItem('ar_sm_seen')) { UI.showStoryIntro(true); return; }
         } catch (e) {}
-        // Session 51 (Adam): a signed-in player taps Story Mode → take them to THEIR
+        // a signed-in player taps Story Mode → take them to THEIR
         // profile page, anchored to the "Your Crafters" grid (pick up the climb), instead
         // of the archetype intro. Guests / not-signed-in keep the normal start (goTypes).
         if (window.Story && Story.currentUser) {
@@ -1238,14 +1238,14 @@ Object.assign(UI, {
 });
 
 /* =========================================================================
-   Session 48S: YARN BOWL DRAWER (Adam's design, mockup-blessed values).
-   Tap the token arc -> the wooden bowl slides in from the left, INSIDE the
-   board (own clip layer; wrapper keeps overflow visible for cost dots).
-   Wedge wheel = live counts. Tangled = refuse + annoyed cat, no other sound.
-   ========================================================================= */
-/* Session 48W: entry-gain cancel handlers RESTORED (Session 47 originals were
-   lost in the deploy-path incident — the buttons survived, the functions
-   didn't). Cancel = soft revert, marker roams again. */
+ YARN BOWL DRAWER .
+ Tap the token arc -> the wooden bowl slides in from the left, INSIDE the
+ board (own clip layer; wrapper keeps overflow visible for cost dots).
+ Wedge wheel = live counts. Tangled = refuse + annoyed cat, no other sound.
+ ========================================================================= */
+/* entry-gain cancel handlers RESTORED originals were
+ lost in the a past incident — the buttons survived, the functions
+ didn't). Cancel = soft revert, marker roams again. */
 Object.assign(UI, {
     _addEntryGainCancel: function(modalId) {
         var modal = document.getElementById(modalId);
@@ -1320,8 +1320,8 @@ Object.assign(UI, {
         this._ybBuildWheel();
     },
 
-    /* Session 50: compact static bowl-wheel SVG for modal contexts (tablet).
-       Same wedge geometry as the drawer wheel; no interactivity. */
+    /* compact static bowl-wheel SVG for modal contexts (tablet).
+ Same wedge geometry as the drawer wheel; no interactivity. */
     _miniBowlSVG: function(bowl) {
         bowl = bowl || {};
         var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
@@ -1375,7 +1375,7 @@ Object.assign(UI, {
             im.setAttribute('preserveAspectRatio', 'xMidYMid slice');
             p.appendChild(im); defs.appendChild(p);
         });
-        // Session 50 (Adam 7/6): gradients KILLED — flat wedges over the wood
+        // gradients KILLED — flat wedges over the wood
         // bowl art; CSS fill-opacity does the blending. Hub total stays.
         svg.appendChild(defs);
         function pt(aDeg, r){ var a = aDeg * Math.PI / 180; return [100 + r * Math.sin(a), 100 - r * Math.cos(a)]; }
@@ -1500,8 +1500,8 @@ Object.assign(UI, {
     }
 });
 
-/* Session 49.2: lightweight play analytics — fire-and-forget event pings to
-   Supabase (ar_events table, anon-insert-only RLS). Never blocks gameplay. */
+/* lightweight play analytics — fire-and-forget event pings to
+ Supabase (ar_events table, anon-insert-only RLS). Never blocks gameplay. */
 Object.assign(UI, {
     logEvent: function(ev, meta) {
         try {
@@ -1518,7 +1518,7 @@ Object.assign(UI, {
 });
 
 // live count sync whenever the bowl re-renders; count font sized in px from
-// the real board width (2.75% of board, Adam's recipe) — no container units
+// the real board width (2.75% of board, the recipe) — no container units
 (function(){
     var _szRetry;
     function sizeCounts() {
@@ -1548,7 +1548,7 @@ Object.assign(UI, {
 (function(){
     function boot() {
         try { UI.buildYarnDrawer(); } catch (e) {}
-        // Session 50: GLOBAL supply-tray zone listener (capture) - bottom of a
+        // GLOBAL supply-tray zone listener (capture) - bottom of a
         // well = minus (per-tray handler via data-minus-fn); review-locked
         // trays (cp-full) swallow plus taps.
         document.addEventListener('click', function(e){
@@ -1571,7 +1571,7 @@ Object.assign(UI, {
                 }
             } catch (err) {}
         }, true);
-        // Session 50: tablet portrait - move the FO drawer up to <body> so it can
+        // tablet portrait - move the FO drawer up to <body> so it can
         // be a fixed full-height side sheet (the board wrapper's zoom transform
         // would otherwise trap/scale it). IDs + class toggles keep working.
         try {
@@ -1586,14 +1586,14 @@ Object.assign(UI, {
         if (landing) {
             landing.addEventListener('click', function(){ UI._deferredAssetsGo(); }, { capture: true, once: true });
         }
-        /* Session 48k (Adam): loading screen moved UP-FRONT. Quick Play shows a
-           cozy loading beat that waits for the real assets (min 0.9s so it does
-           not flash, hard cap 5s) BEFORE the setup screen appears. By Start Game
-           everything is loaded, so no mid-layout reflow jank. If assets are
-           already loaded (second game etc.) it goes straight through. */
-        /* Session 48L (Adam): ONE loading moment, at Start Game. Quick Play just
-           kicks off the background asset download and goes straight to setup
-           (the player browses crafters while art downloads). */
+        /* loading screen moved UP-FRONT. Quick Play shows a
+ cozy loading beat that waits for the real assets (min 0.9s so it does
+ not flash, hard cap 5s) BEFORE the setup screen appears. By Start Game
+ everything is loaded, so no mid-layout reflow jank. If assets are
+ already loaded (second game etc.) it goes straight through. */
+        /* ONE loading moment, at Start Game. Quick Play just
+ kicks off the background asset download and goes straight to setup
+ (the player browses crafters while art downloads). */
         if (UI.onLandingPlaySolo && !UI._playGateWrapped) {
             UI._playGateWrapped = true;
             var origPlay = UI.onLandingPlaySolo;
@@ -1610,12 +1610,12 @@ Object.assign(UI, {
                 var args = arguments;
                 try {
                     UI._deferredAssetsGo();
-                    /* Session 48L: THE loading screen. Shows on every game start;
-                       behind it we (a) wait for assets (cap 5s), (b) run Game.init
-                       so the board + action marker assemble FULLY hidden (fixes the
-                       double marker: init used to run pre-asset-load, render a tiny
-                       marker, then re-render a correct one), then (c) lift the
-                       screen straight onto How-to-Play (which fires at init). */
+                    /* THE loading screen. Shows on every game start;
+ behind it we (a) wait for assets (cap 5s), (b) run Game.init
+ so the board + action marker assemble FULLY hidden (fixes the
+ double marker: init used to run pre-asset-load, render a tiny
+ marker, then re-render a correct one), then (c) lift the
+ screen straight onto How-to-Play (which fires at init). */
                     var ov = document.createElement('div');
                     ov.className = 'ld48';
                     ov.innerHTML = '<div class="ld48-in"><img src="Other Images Textures Details/AR_cat_meeple_GRAY_3D.png" alt=""><div>Setting up the Yarn Bazaar…</div></div>';
@@ -1627,7 +1627,7 @@ Object.assign(UI, {
                     var startGame = function(){
                         if (started) return; started = true;
                         try { orig.apply(UI, args); } catch (e) {}
-                        // Session 48T (Adam): the veil does NOT auto-lift. Once
+                        // the veil does NOT auto-lift. Once
                         // the board is assembled (HTP open behind it, or 2s cap)
                         // the loading line becomes a Get Crafty! button and the
                         // PLAYER lifts the veil.

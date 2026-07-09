@@ -1,5 +1,5 @@
 /* ui-core.js — UI module (split from the Session-40 LIVE monolith).
-   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+ ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 /**
  * ArchRavels — UI Rendering & Event Handling
  * =========================================================
@@ -7,52 +7,52 @@
  * and updates the page. Event handlers call Game functions
  * then trigger re-renders.
  *
- * Session 5 additions:
- *   - Action space selector (chooseSpace phase)
- *   - Turn-aware action bar (playerActions phase)
- *   - Exchange modal (give/receive yarn)
- *   - Craft availability gating (respects action space limits)
+ * additions:
+ * - Action space selector (chooseSpace phase)
+ * - Turn-aware action bar (playerActions phase)
+ * - Exchange modal (give/receive yarn)
+ * - Craft availability gating (respects action space limits)
  *
- * Session 6 additions:
- *   - Async restock queue (Events + SRs resolved sequentially)
- *   - Event modal (shows card image + effect, handles input if needed)
- *   - Yarn Sale modal (pick 3 colors from supply)
- *   - Donate modal (give back 2 yarn)
- *   - Special Request take modal (SR revealed during restock)
- *   - Special Requests panel (below craft strip)
- *   - SR crafting (all colorRules: specific/any/sameColor/different/give)
+ * additions:
+ * - Async restock queue (Events + SRs resolved sequentially)
+ * - Event modal (shows card image + effect, handles input if needed)
+ * - Yarn Sale modal (pick 3 colors from supply)
+ * - Donate modal (give back 2 yarn)
+ * - Special Request take modal (SR revealed during restock)
+ * - Special Requests panel (below craft strip)
+ * - SR crafting (all colorRules: specific/any/sameColor/different/give)
  *
- * Session 7 additions:
- *   - Project strip (3 face-up project cards)
- *   - Finish Project (Restock action): turn in items, score points
- *   - Learn a Pattern (Restock action): flip tile to general side
- *   - Frog It (Restock action): return crafted item, get yarn back
- *   - frogIt color picker (reuses craft color picker with context='frogIt')
- *   - SR display handles all colorRules (cost shown as label or dots)
+ * additions:
+ * - Project strip (3 face-up project cards)
+ * - Finish Project (Restock action): turn in items, score points
+ * - Learn a Pattern (Restock action): flip tile to general side
+ * - Frog It (Restock action): return crafted item, get yarn back
+ * - frogIt color picker (reuses craft color picker with context='frogIt')
+ * - SR display handles all colorRules (cost shown as label or dots)
  *
  * Naming convention:
- *   render*()  — updates a section of the DOM
- *   on*()      — event handler (user interaction)
- *   show*()    — shows a modal or overlay
- *   hide*()    — hides a modal or overlay
+ * render* — updates a section of the DOM
+ * on* — event handler (user interaction)
+ * show* — shows a modal or overlay
+ * hide* — hides a modal or overlay
  * =========================================================
  */
 
 var UI = {
 
-    /* ----- DOM element references (set in init) ----- */
+    /* DOM element references (set in init) ----- */
     els: {},
 
     /* =========================================================
-       INITIALIZATION
-       ========================================================= */
+ INITIALIZATION
+ ========================================================= */
 
     init: function() {
         // Cache DOM references
         this.els = {
             bazaar:          document.getElementById('bazaar'),
             actionBar:       document.getElementById('actionBar'),
-            /* actionStatusStrip removed in Session 17 single-row redesign */
+            /* actionStatusStrip removed in single-row redesign */
             yarnBowl:        document.getElementById('yarnBowl'),
             deckCounter:     document.getElementById('deckCounter'),
             craftGrid:       document.getElementById('craftGrid'),
@@ -60,17 +60,17 @@ var UI = {
             finishedWrapper: document.getElementById('finishedObjectsWrapper'),
             finishedGrid:    document.getElementById('finishedObjects'),
             finishedTotal:   document.getElementById('finishedObjectsTotal'),
-            // --- Session 15b: Finished Objects drawer ---
+            // Finished Objects drawer ---
             foDrawer:        document.getElementById('foDrawer'),
             foDrawerTab:     document.getElementById('foDrawerTab'),
             foDrawerCount:   document.getElementById('foDrawerCount'),
             foDrawerClose:   document.getElementById('foDrawerClose'),
-            // --- Session 6: Special Requests panel ---
+            // Special Requests panel ---
             srStrip:         document.getElementById('srStrip'),
             srGrid:          document.getElementById('srGrid'),
-            // --- Session 15b: SR board reminder overlay ---
+            // SR board reminder overlay ---
             srBoardReminder: document.getElementById('srBoardReminder'),
-            // --- Existing modals ---
+            // Existing modals ---
             confirmModal:    document.getElementById('confirmTakeModal'),
             confirmBody:     document.getElementById('confirmTakeBody'),
             craftConfirmModal: document.getElementById('craftConfirmModal'),
@@ -85,7 +85,7 @@ var UI = {
             exchangeModal:   document.getElementById('exchangeModal'),
             exchangeBody:    document.getElementById('exchangeBody'),
             exchangeConfirmBtn: document.getElementById('exchangeConfirmBtn'),
-            // --- Session 6 modals ---
+            // modals ---
             eventModal:      document.getElementById('eventModal'),
             eventCardImg:    document.getElementById('eventCardImg'),
             eventTitle:      document.getElementById('eventModalTitle'),
@@ -104,20 +104,20 @@ var UI = {
             donateModal:     document.getElementById('donateModal'),
             donateContext:   document.getElementById('donateContext'),
             donateBody:      document.getElementById('donateBody'),
-            // --- Session 6b: Craft Circle modal ---
+            // Craft Circle modal ---
             craftCircleModal: document.getElementById('craftCircleModal'),
             craftCircleGrid:  document.getElementById('craftCircleGrid'),
-            // --- Session 8: Project board overlay (replaces Session 7 floating strip) ---
+            // Project board overlay (replaces floating strip) ---
             projectBoardOverlay:  document.getElementById('projectBoardOverlay'),
             projectDeckBadge:     document.getElementById('projectDeckBadge'),
-            // --- Session 7: Project modals (retained) ---
+            // Project modals (retained) ---
             finishProjectModal:   document.getElementById('finishProjectModal'),
             finishProjectBody:    document.getElementById('finishProjectBody'),
             learnPatternModal:    document.getElementById('learnPatternModal'),
             learnPatternBody:     document.getElementById('learnPatternBody'),
             frogItModal:          document.getElementById('frogItModal'),
             frogItBody:           document.getElementById('frogItBody'),
-            // --- Session 9: Setup, pass-device, player indicator ---
+            // Setup, pass-device, player indicator ---
             setupModal:           document.getElementById('setupModal'),
             setupPlayers:         document.getElementById('setupPlayers'),
             setupStartBtn:        document.getElementById('setupStartBtn'),
@@ -128,13 +128,13 @@ var UI = {
             playerIndicatorName:  document.getElementById('playerIndicatorName'),
             playerIndicatorTurn:  document.getElementById('playerIndicatorTurn'),
             playerBoardImage:     document.querySelector('.player-board-image'),
-            // --- Session 12: Player strip & opponent panel ---
+            // Player strip & opponent panel ---
             playerStrip:          document.getElementById('playerStrip'),
             opponentPanel:        document.getElementById('opponentPanel'),
             opponentPanelBackdrop: document.getElementById('opponentPanelBackdrop'),
             opponentPanelBody:    document.getElementById('opponentPanelBody'),
             opponentPanelTitle:   document.getElementById('opponentPanelTitle'),
-            // --- Session 9b: AI log overlay ---
+            // AI log overlay ---
             aiLogOverlay:         document.getElementById('aiLogOverlay'),
             aiLogTitle:           document.getElementById('aiLogTitle'),
             aiLogMessages:        document.getElementById('aiLogMessages'),
@@ -153,11 +153,11 @@ var UI = {
         // Build the color picker modal buttons
         this.buildColorPicker();
 
-        // Session 34g: the pre-game landing screen is shown by default; the
+        // the pre-game landing screen is shown by default; the
         // player goes to setup by clicking "Play Solo" (UI.onLandingPlaySolo).
         // (Setup is no longer auto-opened on load.)
 
-        // Session 11: Wire up Game.render delegates so game.js stays DOM-free
+        // Wire up Game.render delegates so game.js stays DOM-free
         Game.render.all              = function() { UI.renderAll(); };
         Game.render.bazaar           = function() { UI.renderBazaar(); };
         Game.render.actionBar        = function() { UI.renderActionBar(); };
@@ -175,26 +175,26 @@ var UI = {
         Game.render.actionFeed       = function() { UI.renderActionFeed(); };
         Game.render.gnomeRule        = function() { UI.renderGnomeRule(); };
 
-        // Session 12: Close opponent panel when clicking backdrop
+        // Close opponent panel when clicking backdrop
         var backdrop = document.getElementById('opponentPanelBackdrop');
         if (backdrop) {
             backdrop.addEventListener('click', function() { UI.hideOpponentPanel(); });
         }
 
-        // Session 21: Restore colorblind mode preference
+        // Restore colorblind mode preference
         this._restoreColorblindPref();
 
-        // Session 21: Keyboard navigation
+        // Keyboard navigation
         document.addEventListener('keydown', this._handleKeyDown);
         document.addEventListener('keydown', this._handleModalFocusTrap);
 
-        // Session 22: Action feed "History" button opens turn history panel
+        // Action feed "History" button opens turn history panel
         var feedExpandBtn = document.getElementById('feedExpandBtn');
         if (feedExpandBtn) {
             feedExpandBtn.addEventListener('click', function() { UI.showTurnHistory(); });
         }
 
-        // Session 15b: Finished Objects drawer toggle
+        // Finished Objects drawer toggle
         if (this.els.foDrawerTab) {
             this.els.foDrawerTab.addEventListener('click', function() {
                 UI.toggleFinishedDrawer();
@@ -208,9 +208,9 @@ var UI = {
     },
 
     /**
-     * Session 9: Render all game sections (convenience helper).
-     * Called after player switches in multiplayer.
-     */
+ * Render all game sections (convenience helper).
+ * Called after player switches in multiplayer.
+ */
     renderAll: function() {
         this.updatePlayerBoard();
         this.renderPlayerIndicator();
@@ -229,9 +229,9 @@ var UI = {
     },
 
     /**
-     * Session 42: Render the active Gnome Rule into the bottom-left board slot.
-     * Shows during the Hank automa boss match whenever a Gnome Rule is active.
-     */
+ * Render the active Gnome Rule into the bottom-left board slot.
+ * Shows during the Hank automa boss match whenever a Gnome Rule is active.
+ */
     renderGnomeRule: function() {
         var slot = document.getElementById('gnomeRuleSlot');
         if (!slot) return;
@@ -250,8 +250,8 @@ var UI = {
     },
 
     /**
-     * Session 42: Modal showing the active Gnome Rule card + its rulebook reminder text.
-     */
+ * Modal showing the active Gnome Rule card + its rulebook reminder text.
+ */
     showGnomeRuleModal: function() {
         var rule = Game.state && Game.state.activeGnomeRule;
         if (!rule) return;
@@ -269,21 +269,21 @@ var UI = {
 
 
     /* =========================================================
-       SESSION 9 / 10b: GAME SETUP SCREEN
-       ========================================================= */
+ SESSION 9 / 10b: GAME SETUP SCREEN
+ ========================================================= */
 
     _setupPlayerCount: 2,
 
     /**
-     * Per-seat Human/AI toggle.  Index 0–3.
-     * Session 10b: Replaces the old _spectateMode boolean and the
-     * hard-coded "p > 0 = AI" assumption.
-     */
+ * Per-seat Human/AI toggle. Index 0–3.
+ * Replaces the old _spectateMode boolean and the
+ * hard-coded "p > 0 = AI" assumption.
+ */
     _setupIsAI: [false, true, true, true, true, true],
 
     /**
-     * Session 34g: leave the landing/front page and open Game Setup.
-     */
+ * leave the landing/front page and open Game Setup.
+ */
     onLandingPlaySolo: function() {
         if (window.Story) Story.storyGame = false;   // this is a quick game, not a Story match
         var landing = document.getElementById('landingScreen');
@@ -304,8 +304,8 @@ var UI = {
     },
 
     /**
-     * Session 9b (updated 10b): Spectate mode toggle — sets ALL seats to AI.
-     */
+ * (updated 10b): Spectate mode toggle — sets ALL seats to AI.
+ */
     onSpectateToggle: function() {
         var toggle = document.getElementById('setupSpectateToggle');
         var spectate = toggle && toggle.checked;
@@ -320,7 +320,7 @@ var UI = {
         // Update active button
         var btns = document.querySelectorAll('.setup-count-btn');
         btns.forEach(function(b) { b.classList.toggle('active', parseInt(b.getAttribute('data-count')) === count); });
-        // Session 15b: Switch to 3-column grid for 5-6 players
+        // Switch to 3-column grid for 5-6 players
         var setupContent = document.querySelector('.setup-content');
         if (setupContent) {
             setupContent.classList.toggle('setup-wide', count >= 5);
@@ -376,19 +376,19 @@ var UI = {
     },
 
     /* Tracks the assigned type for each player slot (index 0–5).
-       Initialized in showSetupScreen; rebuilt on count/type change. */
+ Initialized in showSetupScreen; rebuilt on count/type change. */
     _setupTypes: ['thriftyShopper', 'masterCrafter', 'colorSpecialist', 'yarnSpinner', 'maker', 'expert'],
 
     /**
-     * Build player tiles in a 2-column grid.
-     *
-     * Session 10b rewrite: Full per-seat configurator.
-     *  - Each seat has a Human/AI toggle button
-     *  - Human seats: type dropdown shows types not taken by OTHER humans
-     *  - AI seats: type dropdown shows types not taken by ANY human
-     *  - All seats: character dropdown filtered to current type
-     *  - AI types auto-reassign when a human claims their type
-     */
+ * Build player tiles in a 2-column grid.
+ *
+ * rewrite: Full per-seat configurator.
+ * - Each seat has a Human/AI toggle button
+ * - Human seats: type dropdown shows types not taken by OTHER humans
+ * - AI seats: type dropdown shows types not taken by ANY human
+ * - All seats: character dropdown filtered to current type
+ * - AI types auto-reassign when a human claims their type
+ */
     buildSetupPlayerSlots: function() {
         var container = this.els.setupPlayers;
         var count = this._setupPlayerCount;
@@ -418,7 +418,7 @@ var UI = {
             this._aiPicksInitialized = true;
         }
 
-        // --- Collect human-claimed types (these have priority) ---
+        // Collect human-claimed types (these have priority) ---
         var humanTypes = [];
         for (var h = 0; h < count; h++) {
             if (!setupIsAI[h]) {
@@ -426,7 +426,7 @@ var UI = {
             }
         }
 
-        // --- Auto-reassign AI seats that conflict with human picks ---
+        // Auto-reassign AI seats that conflict with human picks ---
         var usedTypes = humanTypes.slice();  // start with human claims
         for (var a = 0; a < count; a++) {
             if (!setupIsAI[a]) continue;  // skip human seats
@@ -442,7 +442,7 @@ var UI = {
             usedTypes.push(setupTypes[a]);
         }
 
-        // --- Helper: types available for a given seat's dropdown ---
+        // Helper: types available for a given seat's dropdown ---
         function availableTypesFor(slotIdx) {
             var isAI = setupIsAI[slotIdx];
             var result = [];
@@ -488,7 +488,7 @@ var UI = {
             html += '<div class="setup-tile-header-text">';
 
             // Type dropdown — available types depend on human/AI priority.
-            // Session 43 (entitlement): on the free tier, HUMAN seats can't take a type
+            // (entitlement): on the free tier, HUMAN seats can't take a type
             // whose crafters are all locked (Maker/Expert). CPU seats roam free — the
             // opposition showing off locked crafters is part of the pitch.
             var gateFn = (!isAI && window.Story && Story.crafterLocked)
@@ -518,7 +518,7 @@ var UI = {
             html += '</div></div>';
 
             // Character picker (filtered to this type)
-            // Session 43 (entitlement): locked crafters unpickable for human seats.
+            // (entitlement): locked crafters unpickable for human seats.
             var charDefault = currentChars[p] || self._aiRandomPicks[type];
             if (!charDefault || !CARDS.characters[charDefault] || CARDS.characters[charDefault].type !== type || gateFn(charDefault)) {
                 var typeCandidates = allIds.filter(function(cid) {
@@ -550,18 +550,18 @@ var UI = {
     },
 
     /**
-     * Toggle a seat between Human and AI.
-     * Session 10b: Human seats have type priority over AI seats.
-     */
+ * Toggle a seat between Human and AI.
+ * Human seats have type priority over AI seats.
+ */
     onToggleAI: function(playerIndex) {
         this._setupIsAI[playerIndex] = !this._setupIsAI[playerIndex];
         this.buildSetupPlayerSlots();
     },
 
     /**
-     * When a player changes their type, update the stored type array.
-     * Session 10b: For human players, this triggers AI auto-reassignment.
-     */
+ * When a player changes their type, update the stored type array.
+ * For human players, this triggers AI auto-reassignment.
+ */
     onSetupTypeChange: function(playerIndex) {
         var typeSel = document.getElementById('setupType' + playerIndex);
         if (!typeSel) return;
@@ -570,8 +570,8 @@ var UI = {
     },
 
     /**
-     * Character dropdown change — no-op, type enforcement is via type dropdown.
-     */
+ * Character dropdown change — no-op, type enforcement is via type dropdown.
+ */
     onSetupCharChange: function() {
     },
 
@@ -617,9 +617,9 @@ var UI = {
 
 
     /* =========================================================
-       SESSION 9: PASS DEVICE SCREEN
-       Shown between turns in multiplayer to hide board state.
-       ========================================================= */
+ SESSION 9: PASS DEVICE SCREEN
+ Shown between turns in multiplayer to hide board state.
+ ========================================================= */
 
     showPassDevice: function() {
         var player = Game.state.player;
@@ -647,15 +647,15 @@ var UI = {
 
 
     /* =========================================================
-       SESSION 9b: TAKEOVER / GIVE BACK
-       Allows spectator to take control of a player (next turn)
-       or hand control back to the AI.
-       ========================================================= */
+ SESSION 9b: TAKEOVER / GIVE BACK
+ Allows spectator to take control of a player (next turn)
+ or hand control back to the AI.
+ ========================================================= */
 
     /**
-     * Toggle the current player between AI and human control.
-     * Takes effect on the NEXT turn for that player.
-     */
+ * Toggle the current player between AI and human control.
+ * Takes effect on the NEXT turn for that player.
+ */
     onTakeoverToggle: function() {
         var player = Game.state.player;
         if (player.isAI) {
@@ -671,8 +671,8 @@ var UI = {
     },
 
     /**
-     * Update the takeover button text based on current player state.
-     */
+ * Update the takeover button text based on current player state.
+ */
     _updateTakeoverButton: function() {
         var btn = document.getElementById('takeoverBtn');
         var bar = document.getElementById('takeoverBar');
@@ -707,12 +707,12 @@ var UI = {
 
 
     /* =========================================================
-       SESSION 9: PLAYER INDICATOR BANNER
-       Shows whose turn it is during multiplayer.
-       ========================================================= */
+ SESSION 9: PLAYER INDICATOR BANNER
+ Shows whose turn it is during multiplayer.
+ ========================================================= */
 
     renderPlayerIndicator: function() {
-        // --- Update sticky nav bar status ---
+        // Update sticky nav bar status ---
         var navName = document.getElementById('navPlayerName');
         var navPhase = document.getElementById('navPhase');
         var navScores = document.getElementById('navScoresBtn');
@@ -748,12 +748,12 @@ var UI = {
             navScores.style.display = (Game.state.phase === 'gameOver') ? '' : 'none';
         }
 
-        // Session 15: Show/hide the nav timer
+        // Show/hide the nav timer
         var navTimer = document.getElementById('navTimer');
         if (navTimer) {
             navTimer.style.display = (Game.state.gameStartTime && Game.state.phase !== 'gameOver') ? '' : 'none';
         }
-        // Session 49.7 (Adam): pause button rides with the timer
+        // pause button rides with the timer
         var navPause = document.getElementById('navPauseBtn');
         if (navPause) {
             navPause.style.display = (Game.state.gameStartTime && Game.state.phase !== 'gameOver') ? '' : 'none';
@@ -761,9 +761,9 @@ var UI = {
     },
 
     /**
-     * Session 15: Update the running game clock in the nav bar.
-     * Called every 1s by Game's timer interval.
-     */
+ * Update the running game clock in the nav bar.
+ * Called every 1s by Game's timer interval.
+ */
     renderNavTimer: function() {
         var el = document.getElementById('navTimer');
         if (!el) return;
@@ -773,10 +773,10 @@ var UI = {
     },
 
     /**
-     * Session 9b: Toggle the hamburger menu dropdown.
-     */
-    /* Session 49.11 (Adam): menu rows confirm-before-leaving ONLY when a
-       game is actually running; otherwise they just go. */
+ * Toggle the hamburger menu dropdown.
+ */
+    /* menu rows confirm-before-leaving ONLY when a
+ game is actually running; otherwise they just go. */
     nmNav: function(label, fn) {
         var live = window.Game && Game.state && Game.state.gameStartTime && Game.state.phase !== 'gameOver';
         if (live && window.NMExit) NMExit.confirm(label, fn);
@@ -789,7 +789,7 @@ var UI = {
         var isOpen = dd.style.display !== 'none';
         dd.style.display = isOpen ? 'none' : '';
 
-        // Session 49.11: contextual rows — game items only during a game,
+        // contextual rows — game items only during a game,
         // no Home link when you're already home
         if (!isOpen) {
             try {
@@ -822,8 +822,8 @@ var UI = {
     },
 
     /**
-     * Session 9: Swap the player board image to match the active player's character.
-     */
+ * Swap the player board image to match the active player's character.
+ */
     updatePlayerBoard: function() {
         var img = this.els.playerBoardImage;
         if (!img) return;
@@ -831,7 +831,7 @@ var UI = {
         if (img.src !== src) img.src = src;
         img.alt = Game.state.player.name + '\'s Player Board';
 
-        // Session 36: Hank's solo board is portrait, so at width:100% it towers over the
+        // Hank's solo board is portrait, so at width:100% it towers over the
         // landscape player boards and breaks the side-by-side height match with the Yarn
         // Bazaar. Lock his board to the bazaar's rendered height (width auto, centered).
         var wrapper = img.closest('.player-board-wrapper');
@@ -843,14 +843,14 @@ var UI = {
             img.style.height = ''; img.style.width = ''; img.style.margin = '';
         }
 
-        // Session 15b: Update FO drawer tab colors on player switch
+        // Update FO drawer tab colors on player switch
         this._updateDrawerCount();
     },
 
     /**
-     * Session 36: Match Hank's portrait solo board to the Yarn Bazaar panel height
-     * so the two side-by-side panels line up. Measures the live bazaar height.
-     */
+ * Match Hank's portrait solo board to the Yarn Bazaar panel height
+ * so the two side-by-side panels line up. Measures the live bazaar height.
+ */
     _lockHankBoardHeight: function() {
         var img = this.els.playerBoardImage;
         if (!img || !(Game.state.player && Game.state.player.isHank)) return;
@@ -865,12 +865,12 @@ var UI = {
 
 
     /* =========================================================
-       YARN BAZAAR RENDERING
-       ========================================================= */
+ YARN BAZAAR RENDERING
+ ========================================================= */
 
     /**
-     * Render all 6 Bazaar slots based on Game.state.bazaar.
-     */
+ * Render all 6 Bazaar slots based on Game.state.bazaar.
+ */
     renderBazaar: function() {
         var container = this.els.bazaar;
         container.innerHTML = '';
@@ -887,12 +887,12 @@ var UI = {
                 var isSelected = Game.state.selectedSlots.has(i);
                 if (isSelected) slot.classList.add('selected');
 
-                // Session 6: Event and SR cards get special indicators
+                // Event and SR cards get special indicators
                 if (card.type === 'event') {
                     slot.classList.add('bazaar-event');
                 } else if (card.type === 'specialRequest') {
                     slot.classList.add('bazaar-sr');
-                    // Session 48AA (Adam): craft action selected + you HAVE the
+                    // craft action selected + you HAVE the
                     // yarn for this SR -> same pulse/glow as the craft row
                     try {
                         var _ph = Game.state.phase;
@@ -910,7 +910,7 @@ var UI = {
                 img.alt = card.name + (card.type === 'event' ? ' Event' : card.type === 'specialRequest' ? ' Special Request' : ' Yarn Card');
                 slot.appendChild(img);
 
-                // Session 21: Enhanced ARIA
+                // Enhanced ARIA
                 var slotLabel = 'Bazaar slot ' + (i + 1) + ': ' + card.name;
                 if (isSelected) slotLabel += ' (selected)';
                 if (card.type === 'yarn' && card.yarn) {
@@ -930,7 +930,7 @@ var UI = {
                             UI.onBazaarClick(index);
                         });
                     })(i);
-                    // Session 48M (Adam): subtle pulse on bazaar yarn cards while
+                    // subtle pulse on bazaar yarn cards while
                     // a shop action is selected and yarn is still up for grabs
                     // (softer cousin of .craft-slot-pulse)
                     if (Game.state.phase === 'playerActions' &&
@@ -945,7 +945,7 @@ var UI = {
                 // Empty slot
                 slot.classList.add('empty');
 
-                // Session 9: Empty slots are clickable in MP (count as 1 any-color yarn)
+                // Empty slots are clickable in MP (count as 1 any-color yarn)
                 var emptyClickable = Game.state.playerCount > 1 &&
                     Game.state.phase === 'playerActions' &&
                     !Game.state.turn.shopDone &&
@@ -973,8 +973,8 @@ var UI = {
     },
 
     /**
-     * Handle click on a Bazaar card slot.
-     */
+ * Handle click on a Bazaar card slot.
+ */
     onBazaarClick: function(index) {
         // Guard: only allow clicks during playerActions (shopping)
         if (Game.state.phase !== 'playerActions') return;
@@ -986,24 +986,24 @@ var UI = {
 
 
     /* =========================================================
-       ACTION BAR
-       Session 5: 3-phase turn flow
-         chooseSpace   → show action space selector buttons
-         playerActions → show available actions & status chips
-         restock       → show restock / end turn buttons
-       ========================================================= */
+ ACTION BAR
+ 3-phase turn flow
+ chooseSpace → show action space selector buttons
+ playerActions → show available actions & status chips
+ restock → show restock / end turn buttons
+ ========================================================= */
 
     /**
-     * Session 17 single-row redesign: renderActionBar manages a single element.
-     * Layout: [ab-phase icon+label] [ab-divider] [ab-middle chips/status] [ab-buttons]
-     */
+ * single-row redesign: renderActionBar manages a single element.
+ * Layout: [ab-phase icon+label] [ab-divider] [ab-middle chips/status] [ab-buttons]
+ */
     _roundTxt: function() { return document.body.classList.contains('cap-native') ? String(Game.currentRound()) : ('Round ' + Game.currentRound()); },
 
     renderActionBar: function() {
         var bar = this.els.actionBar;
         var phase = Game.state.phase;
 
-        // Session 34f: on a Computer (CPU) turn, show a passive status with NO
+        // on a Computer (CPU) turn, show a passive status with NO
         // controls, so the human doesn't think they're supposed to act.
         var actor = Game.state.player;
         if (actor && actor.isAI &&
@@ -1042,14 +1042,14 @@ var UI = {
             this._renderActionGridOverlay('active');
         }
 
-        // Session 18: Persistent tangled cat banner — visible for the entire turn
+        // Persistent tangled cat banner — visible for the entire turn
         this._renderTangledCatBanner();
     },
 
     /**
-     * Session 34f: passive action bar shown during a Computer (CPU) turn.
-     * No buttons — just a clear status so the human knows it isn't their move.
-     */
+ * passive action bar shown during a Computer (CPU) turn.
+ * No buttons — just a clear status so the human knows it isn't their move.
+ */
     _renderComputerTurnBar: function(bar, player) {
         var turnNum = (Game.state.turn && Game.state.turn.number) || '';
         bar.innerHTML =
@@ -1067,17 +1067,17 @@ var UI = {
     },
 
     /**
-     * Session 18: Render or hide the persistent tangled cat banner.
-     * Shows above the action bar for the entire turn when the active player
-     * has cantCraftNextTurn (Tangled Cat penalty).
-     */
+ * Render or hide the persistent tangled cat banner.
+ * Shows above the action bar for the entire turn when the active player
+ * has cantCraftNextTurn (Tangled Cat penalty).
+ */
     _renderTangledCatBanner: function() {
         var banner = document.getElementById('tangledCatBanner');
         if (!banner) return;
         var player = Game.state.player;
         var tangled = player && player.cantCraftNextTurn && Game.state.phase !== 'gameOver';
         if (tangled) {
-            // Session 48N (Adam): cat moved OFF the banner (bar + text + color stay)
+            // cat moved OFF the banner (bar + text + color stay)
             banner.innerHTML =
                 '<span class="tangled-cat-banner-text">' +
                     '<strong>Tangled Cat!</strong> ' + (player.name || 'Player') + ' can\'t Craft this turn.' +
@@ -1086,7 +1086,7 @@ var UI = {
         } else {
             banner.style.display = 'none';
         }
-        // Session 48N (Adam): the big cat meeple sits ON the tangled player's
+        // the big cat meeple sits ON the tangled player's
         // board, pouncing at their yarn bowl (flipped to face it, left edge)
         var bc = document.getElementById('tangledBoardCat');
         if (tangled) {
@@ -1098,7 +1098,7 @@ var UI = {
                     bc.className = 'tangled-board-cat';
                     bc.src = 'Other Images Textures Details/AR_cat_meeple_GRAY_3D.png';
                     bc.alt = 'Tangled Cat'; bc.draggable = false;
-                    // #2 (Adam 7/6): poke the tangled cat on your board → annoyed meow.
+                    // #2 : poke the tangled cat on your board → annoyed meow.
                     // The cat only exists while this player is tangled, so a tap here
                     // always means "tangled." Override the class pointer-events:none.
                     bc.style.pointerEvents = 'auto';
@@ -1114,9 +1114,9 @@ var UI = {
     },
 
     /**
-     * Render the action bar for the chooseSpace phase.
-     * Single row: turn number, instruction, optional warnings inline.
-     */
+ * Render the action bar for the chooseSpace phase.
+ * Single row: turn number, instruction, optional warnings inline.
+ */
     _renderChooseSpaceBar: function(bar) {
         var spaces = Game.getActionSpaces();
         var turnNum = Game.state.turn.number;
@@ -1124,7 +1124,7 @@ var UI = {
         // Middle content: status text + optional warnings
         var middleHtml = '<span class="ab-status-text">Choose an action space on the board</span>';
 
-        // Session 18: Tangled Cat warning moved to persistent banner above action bar
+        // Tangled Cat warning moved to persistent banner above action bar
         if (Game.state.player.freeCraftBonus) {
             middleHtml += '<span class="ab-warning ab-warning-bonus">🎉 +1 bonus Craft action</span>';
         }
@@ -1142,11 +1142,11 @@ var UI = {
     },
 
     /**
-     * Session 20: Icon path base for action grid icons.
-     */
+ * Icon path base for action grid icons.
+ */
     _actionIconBase: 'Other Images Textures Details/Icons - Action/',
 
-    // Session 46: archetype ACTION MARKERS — the physical wooden markers, digital.
+    // archetype ACTION MARKERS — the physical wooden markers, digital.
     // Dropped onto the chosen action space each turn (tabletop feel). Spec: changelog S45.
     _actionMarkers: {
         thriftyShopper:  'marker-thrifty.png',
@@ -1157,7 +1157,7 @@ var UI = {
         expert:          'marker-expert.png'
     },
     _amDroppedTurn: null,   // turn # whose marker drop already animated
-    // Session 47b: marker size = fraction of the ACTION AREA (overlay) height —
+    // marker size = fraction of the ACTION AREA (overlay) height —
     // NOT the button, whose height varies (Expert's 3-row layout shrank markers).
     _amSizeFactors: {
         thriftyShopper: .38, masterCrafter: .42, colorSpecialist: .39,
@@ -1169,11 +1169,11 @@ var UI = {
         if (f && h > 40) { img.style.height = Math.round(h * f) + 'px'; }
     },
     _amHopFrom: null,   // rect of the marker before a hop/choose — triggers the fly
-    /* Session 47n: the marker FLIES between spaces (FLIP clone), then lands
-       with the drop bounce — no more teleporting. */
+    /* the marker FLIES between spaces (FLIP clone), then lands
+ with the drop bounce — no more teleporting. */
     _amFly: function(mk, from) {
         try {
-            // Session 48L: never allow two markers on screen — clear stale clones
+            // never allow two markers on screen — clear stale clones
             document.querySelectorAll('.am-flying').forEach(function(c){ if (c.parentNode) c.parentNode.removeChild(c); });
             if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             if (!mk.isConnected) return;
@@ -1203,11 +1203,11 @@ var UI = {
     _cm1Beat: false,        // coach-mark just dismissed → show the beat chip on next drop
 
     /**
-     * Session 20: Map an action space definition to one or two icon filenames.
-     * Returns an array of 1-2 icon filenames (for combo spaces, top icon first).
-     * @param {Object} space — action space object from character definition
-     * @returns {string[]} array of icon filenames
-     */
+ * Map an action space definition to one or two icon filenames.
+ * Returns an array of 1-2 icon filenames (for combo spaces, top icon first).
+ * @param {Object} space — action space object from character definition
+ * @returns {string[]} array of icon filenames
+ */
     _getActionIcons: function(space) {
         var icons = [];
 
@@ -1249,23 +1249,23 @@ var UI = {
     },
 
     /**
-     * Render the 2×2 action space grid overlay on the player board.
-     *
-     * Session 20: Redesigned with icon images + small text labels.
-     * Combo spaces show icons stacked vertically.
-     *
-     * mode 'choose' — 4 clickable buttons (unavailable space greyed out)
-     * mode 'active' — selected space shown in gold, others dimmed (read-only)
-     *
-     * @param {string} mode   'choose' | 'active'
-     * @param {Array}  spaces Array from Game.getActionSpaces() (only needed for 'choose')
-     */
+ * Render the 2×2 action space grid overlay on the player board.
+ *
+ * Redesigned with icon images + small text labels.
+ * Combo spaces show icons stacked vertically.
+ *
+ * mode 'choose' — 4 clickable buttons (unavailable space greyed out)
+ * mode 'active' — selected space shown in gold, others dimmed (read-only)
+ *
+ * @param {string} mode 'choose' | 'active'
+ * @param {Array} spaces Array from Game.getActionSpaces (only needed for 'choose')
+ */
     _renderActionGridOverlay: function(mode, spaces) {
         var overlay = this.els.actionGridOverlay;
         if (!overlay) return;
         overlay.innerHTML = '';
 
-        // Session 36: Hank boss — his solo-board art already depicts his actions, and
+        // Hank boss — his solo-board art already depicts his actions, and
         // the human never selects on it. Render his board clean, with NO icon overlay.
         if (Game.state.player && Game.state.player.isHank) {
             overlay.classList.remove('action-grid-3');
@@ -1277,7 +1277,7 @@ var UI = {
         // Expert has 3 action spaces — switch to single-column layout
         overlay.classList.toggle('action-grid-3', allSpaces.length === 3);
 
-        // Session 13: Apply character type color class to overlay
+        // Apply character type color class to overlay
         var typeOrder = this._typeOrder;
         for (var t = 0; t < typeOrder.length; t++) {
             overlay.classList.remove('action-type-' + typeOrder[t]);
@@ -1285,7 +1285,7 @@ var UI = {
         var character = Game.getCharacter();
         if (character && character.type) {
             overlay.classList.add('action-type-' + character.type);
-            // Playtest 6/29: expose the active character's core (type accent)
+            // expose the active character's core (type accent)
             // color as --char-rgb so the pulse hints glow in that character's
             // color instead of a fixed hue.
             var _acc = this._typeAccentColors[character.type];
@@ -1306,7 +1306,7 @@ var UI = {
             var btn = document.createElement('button');
             btn.className = 'action-grid-btn';
 
-            // Session 20: Build icon + label content
+            // Build icon + label content
             var icons = self._getActionIcons(space);
             var isCombo = icons.length > 1;
 
@@ -1333,7 +1333,7 @@ var UI = {
                 if (!space.available) {
                     btn.classList.add('action-grid-unavailable');
                     btn.disabled = true;
-                    // Session 47: at turn start the marker rests on LAST turn's
+                    // at turn start the marker rests on LAST turn's
                     // space (grayed) — the no-repeat rule made physical. First
                     // tap on a legal space hops it over.
                     if (space.index === Game.state.turn.previousSpace) {
@@ -1348,7 +1348,7 @@ var UI = {
                         }
                     }
                 } else {
-                    // Playtest 6/29: pulse available spaces so it's clear a
+                    // pulse available spaces so it's clear a
                     // selection is needed during the chooseSpace phase.
                     btn.classList.add('action-grid-pulse');
                     (function(idx) {
@@ -1356,7 +1356,7 @@ var UI = {
                     })(space.index);
                 }
             } else {
-                // Active display. Session 47: while the choice is still SOFT
+                // Active display. while the choice is still SOFT
                 // (nothing confirmed this turn), other legal spaces stay live
                 // as hop targets — the marker IS the change button.
                 var roaming = Game.canRoamSpace && Game.canRoamSpace();
@@ -1370,7 +1370,7 @@ var UI = {
                 }
                 if (space.index === currentSpace) {
                     btn.classList.add('action-grid-selected');
-                    // Session 46: drop the archetype's wooden action marker onto the chosen space
+                    // drop the archetype's wooden action marker onto the chosen space
                     var mkFile = character && self._actionMarkers[character.type];
                     if (mkFile) {
                         var mk = document.createElement('img');
@@ -1398,7 +1398,7 @@ var UI = {
                         }
                     }
                 } else if (!btn.classList.contains('action-grid-roam')) {
-                    // Session 48P (Adam): roam targets stay FULL COLOR — they're
+                    // roam targets stay FULL COLOR — they're
                     // live switch options, not dead space. Only non-switchable
                     // spaces (incl. last turn's) go grey.
                     btn.classList.add('action-grid-other');
@@ -1407,7 +1407,7 @@ var UI = {
             overlay.appendChild(btn);
         });
 
-        // Session 48M (Adam): the tour fires ONLY after "Let's Get Crafty!"
+        // the tour fires ONLY after "Let's Get Crafty!"
         // (HTP close). This render path never self-triggers — it only honors a
         // pending handoff when the player wasn't at choose-space at close time
         // (e.g. the CPU was still finishing its opening turn).
@@ -1422,9 +1422,9 @@ var UI = {
     },
 
     /**
-     * Render the action bar for the playerActions phase.
-     * Single row: turn/space label, action chips inline, buttons right.
-     */
+ * Render the action bar for the playerActions phase.
+ * Single row: turn/space label, action chips inline, buttons right.
+ */
     _renderPlayerActionsBar: function(bar) {
         var actions = Game.getAvailableActions();
         var selCount = Game.state.selectedSlots.size;
@@ -1433,7 +1433,7 @@ var UI = {
         var spaceIdx = Game.state.turn.currentSpace;
         var spaceLabel = character.actionSpaces[spaceIdx].label;
 
-        // --- Build chips (inline in middle) ---
+        // Build chips (inline in middle) ---
         var chipsHtml = '';
 
         var shopReq = Game.shopRequiredCount();
@@ -1470,9 +1470,9 @@ var UI = {
         if (srCount > 0) {
             chipsHtml += '<span class="action-chip sr-chip">📋 ' + srCount + ' Request' + (srCount !== 1 ? 's' : '') + '</span>';
         }
-        // Session 18: Tangled Cat warning moved to persistent banner above action bar
+        // Tangled Cat warning moved to persistent banner above action bar
 
-        // --- Build buttons (right side) ---
+        // Build buttons (right side) ---
         var buttonsHtml = '';
         // Shopping is exact: "Take Yarn" only enables once the full required
         // number of cards is selected (core rule — can't take fewer).
@@ -1490,9 +1490,9 @@ var UI = {
         if (actions.canExchange) {
             buttonsHtml += '<button class="btn btn-primary" onclick="UI.showExchangeModal()">Exchange Yarn</button>';
         }
-        // Session 47: ↩ Change retired — while the choice is soft, the other
+        // ↩ Change retired — while the choice is soft, the other
         // legal action spaces are live hop targets (the marker IS the change UI).
-        // Session 50 (Adam): belt-and-suspenders CRAFT button - opens the
+        // belt-and-suspenders CRAFT button - opens the
         // craft-anything modal (showCraftOptionsModal already crafts on tap).
         if (actions.canCraft && actions.craftUsed < actions.craftLimit) {
             buttonsHtml += '<button class="btn btn-primary" onclick="UI.showCraftOptionsModal()">🧶 Craft</button>';
@@ -1510,12 +1510,12 @@ var UI = {
     },
 
     /**
-     * Render the action bar for the restock phase.
-     * Single row: phase label, status text, bonus action buttons inline, end button right.
-     */
+ * Render the action bar for the restock phase.
+ * Single row: phase label, status text, bonus action buttons inline, end button right.
+ */
     _restockDone: false,
 
-    /* ---- Pause ---- */
+    /* Pause ---- */
     _paused: false,
     _pauseStart: 0,
     pauseGame: function() {
@@ -1622,10 +1622,10 @@ var UI = {
 
 
     /**
-     * Session 8c / 17: Render the action bar for the gameOver phase.
-     * Single row: trophy icon, summary text, score + play-again buttons.
-     */
-    /* Session 48Y: widescreen scorecard — one row per player. */
+ * / 17: Render the action bar for the gameOver phase.
+ * Single row: trophy icon, summary text, score + play-again buttons.
+ */
+    /* widescreen scorecard — one row per player. */
     _goTransposedTable: function(allScores, H) {
         var cols = [
             { icon: '\ud83e\uddf6', label: 'Crafted', key: 'items' },
@@ -1708,11 +1708,11 @@ var UI = {
     },
 
     /**
-     * Session 15: Enhanced end-game scorecard — port of approved mockup design.
-     * Features: type-tinted columns, expandable detail rows (crafted items,
-     * SR cards, projects, learned tiles), game stats bar, point tag assets,
-     * dynamic modal width per player count, per-player avg turn time.
-     */
+ * Enhanced end-game scorecard — port of approved mockup design.
+ * Features: type-tinted columns, expandable detail rows (crafted items,
+ * SR cards, projects, learned tiles), game stats bar, point tag assets,
+ * dynamic modal width per player count, per-player avg turn time.
+ */
     showGameOverModal: function() {
         var self = this;
         var html = '';
@@ -1768,7 +1768,7 @@ var UI = {
         html += '<div class="go-stat"><div class="go-stat-value">' + gameTime + '</div><div class="go-stat-label">Game Time</div></div>';
         html += '</div>';
 
-        // Session 48Y (Adam): WIDESCREEN = flipped axis. Players as rows,
+        // WIDESCREEN = flipped axis. Players as rows,
         // categories as columns ("many columns, fewer rows").
         var goWide = false;
         try { goWide = window.matchMedia('(min-width: 900px) and (orientation: landscape)').matches; } catch (e) {}
@@ -1985,7 +1985,7 @@ var UI = {
 
         html += '</tbody></table>';
 
-        }   // end portrait/narrow table (Session 48Y)
+        }   // end portrait/narrow table 
 
         // Reuse the event modal for this display
         var modalContent = this.els.eventModal.querySelector('.modal-content');
@@ -1997,7 +1997,7 @@ var UI = {
         this.els.eventTitle.textContent = '🏆 Game Over!';
         this.els.eventMsg.innerHTML = html;
         this.els.eventExtraBody.innerHTML = '';
-        // Session 15c: Close + New Game buttons
+        // Close + New Game buttons
         this.els.eventOkBtn.textContent = 'Close';
         this.els.eventOkBtn.onclick = function() {
             UI.els.eventModal.style.display = 'none';
@@ -2050,8 +2050,8 @@ var UI = {
     },
 
     /**
-     * Session 15: Toggle detail row visibility in the scorecard.
-     */
+ * Toggle detail row visibility in the scorecard.
+ */
     _toggleScoreDetail: function(detailId, rowEl) {
         var detailRow = document.getElementById(detailId);
         var arrow = rowEl.querySelector('.go-expand-arrow');
@@ -2066,8 +2066,8 @@ var UI = {
     },
 
     /**
-     * Session 15: Open SR/project card zoom lightbox.
-     */
+ * Open SR/project card zoom lightbox.
+ */
     _openSRZoom: function(card) {
         var img = card.querySelector('img');
         var label = card.querySelector('.go-sr-card-label');
@@ -2092,16 +2092,16 @@ var UI = {
     },
 
     /**
-     * Session 15: Close the SR/project card zoom lightbox.
-     */
+ * Close the SR/project card zoom lightbox.
+ */
     _closeSRZoom: function() {
         var el = document.getElementById('goSRZoomBackdrop');
         if (el) el.classList.remove('active');
     },
 
     /**
-     * Session 8c: Reset the game and start over.
-     */
+ * Reset the game and start over.
+ */
     onNewGame: function() {
         // "New Game" returns to the clean main screen (landing) — no game running underneath.
         this.returnToMainMenu();
@@ -2128,22 +2128,22 @@ var UI = {
 
 
     /* =========================================================
-       ACTION SPACE SELECTION
-       ========================================================= */
+ ACTION SPACE SELECTION
+ ========================================================= */
 
     /**
-     * Handle clicking an action space button.
-     * Session 8c: intercepts unique abilities that need modal input
-     * before normal playerActions begin.
-     */
+ * Handle clicking an action space button.
+ * intercepts unique abilities that need modal input
+ * before normal playerActions begin.
+ */
     /**
-     * Session 9b: Go back to space selection (undo the current space choice).
-     * Only allowed if no actions have been taken yet.
-     */
+ * Go back to space selection (undo the current space choice).
+ * Only allowed if no actions have been taken yet.
+ */
 };
 
 /* Long-press the player-board art → open that player's board drawer (the opponent panel
-   we showcase the banner + key art in). Cancels on drag; ignores interactive overlays. */
+ we showcase the banner + key art in). Cancels on drag; ignores interactive overlays. */
 (function () {
     var timer = null, sx = 0, sy = 0;
     function clear() { if (timer) { clearTimeout(timer); timer = null; } }

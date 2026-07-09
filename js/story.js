@@ -1,24 +1,23 @@
 /* =====================================================================
-   story.js — ArchRavels Story Mode (Session 35)
-   A full-screen overlay layer above the normal game. Owns: sign-in,
-   archetype/character select, the climb ladder, pre/post-match dialog,
-   ending, and stats. Launches REAL matches via Game.init and reads the
-   result back through the Game.render.gameOver delegate.
+ story.js — ArchRavels Story Mode A full-screen overlay layer above the normal game. Owns: sign-in,
+ archetype/character select, the climb ladder, pre/post-match dialog,
+ ending, and stats. Launches REAL matches via Game.init and reads the
+ result back through the Game.render.gameOver delegate.
 
-   Globals used: CARDS, Game, UI, AI (vanilla, no modules — matches the
-   project's architecture). Story data (type flavor, dialog, ladder order,
-   achievements) lives here; character names/types/favorite SRs come from
-   CARDS so they never drift from the game.
-   ===================================================================== */
+ Globals used: CARDS, Game, UI, AI (vanilla, no modules — matches the
+ project's architecture). Story data (type flavor, dialog, ladder order,
+ achievements) lives here; character names/types/favorite SRs come from
+ CARDS so they never drift from the game.
+ ===================================================================== */
 var Story = {
 
-  /* ---------- Supabase auth + cloud save ---------- */
+  /* Supabase auth + cloud save ---------- */
   SB_URL: 'https://ingppffghqsajdrgahcm.supabase.co',
   SB_KEY: 'sb_publishable__41r1k47DJnKmtbmVNqYKQ_yOL98eTd',
   sb: null,
   currentUser: null,
 
-  /* ---------- story-only data ---------- */
+  /* story-only data ---------- */
   TYPE_META: {
     thriftyShopper: { name:'Thrifty Shopper', color:'#6E8B68', dark:'#3d5238', tag:'Stock up fast',          desc:'You get extra shopping actions, so you build a deep supply of yarn faster than anyone.' },
     masterCrafter:  { name:'Master Crafter',  color:'#3769BE', dark:'#1f3d70', tag:'Make the most',          desc:'You can craft up to four items in a single turn. No one produces more.' },
@@ -28,10 +27,10 @@ var Story = {
     expert:         { name:'The Expert',      color:'#7E5BC0', dark:'#46326f', tag:'Fewer, stronger moves',  desc:'You get fewer actions, but they hit harder: take five yarn of any color and craft ignoring color rules.' },
   },
   // intro = pre-match taunt; win = their line when YOU win; lose = their line when you lose
-  /* Session 43 (Adam): win/lose line POOLS per character (3–5 each) so results stay
-     fresh — `win` = the rival conceding when YOU win; `lose` = the rival's victory lap.
-     The original lines live on as pool members; `intro` is unchanged (picker + face-off).
-     Hank gets history-aware intro pools below (see hankIntroLine). */
+  /* win/lose line POOLS per character (3–5 each) so results stay
+ fresh — `win` = the rival conceding when YOU win; `lose` = the rival's victory lap.
+ The original lines live on as pool members; `intro` is unchanged (picker + face-off).
+ Hank gets history-aware intro pools below (see hankIntroLine). */
   DIALOG: {
     rebecca:{intro:'I may have bought a little extra. Don’t judge my basket.',
       wins:['You beat me with way less stash. Teach me your restraint, oh wise one.',
@@ -142,7 +141,7 @@ var Story = {
             'You did a lot. I did enough. Enough wins.',
             'Minimalism, friend: I didn’t beat you by much because I didn’t need to.'] },
     hank:{intro:'So. You climbed the whole circle to reach my nook. Spin your own yarn yet, little stitch? I do. Every turn. Let’s see what you’ve got.',
-      // Session 43: history-aware intro pools — hankIntroLine() picks the pool from
+      // history-aware intro pools — hankIntroLine picks the pool from
       // your record (agg.hank) + the chosen red count. First meeting = the classic above.
       intros:{
         afterLosses:[
@@ -182,7 +181,7 @@ var Story = {
   // never face the same type back-to-back regardless of which crafter you pick.
   LADDER_ORDER: ['rebecca','ted','alex','jo','derrick','mauro','theo','eliza','neeha','noah','amara','irene'],
 
-  /* ---------- runtime state ---------- */
+  /* runtime state ---------- */
   picked: null,
   beaten: 0,
   ladder: [],          // [oppId,... , 'hank']
@@ -225,7 +224,7 @@ var Story = {
     document.body.appendChild(this.root);
 
     // supabase
-    // Session 36: use the implicit OAuth flow (token returned in the URL hash) instead of
+    // use the implicit OAuth flow (token returned in the URL hash) instead of
     // the default PKCE flow. PKCE stashes a code_verifier in localStorage and needs it back
     // after the Google round-trip — iOS Safari's storage partitioning/ITP often loses it
     // between redirect-out and redirect-back, which silently fails the exchange and leaves
@@ -240,19 +239,19 @@ var Story = {
     Game.render.gameOver = function(){ Story.onMatchOver(); };
 
     this.initAuth();
-    this.initRouter();   // Session 43: URL routing for browsable Story destinations
+    this.initRouter();   // URL routing for browsable Story destinations
 
-    // Session 36: DEV shortcut — jump straight to the Hank boss fight for testing.
+    // DEV shortcut — jump straight to the Hank boss fight for testing.
     // Add ?boss to the URL (optionally ?boss=mauro to pick your crafter), or call
-    // Story.testHank() from the console. Skips the whole climb.
+    // Story.testHank from the console. Skips the whole climb.
     try {
-      // Session 43 DEV: ?gate forces the free tier on web; ?unlock grants entitlement.
+      // DEV: ?gate forces the free tier on web; ?unlock grants entitlement.
       if (/[?&#]gate\b/i.test(location.href)) this._forceGate = true;
       if (/[?&#]unlock\b/i.test(location.href)) this._devUnlock = true;
       var m = /[?&#]boss(?:=([a-z]+))?/i.exec(location.href);
       if (m) {
         var who = m[1] && CARDS.characters[m[1]] ? m[1] : 'rebecca';
-        // Session 43 DEV: ?boss&picker=N fakes an unlocked ceiling of N (in-memory
+        // DEV: ?boss&picker=N fakes an unlocked ceiling of N (in-memory
         // only, never saved) so the difficulty scale can be tested pre-first-win.
         var pm = /[?&#]picker(?:=(\d+))?/i.exec(location.href);
         if (pm) Story._pickerPreview = Math.max(1, Math.min(13, parseInt(pm[1] || '1', 10)));
@@ -264,11 +263,11 @@ var Story = {
   open: function(){ this.root.style.display='block'; document.body.classList.add('story-open'); window.scrollTo(0,0); },
   hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); if(this._syncingRoute!==true) this._setHash(''); },
 
-  /* ==================== Session 43: HASH ROUTER ====================
-     Gives every browsable Story destination a real URL (#/story, #/profile, …) so
-     it's linkable, refreshes in place, and the browser back button works. Deep/
-     transient states (mid-climb, pre-match, in-match) are intentionally NOT routed —
-     they depend on live game state. `_syncingRoute` guards against hash↔screen loops. */
+  /* ==================== HASH ROUTER ====================
+ Gives every browsable Story destination a real URL (#/story, #/profile, …) so
+ it's linkable, refreshes in place, and the browser back button works. Deep/
+ transient states (mid-climb, pre-match, in-match) are intentionally NOT routed —
+ they depend on live game state. `_syncingRoute` guards against hash↔screen loops. */
   ROUTES: {
     'story':        function(){ Story.open(); Story.goTypes(); },
     'profile':      function(){ Story.open(); Story.goStats(); },
@@ -316,7 +315,7 @@ var Story = {
     this.open();
     this.goTypes();
   },
-  // Session 44 (Adam): no Account middleman — the landing link goes STRAIGHT to the
+  // no Account middleman — the landing link goes STRAIGHT to the
   // profile when there's anything to show: signed in, OR a guest with device-stored
   // stats (free & paid both play + save locally without an account). Only a truly
   // blank guest lands on the sign-in screen.
@@ -326,7 +325,7 @@ var Story = {
     var cr = this.profile && this.profile.crafters; if(!cr) return [];
     return Object.keys(cr).filter(function(c){ return c!=='hank' && cr[c]; });
   },
-  // #1 (Adam 7/6): the profile-header "Play Story" button. A returning player's
+  // #1 : the profile-header "Play Story" button. A returning player's
   // crafter grid ("Your Crafters") is already on THIS profile page — so scroll them
   // down to it to pick up where they left off, instead of restarting at the archetype
   // select (which felt like starting over). Brand-new players still get the intro.
@@ -351,14 +350,14 @@ var Story = {
       return !!(q && (q._totalWins || (q.matches&&q.matches.length) || (q.crafters&&Object.keys(q.crafters).length) || q.handle || q.lifetimeStoryScore || q.bank));
     }catch(e){ return false; }
   },
-  // Session 36: DEV — drop straight into the Hank boss face-off (skips the climb).
-  // Usage: Story.testHank() or Story.testHank('mauro'), or the ?boss URL flag.
+  // DEV — drop straight into the Hank boss face-off (skips the climb).
+  // Usage: Story.testHank or Story.testHank('mauro'), or the ?boss URL flag.
   testHank: function(crafterId){
-    this._devMatch=true;   // Session 44 (Adam): dev-hook matches are TESTING ONLY — never recorded
+    this._devMatch=true;   // dev-hook matches are TESTING ONLY — never recorded
     crafterId = (crafterId && CARDS.characters[crafterId] && crafterId!=='hank') ? crafterId : 'rebecca';
     this.picked = crafterId;
     this.ladder = this.buildLadder(crafterId);
-    this.beaten = this.ladder.length - 1;   // currentOpp() → final rung (hank, or the twin when gated)
+    this.beaten = this.ladder.length - 1;   // currentOpp → final rung (hank, or the twin when gated)
     var landing=document.getElementById('landingScreen'); if(landing) landing.style.display='none';
     this.open();
     this.goPreMatch();
@@ -380,7 +379,7 @@ var Story = {
     this.renderChip();
     if(this.root && this.root.style.display!=='none'){
       var scr=document.getElementById('story-screen');
-      // Session 44 fix: the S43 profile redesign changed the page markup, so the old
+      // fix: the S43 profile redesign changed the page markup, so the old
       // "Story Mode · Stats" marker never matched — after sign-in the profile kept
       // showing GUEST data until a manual reload (looked like sign-in was broken).
       if((scr && (/Story Mode · Stats/.test(scr.innerHTML) || scr.querySelector('.pf-hero'))) || /^#\/(profile|stats)/.test(location.hash)) this.goStats();
@@ -392,7 +391,7 @@ var Story = {
   initAuth: async function(){
     if (!this.sb){ await this.ensureProfile(); this.renderChip(); return; }
     try { var r = await this.sb.auth.getSession(); this.currentUser = r.data.session ? r.data.session.user : null; } catch(e){ this.currentUser=null; }
-    // Session 43 (SIGNIN_PLAN): deep-link fallback listener — inert until the custom
+    // deep-link fallback listener — inert until the custom
     // URL scheme is registered in the iOS project; harmless everywhere else.
     try{
       var CapApp = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
@@ -409,7 +408,7 @@ var Story = {
     });
     await this.loadProfile();
   },
-  // Session 43 (Adam's QoL pick): a chosen handle wins over everything — and it works
+  // a chosen handle wins over everything — and it works
   // for GUESTS too (stored on the on-device profile; cloud-syncs once they sign in).
   displayName: function(){
     var p=this.profile;
@@ -445,7 +444,7 @@ var Story = {
   },
   renderChip: function(){
     var av=document.getElementById('pcAvatar'); if(av) av.innerHTML=this.avatarInner();
-    // Session 49.8: landing header chip mirrors the story chip
+    // landing header chip mirrors the story chip
     var lav=document.getElementById('lcAvatar'); if(lav) lav.innerHTML=this.avatarInner();
     var lnm=document.getElementById('lcName'); if(lnm) lnm.textContent=this.currentUser?this.displayName():'Sign In';
     var nm=document.getElementById('pcName'), note=document.getElementById('pcNote');
@@ -488,7 +487,7 @@ var Story = {
         '<div class="signin-box"><p class="si-msg" style="color:var(--st-walnut)">Sign-in connects on the live site. For now, play as a guest.</p>'+
         '<button class="btn btn-gold" onclick="Story.goTypes()">Play as guest</button></div>'+this.backBar('Story.goTypes()');
     } else if(this.isNativeApp()){
-      // Session 43 (SIGNIN_PLAN): native app sign-in — Apple first (required, guideline
+      // native app sign-in — Apple first (required, guideline
       // 4.8), Google second, both via native sheets + signInWithIdToken (no browser
       // bounce). Email magic-link is web-only until the deep link lands (lower priority).
       html = '<div class="crumb">Account</div><h1 class="st-h1">Sign in</h1>'+
@@ -515,9 +514,8 @@ var Story = {
     }
     this.screen(html);
   },
-  /* Session 43 (SIGNIN_PLAN scaffolding): native-app auth. All of this is a NO-OP
-     until the Capacitor plugins + Supabase provider config land (Adam's day-of-
-     approval checklist) — the buttons degrade to a friendly "not enabled yet". */
+  /* ( scaffolding): native-app auth. All of this is a NO-OP
+ until the Capacitor plugins + Supabase provider config land — the buttons degrade to a friendly "not enabled yet". */
   isNativeApp: function(){
     try{ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
     catch(e){ return false; }
@@ -553,8 +551,8 @@ var Story = {
     }catch(e){ if(msg) msg.textContent='Apple sign-in unavailable ('+(e && e.message || e)+')'; }
   },
   /* Deep-link fallback (drafted, inert until the custom scheme is registered):
-     if a web-OAuth redirect ever returns via com.xyzgamelabs.archravels://auth,
-     catch it and hand the tokens to Supabase. */
+ if a web-OAuth redirect ever returns via com.xyzgamelabs.archravels://auth,
+ catch it and hand the tokens to Supabase. */
   _handleAuthDeepLink: async function(url){
     try{
       if(!url || !this.sb) return;
@@ -577,7 +575,7 @@ var Story = {
   signInGoogle: async function(){
     if(!this.sb) return;
     var msg = document.getElementById('siMsg');
-    // Session 43 (SIGNIN_PLAN): native app → native Google sheet + signInWithIdToken
+    // native app → native Google sheet + signInWithIdToken
     // (web OAuth can't redirect back into capacitor://localhost). Web keeps OAuth.
     if(this.isNativeApp()){
       try{
@@ -591,7 +589,7 @@ var Story = {
       }catch(e){ if(msg) msg.textContent='Google sign-in unavailable ('+(e && e.message || e)+')'; }
       return;
     }
-    // Session 49.3 FIX (Jeff's bug): redirect to the CLEAN origin only. Using
+    // FIX (Jeff's bug): redirect to the CLEAN origin only. Using
     // location.href broke sign-in from hash routes (#/profile etc): the OAuth
     // token comes back AS a hash, they collide, and Supabase fell back to a
     // stale Site URL (GitHub 404). Root URL is allowlisted and hash-free.
@@ -668,7 +666,7 @@ var Story = {
       var srBlock = sr ? '<div class="favbox"><img class="srcard" src="'+sr.img+'" alt="'+sr.name+'" '+
           'onmouseenter="Story.hoverSR(\''+c+'\',event)" onmousemove="Story.moveHover(event)" onmouseleave="Story.unhoverSR()" onclick="event.stopPropagation();Story.openSR(\''+c+'\')">'+
           '<div class="favtext"><div class="favlabel">Favorite Special Request</div><div class="favname">'+sr.name+'</div><div class="favhint">Hover or tap to preview</div></div></div>' : '';
-      // Session 43: entitlement gate — non-OG crafters lock on the free tier.
+      // entitlement gate — non-OG crafters lock on the free tier.
       var locked = self.crafterLocked(c);
       return '<div class="char'+(locked?' char-locked':'')+'" style="--tc:'+m.color+'" onclick="'+(locked?'Story.goUpgrade(\'crafter\')':'Story.goLadder(\''+c+'\')')+'">'+
         (locked?'<div class="char-lock">🔒 Full Game</div>':'')+
@@ -684,14 +682,14 @@ var Story = {
       '<div class="compare">'+cards+'</div>'+this.backBar('Story.goTypes()','← Back to Ravelers'));
   },
 
-  /* ---- ladder ---- */
+  /* ladder ---- */
   currentOpp: function(){ return this.ladder[Math.min(this.beaten, this.ladder.length-1)]; },
   isBoss: function(c){ return c==='hank'; },
   goLadder: async function(charId){
     this._devMatch=false;         // normal climb entry — matches count again
     await this.ensureProfile();   // make sure saved progress is loaded before resuming
     this.picked=charId;
-    this.ladder = this.buildLadder(charId);      // Session 43: full climb, or the free 4-match arc
+    this.ladder = this.buildLadder(charId);      // full climb, or the free 4-match arc
     this.beaten = Math.min(this._storedBeaten(charId), this.ladder.length);   // resume (clamped for the free arc)
     this._climbView = Math.min(this.beaten, this.ladder.length - 1);
     this.renderLadder();
@@ -740,19 +738,19 @@ var Story = {
       (dlg.intro?'<div class="pc-quote">“'+dlg.intro+'”</div>':'')+
       '<button class="challenge overlay" onclick="Story.goPreMatch()">Challenge '+ch.name+'</button></div></div>';
   },
-  /* ---- Session 44: Craft Circle redesign (Adam's spec, mockup-approved) ----
-     YOU are the stable point on the left; the ladder scrolls in its own frame on
-     the right. Whatever card crosses the center line (your level) expands into the
-     big card: next -> Challenge, beaten -> record + first-beaten date + achievements
-     earned vs them + safe Rematch, locked -> preview. Climb dots on your card jump
-     the ladder. Replaces the hero/carousel (climbStep/_climbView retired). */
+  /* Craft Circle redesign ----
+ YOU are the stable point on the left; the ladder scrolls in its own frame on
+ the right. Whatever card crosses the center line (your level) expands into the
+ big card: next -> Challenge, beaten -> record + first-beaten date + achievements
+ earned vs them + safe Rematch, locked -> preview. Climb dots on your card jump
+ the ladder. Replaces the hero/carousel (climbStep/_climbView retired). */
   renderLadder: function(){
     this._rematchOpp=null;                       // leaving a rematch flow resets it
     this._setHash('');                           // S44: the climb is un-routed — drop any stale #/profile etc. so the URL never lies
     var total=this.ladder.length, champ=this.beaten>=total;
     var pickedName=this.char(this.picked).name, pct=Math.round(this.beaten/total*100);
     if(champ && !this.entitled()){
-      // Session 43 (entitlement): free-arc complete — twin beaten. The climb pauses here.
+      // (entitlement): free-arc complete — twin beaten. The climb pauses here.
       var top='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
         '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
         '<div class="cc-sub">You are the Champion!</div>'+
@@ -766,9 +764,9 @@ var Story = {
       return;
     }
     if(champ){
-      // Session 49.22 (Adam): champions keep their Circle. Crown banner up
+      // champions keep their Circle. Crown banner up
       // top, full ladder below so any beaten rival is a tap from a rematch
-      // (Story.rematch is climb-safe, Session 44).
+      // (Story.rematch is climb-safe, 
       var top2='<div class="cc-top"><div class="cc-you">'+this.avatarInner()+'</div>'+
         '<div class="cc-prog"><div class="cc-as">Playing as '+pickedName+'</div>'+
         '<div class="cc-sub">You are the Champion!</div>'+
@@ -944,13 +942,13 @@ var Story = {
     (this.ACH||[]).forEach(function(a){ var m=meta[a.id]; if(m && m.opp===oppId) out.push(a); });
     return out;
   },
-  /* Session 44: remember WHO an achievement was earned against (rival cards show these). */
+  /* remember WHO an achievement was earned against (rival cards show these). */
   _stampAch: function(p, id, opp){
     try{ p.achMeta=p.achMeta||{}; if(!p.achMeta[id]) p.achMeta[id]={ when:Date.now(), opp:opp||null, crafter:this.picked||null }; }catch(e){}
   },
-  /* Session 44: SAFE rematch vs an already-beaten rival — records to match history
-     (stats/aggregates) but NEVER touches creditWin/beaten/nextChallenger, so a
-     rematch win can't false-credit climb progress. */
+  /* SAFE rematch vs an already-beaten rival — records to match history
+ (stats/aggregates) but NEVER touches creditWin/beaten/nextChallenger, so a
+ rematch win can't false-credit climb progress. */
   rematch: function(oppId){
     if(this.ladder.indexOf(oppId)===-1 || this.isBoss(oppId)) return;
     this._rematchOpp=oppId;
@@ -964,9 +962,9 @@ var Story = {
     try{ return window.matchMedia('(min-width: 860px) and (pointer: fine)').matches; }catch(e){ return window.innerWidth>=860; }
   },
 
-  /* Session 43 (Adam): your head-to-head record vs a specific rival, from the match
-     history (profile.matches[]). forCrafter (optional) filters to games you played AS
-     that crafter; omitted = across all your crafters. */
+  /* your head-to-head record vs a specific rival, from the match
+ history (profile.matches[]). forCrafter (optional) filters to games you played AS
+ that crafter; omitted = across all your crafters. */
   opponentStats: function(oppId, forCrafter){
     var ms=(this.profile&&this.profile.matches)||[];
     var mine=ms.filter(function(m){ return m.opponentId===oppId && (!forCrafter || m.characterId===forCrafter); });
@@ -1000,7 +998,7 @@ var Story = {
       '<div class="pc-ability" style="font-weight:bold;color:var(--st-gold-d)">'+this.beaten+' of '+total+' beaten</div></div></div>';
   },
 
-  /* ---- pre / post match ---- */
+  /* pre / post match ---- */
   fighterHTML: function(c,label){
     if(this.isBoss(c)) return '<div class="fcard boss" style="--tc:#7E5BC0"><div class="fport"><img src="'+this.portrait('hank')+'"></div><div class="fbody"><div class="flabel">'+label+'</div><div class="fname">Hank</div><div class="frole">Final Boss</div></div></div>';
     var ch=this.char(c);
@@ -1011,13 +1009,13 @@ var Story = {
     var port = '<img class="dlg-port'+(this.isBoss(c)?' boss':'')+'" src="'+this.portrait(c)+'">';
     return '<div class="dlg" style="--tc:'+col+'">'+port+'<div class="bubble"><b>'+who+'</b><p>“'+line+'”</p></div></div>';
   },
-  /* ==================== Session 43: FREE/PAID ENTITLEMENT ====================
-     The decided line (IOS_v1_FREE-PAID-SPLIT.md): the WEB BETA stays fully
-     unlocked (it's the marketing surface); the gate is APP-only. Free app tier =
-     Quick Play + the 4 OG crafters + a 4-match story arc per OG (3 fellow OGs,
-     then your TYPE TWIN as the finale) → upgrade prompt. $4.99 unlocks the full
-     Craft Circle. DEV hooks: `?gate` forces the gate on web (testing), `?unlock`
-     grants entitlement in-memory. */
+  /* ==================== FREE/PAID ENTITLEMENT ====================
+ The decided line : the WEB BETA stays fully
+ unlocked (it's the marketing surface); the gate is APP-only. Free app tier =
+ Quick Play + the 4 OG crafters + a 4-match story arc per OG (3 fellow OGs,
+ then your TYPE TWIN as the finale) → upgrade prompt. $4.99 unlocks the full
+ Craft Circle. DEV hooks: `?gate` forces the gate on web (testing), `?unlock`
+ grants entitlement in-memory. */
   OG_CRAFTERS: ['rebecca','derrick','neeha','ted'],
   _forceGate: false,   // ?gate — test the free tier on web
   _devUnlock: false,   // ?unlock — test entitlement without a purchase
@@ -1069,9 +1067,9 @@ var Story = {
            this.beaten>=this.ladder.length-1;
   },
 
-  /* Session 43: the upgrade screen — celebration + what-you-get + (stubbed) purchase.
-     Reached from: beating your twin (source='twin'), tapping a locked crafter
-     ('crafter'), or the locked-Hank teaser on the free climb ('hank'). */
+  /* the upgrade screen — celebration + what-you-get + (stubbed) purchase.
+ Reached from: beating your twin (source='twin'), tapping a locked crafter
+ ('crafter'), or the locked-Hank teaser on the free climb ('hank'). */
   goUpgrade: function(source){
     var head = source==='twin'
       ? '<div class="crumb">The Full Craft Circle</div><h1 class="st-h1">You’ve mastered your corner of the bazaar!</h1><p class="st-sub">Your twin is beaten. But eleven Ravelers are still out there… and above them all, in his nook at the summit, the gnome is waiting.</p>'
@@ -1094,24 +1092,24 @@ var Story = {
       this.backBar('Story.goTypes()','← Keep playing free'));
   },
   /* IAP stubs — real StoreKit plumbing lands with the Apple account (plugin +
-     App Store Connect product). Same graceful pattern as the sign-in scaffolding. */
+ App Store Connect product). Same graceful pattern as the sign-in scaffolding. */
   buyFullGame: async function(){
     var msg=document.getElementById('upMsg');
     var IAP = window.Capacitor && window.Capacitor.Plugins && (window.Capacitor.Plugins.Purchases || window.Capacitor.Plugins.InAppPurchases);
     if(!IAP){ if(msg) msg.textContent='Purchases arrive with the App Store release — everything here is free for now!'; return; }
-    // TODO (IAP plumbing): offerings → purchase → verify → this.grantFullUnlock()
+    // TODO (IAP plumbing): offerings → purchase → verify → this.grantFullUnlock
     if(msg) msg.textContent='Purchase flow not configured yet.';
   },
   restorePurchases: async function(){
     var msg=document.getElementById('upMsg');
     var IAP = window.Capacitor && window.Capacitor.Plugins && (window.Capacitor.Plugins.Purchases || window.Capacitor.Plugins.InAppPurchases);
     if(!IAP){ if(msg) msg.textContent='Nothing to restore yet — purchases arrive with the App Store release!'; return; }
-    // TODO (IAP plumbing): restore → verify → this.grantFullUnlock()
+    // TODO (IAP plumbing): restore → verify → this.grantFullUnlock
     if(msg) msg.textContent='Restore flow not configured yet.';
   },
 
-  /* Session 43: random line pools. kind='win' (you won — rival concedes) or 'lose'.
-     Falls back to the legacy single-string keys so nothing ever renders blank. */
+  /* random line pools. kind='win' (you won — rival concedes) or 'lose'.
+ Falls back to the legacy single-string keys so nothing ever renders blank. */
   _pickLine: function(arr){ return arr[Math.floor(Math.random()*arr.length)]; },
   dlgLine: function(c, kind){
     var dlg=this.DIALOG[c]||{};
@@ -1121,7 +1119,7 @@ var Story = {
     if(pool && pool.length) return this._pickLine(pool);
     return kind==='win' ? (dlg.win||'Well played.') : (dlg.lose||'Got you this time.');
   },
-  /* Session 43: Hank's intro reads your history (agg.hank) + the chosen red count. */
+  /* Hank's intro reads your history (agg.hank) + the chosen red count. */
   hankIntroLine: function(){
     var dlg=this.DIALOG.hank, pools=dlg.intros||{};
     var h=this._hankAgg()||{faced:0,beaten:0,lost:0};
@@ -1136,11 +1134,11 @@ var Story = {
 
   goPreMatch: function(){
     var c=this._rematchOpp||this.currentOpp(), dlg=this.DIALOG[c]||{};
-    // Session 43 (difficulty v2): the boss face-off carries the red-card scale once
+    // (difficulty v2): the boss face-off carries the red-card scale once
     // you've beaten Hank anywhere. First-ever fight = all green, no picker.
     var scale = this.isBoss(c) ? this.hankScaleHTML() : '';
     var introLine = this.isBoss(c) ? this.hankIntroLine() : (dlg.intro||'Let’s craft.');
-    // Session 43 (entitlement): the free arc's finale is your TYPE TWIN — special intro.
+    // (entitlement): the free arc's finale is your TYPE TWIN — special intro.
     if(this._isFreeFinale(c) && this.TWIN_INTROS[c]) introLine = this.TWIN_INTROS[c];
     this.screen('<div class="crumb">Match · '+(this._rematchOpp?'Rematch':'Face-Off')+'</div><h1 class="st-h1">'+(this._rematchOpp?'Rematch — bragging rights only':'Before the match')+'</h1>'+
       '<div class="vs-stage"><div>'+this.fighterHTML(this.picked,'You')+'</div><div class="vs-badge">VS</div><div>'+this.fighterHTML(c,'Challenger')+'</div></div>'+
@@ -1150,10 +1148,10 @@ var Story = {
       '<button class="btn btn-ghost" onclick="Story.renderLadder()">Back</button></div>');
   },
 
-  /* ---- Session 43: difficulty v2 (Hades-style opt-in escalation) ----
-     Ceiling = highest red beaten + 1 (locked spec). Default = the ceiling (the nudge
-     upward). Dial DOWN freely — down-wins don't raise the ceiling (recordMatch only
-     raises highestRedBeaten on wins at a new high). First-ever fight: no picker. */
+  /* difficulty v2 (Hades-style opt-in escalation) ----
+ Ceiling = highest red beaten + 1 (locked spec). Default = the ceiling (the nudge
+ upward). Dial DOWN freely — down-wins don't raise the ceiling (recordMatch only
+ raises highestRedBeaten on wins at a new high). First-ever fight: no picker. */
   _bossPick: null,        // this session's explicit pick (null → default = ceiling)
   _pickerPreview: null,   // dev hook (?picker=N) — fakes an unlocked ceiling, no profile writes
   _hankAgg: function(){ var a=this.profile&&this.profile.agg; return (a&&a.hank)||null; },
@@ -1207,25 +1205,25 @@ var Story = {
     var oppId=this._rematchOpp||this.currentOpp();
     this.matchStart=Date.now(); this.active=true; this.storyGame=true;   // mark this match as a Story match (for game-over routing)
     try{ if(window.Sound){ Sound.music.startTheme(oppId); Sound.play('game-start'); } }catch(e){}
-    // Session 43: the chosen handle plays under your name in-match (guests included).
+    // the chosen handle plays under your name in-match (guests included).
     var youName=(this.profile&&this.profile.handle)||(this.currentUser&&this.currentUser.user_metadata&&this.currentUser.user_metadata.name)||'You';
     this.hide();
     // hide the landing/front door too — otherwise closing the story overlay reveals
     // the homepage sitting on top of the freshly-started match (looked like "kicked back home").
     var landing=document.getElementById('landingScreen'); if(landing) landing.style.display='none';
-    // Session 40: reset per-match live-achievement tracking + wire detection hooks (once)
+    // reset per-match live-achievement tracking + wire detection hooks (once)
     this._liveToasted = {}; this._matchEarned = [];
     this._wireLiveAchievementHooks();
     var isBossMatch = this.isBoss(oppId);
     var youP = { characterId:this.picked, isAI:false, name:youName };
-    // Session 42 (P1 automa): the boss is a score-only automa, not an AI turn-taker.
+    // (P1 automa): the boss is a score-only automa, not an AI turn-taker.
     var oppP = { characterId:oppId, isAI:!isBossMatch, name:this.char(oppId).name };
-    // Session 42: turn-order difficulty ramp — you go first on rungs 1–5 (welcoming);
+    // turn-order difficulty ramp — you go first on rungs 1–5 (welcoming);
     // the rival goes first from rung 6 on, which removes your ~+5–10pt first-move edge.
     // The boss automa never "goes first" (he takes no turns) → you always lead the solo fight.
     var rung=this._rematchOpp?this.ladder.indexOf(oppId):this.beaten;
     var rivalFirst = !isBossMatch && rung >= 5;
-    // Session 43 (difficulty v2): red count comes from the face-off picker — default
+    // (difficulty v2): red count comes from the face-off picker — default
     // = highest-beaten+1 (the ceiling), adjustable down, first-ever fight forced R0.
     var hankReds = isBossMatch ? this.bossRedsForMatch() : 0;
     this._lastBossReds = isBossMatch ? hankReds : null;   // crown-win line check (dlgLine)
@@ -1239,7 +1237,7 @@ var Story = {
     var tb=document.getElementById('takeoverBar'); if(tb) tb.style.display='none';
     // beginMatch bypasses onSetupStart's "if player 0 is AI, kick off" logic — do it here
     // so a rival-first match actually starts.
-    // Session 51 (Adam): when the rival leads (rung 6+), don't just silently auto-start the
+    // when the rival leads (rung 6+), don't just silently auto-start the
     // AI — show an "opponent goes first" beat so the board doesn't start moving unannounced.
     // The AI's first turn fires only when the player acknowledges. Story-only, rival-first only.
     if (Game.state.player && Game.state.player.isAI) {
@@ -1249,7 +1247,7 @@ var Story = {
       });
     }
   },
-  // Session 51 (Adam): the "opponent goes first" beat. Mirrors the "Setting up the Yarn
+  // the "opponent goes first" beat. Mirrors the "Setting up the Yarn
   // Bazaar…" loader (ld48) so it reads as the same cozy ritual. Board sits frozen behind
   // it; the AI's first turn only fires once the player taps "I'm ready".
   _showOppFirstBeat: function(rivalName, onReady){
@@ -1282,29 +1280,29 @@ var Story = {
     if(!this.active) return;
     this.active=false;
     var players=(Game.state&&Game.state.players)||[], you=null, opp=null;
-    // Session 42 (P1 automa): the boss is identified by isHank/isAutoma (isAI is now false
+    // (P1 automa): the boss is identified by isHank/isAutoma (isAI is now false
     // for him). The opponent is anyone who isn't the human seat; the human is !isAI & !automa.
     players.forEach(function(p){ if(p.isHank||p.isAutoma||p.isAI){ opp=p; } else { you=p; } });
     var ys = you ? (Game.calculateFinalScore(you).total||0) : 0;
     var os = opp ? (Game.calculateFinalScore(opp).total||0) : 0;
-    // Session 44: a rematch plays against the chosen beaten rival, not the climb's next.
+    // a rematch plays against the chosen beaten rival, not the climb's next.
     var c = this._rematchOpp || this.currentOpp();
     var stats = this.captureMatchStats(you, opp, ys, os);
     this.lastMatch = { you:ys, opp:os, win: ys>=os, timeMs: Date.now()-this.matchStart, earned:[], stats:stats };
-    // Session 44 (Adam): dev-hook matches (?boss etc.) are testing only — show the
+    // dev-hook matches (?boss etc.) are testing only — show the
     // result screen but record NOTHING (no history, no aggregates, no credit).
     if(this._devMatch){
       try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
       this.open(); this.showResult(this.lastMatch.win);
       return;
     }
-    // Session 43: record EVERY finished match (win AND loss) — history ring buffer +
-    // running aggregates on the profile. Runs before creditWin so a win's save() also
+    // record EVERY finished match (win AND loss) — history ring buffer +
+    // running aggregates on the profile. Runs before creditWin so a win's save also
     // persists the record; losses save explicitly below.
     this.recordMatch(c);
     try{ if(window.Sound) Sound.play(this.lastMatch.win?'story-win':'story-lose'); }catch(e){}
     if(this.lastMatch.win){
-      // Session 44: rematch wins are history-only — no creditWin, no ladder progress.
+      // rematch wins are history-only — no creditWin, no ladder progress.
       if(this._rematchOpp){ this.lastMatch.earned=(this._matchEarned||[]).slice(); this.save(); }
       else this.creditWin(c);   // bank score/achievements once; does NOT advance beaten
     }
@@ -1313,12 +1311,12 @@ var Story = {
     this.showResult(this.lastMatch.win);
   },
 
-  /* ---- Session 43: per-match history + running aggregates ----
-     Two tiers so the profile never balloons:
-     (1) p.matches[]  — full per-match detail, RING BUFFER capped at MATCH_HISTORY_CAP
-     (2) p.agg        — tiny incremental aggregates, kept forever (powers profile
-         summaries, streaks, Hank record incl. highest red beaten, Hank flavor lines).
-     Leaderboards (future) get their own server-side table — NOT this blob. */
+  /* per-match history + running aggregates ----
+ Two tiers so the profile never balloons:
+ (1) p.matches[] — full per-match detail, RING BUFFER capped at MATCH_HISTORY_CAP
+ (2) p.agg — tiny incremental aggregates, kept forever (powers profile
+ summaries, streaks, Hank record incl. highest red beaten, Hank flavor lines).
+ Leaderboards (future) get their own server-side table — NOT this blob. */
   MATCH_HISTORY_CAP: 75,
 
   recordMatch: function(oppId){
@@ -1444,12 +1442,12 @@ var Story = {
   },
   nextChallenger: function(){
     if(this.beaten<this.ladder.length) this.beaten++;
-    // Session 36: the boss is now playable — climbing to Hank routes into the boss face-off.
+    // the boss is now playable — climbing to Hank routes into the boss face-off.
     if(this.isBoss(this.currentOpp())){ this.goPreMatch(); return; }
     this.renderLadder();
   },
 
-  /* ---- ending ---- */
+  /* ending ---- */
   goEnding: function(){
     var rivals=this.ladder.filter(function(c){ return c!=='hank'; });
     var avatars=rivals.map(function(c){ return '<img src="'+Story.portrait(c)+'" title="'+Story.char(c).name+'" alt="">'; }).join('')+'<img src="'+Story.portrait('hank')+'" title="Hank" alt="">';
@@ -1469,22 +1467,22 @@ var Story = {
     this.screen(html);
   },
 
-  /* ---- stats ---- */
-  // Session 43: format point values — render quarter fractions as glyphs (¼ ½ ¾).
+  /* stats ---- */
+  // format point values — render quarter fractions as glyphs (¼ ½ ¾).
   // The ¾ is a little Platform-9¾ wink for the Potter fans. Whole numbers unchanged.
   fmtPts: function(n){
     if(typeof n!=='number' || !isFinite(n)) return n;
     var whole=Math.floor(n), frac=Math.round((n-whole)*100)/100;
     var glyph={0.25:'¼',0.5:'½',0.75:'¾'}[frac];
     if(!glyph) return String(n);
-    // Adam: space before the fraction, ~50% size, raised (superscript-ish).
+    // space before the fraction, ~50% size, raised (superscript-ish).
     return (whole>0?whole:'')+'<span class="pf-frac">'+glyph+'</span>';
   },
   // The in-game Pts tag (real PointTag art, value counter-rotated level).
   ptagHTML: function(v, sm){ return '<span class="pf-ptag'+(sm?' sm':'')+'"><span class="pf-pv">'+this.fmtPts(v)+'</span></span>'; },
 
-  // Session 43: shared Story sub-page header (60/40 dark band, title left + stat right)
-  // + a desktop nav strip so jumping between profile/boards is obvious (Adam).
+  // shared Story sub-page header (60/40 dark band, title left + stat right)
+  // + a desktop nav strip so jumping between profile/boards is obvious .
   pageHead: function(title, bigNum, subLbl, active){
     var nav=[['profile','Profile','Story.goStats()'],['achievements','Achievements','Story.goAchievements()'],['sr-board','SR Board','Story.goSRBoard()']]
       .map(function(n){ return '<button class="pf-navpill'+(n[0]===active?' on':'')+'" onclick="'+n[2]+'">'+n[1]+'</button>'; }).join('');
@@ -1502,7 +1500,7 @@ var Story = {
     var achCount=Object.keys(p.achievements||{}).length;
     var rec = a.played ? ((a.wins||0)+'–'+(a.losses||0)) : '—';
 
-    // ---- hero header ----
+    // hero header ----
     var hero='<div class="pf-hero">'+
       '<div class="pf-av" onclick="Story.openAvatarPicker()">'+this.avatarInner()+'<span class="pf-av-edit">✎</span></div>'+
       '<div class="pf-id"><div class="pf-name" onclick="Story.goEditName()" role="button" tabindex="0" title="Change your name">'+this.displayName()+' <span class="pf-pen">✎</span></div>'+
@@ -1514,7 +1512,7 @@ var Story = {
           : '<button class="btn btn-ghost" onclick="Story.goSignIn()">Sign in</button>')+
       '</div></div>';
 
-    // ---- headline stat band ----
+    // headline stat band ----
     var band='<div class="pf-band">'+
       '<div class="pf-stat stitch"><div class="pf-tagwrap">'+this.ptagHTML(p.lifetimeStoryScore||0)+'</div><div class="pf-l">Story Score</div></div>'+
       '<div class="pf-stat stitch"><div class="pf-tagwrap">'+this.ptagHTML((p.perGameHigh&&p.perGameHigh.score)||0)+'</div><div class="pf-l">Best Game</div></div>'+
@@ -1522,7 +1520,7 @@ var Story = {
       '<div class="pf-stat stitch"><div class="pf-n">'+achCount+'<span class="pf-of">/'+this.ACH.length+'</span></div><div class="pf-l">Achievements</div></div>'+
     '</div>';
 
-    // ---- Hank record + Records grid (only once there's match history) ----
+    // Hank record + Records grid (only once there's match history) ----
     var recBlock='';
     if(a.played){
       var winPct=Math.round(100*(a.wins||0)/a.played), avg=Math.round((a.sumScore||0)/a.played);
@@ -1553,13 +1551,13 @@ var Story = {
         : '<div class="pf-h">Records</div>'+recs);
     }
 
-    // ---- board shortcuts ----
+    // board shortcuts ----
     var links='<div class="pf-links">'+
       '<div class="pf-rec pf-link stitch" onclick="Story.goAchievements()"><span class="pf-ic">🏅</span><div><div class="pf-rn" style="font-size:1.05rem">Achievement Board</div><div class="pf-rl">'+achCount+' of '+this.ACH.length+' earned →</div></div></div>'+
       '<div class="pf-rec pf-link stitch" onclick="Story.goSRBoard()"><span class="pf-ic">🧶</span><div><div class="pf-rn" style="font-size:1.05rem">Special Request Board</div><div class="pf-rl">Collect &amp; curate cards →</div></div></div>'+
     '</div>';
 
-    // ---- crafter roster ----
+    // crafter roster ----
     var order=Object.keys(CARDS.characters).filter(function(c){ return c!=='hank'; }).sort(function(x,y){ return (crafters[y]?1:0)-(crafters[x]?1:0); });
     var roster=order.map(function(c){
       var s=crafters[c], locked=self.crafterLocked(c);
@@ -1579,9 +1577,9 @@ var Story = {
   },
   fmtTime: function(ms){ var m=Math.round(ms/60000); if(m<60) return m+'m'; return Math.floor(m/60)+'h '+(m%60)+'m'; },
 
-  /* Session 43: match-history records — surfaces profile.agg (streaks, W/L, fastest
-     win, most-crafted, the Hank record + red-scale progress). Renders nothing until
-     the first recorded match, so legacy profiles see no empty shell. */
+  /* match-history records — surfaces profile.agg (streaks, W/L, fastest
+ win, most-crafted, the Hank record + red-scale progress). Renders nothing until
+ the first recorded match, so legacy profiles see no empty shell. */
   _recordsHTML: function(p){
     var a=p&&p.agg;
     if(!a || !a.played) return '';
@@ -1618,7 +1616,7 @@ var Story = {
     return '<div class="section-h">Records</div><div class="stat-tiles rec-tiles">'+tHtml+'</div>'+hk;
   },
 
-  /* ---- achievement board ---- */
+  /* achievement board ---- */
   goAchievements: async function(){
     this._setHash('achievements');
     await this.ensureProfile();
@@ -1647,7 +1645,7 @@ var Story = {
       this.backBar('Story.goStats()','← Back to profile'));
   },
 
-  /* ---- achievements + persistence ---- */
+  /* achievements + persistence ---- */
   // Full catalog (27). Group A entries carry a `test` and are LIVE now (read from
   // the captureMatchStats snapshot + beaten count). Group B (needs in-play hooks)
   // and Group C (run-scoped) are listed for the board; their `test` lands in later
@@ -1694,11 +1692,11 @@ var Story = {
     {id:'completionist',name:'Cozy Completionist',desc:'Earn every other achievement',         pts:50, tier:3, group:'Capstone'},
   ],
 
-  /* ===== Session 41: Special Request Board (Story-only collection / loadout) =====
-     Config for the SR Board. 42-card digital universe split into: 2 OG starters
-     (unlocked from the start), 12 character favorites (unlock 1:1 by beating each
-     crafter), 1 Hank reward, 5 achievement-milestone Packs (19 SRs), and 8 Magic
-     Socks "coming soon" SRs (Quick Play only; locked placeholders on the board). */
+  /* ===== Special Request Board (Story-only collection / loadout) =====
+ Config for the SR Board. 42-card digital universe split into: 2 OG starters
+ (unlocked from the start), 12 character favorites (unlock 1:1 by beating each
+ crafter), 1 Hank reward, 5 achievement-milestone Packs (19 SRs), and 8 Magic
+ Socks "coming soon" SRs (Quick Play only; locked placeholders on the board). */
   SR_BOARD: {
     starters:   ['buttonEye','friendship'],
     hankReward: 'everyonesWelcomeExp',
@@ -1800,7 +1798,7 @@ var Story = {
     this.LADDER_ORDER.forEach(function(cid){ var f=self.faveSR(cid); if(f) ids.push(f.id); });
     B.packs.forEach(function(pk){ ids=ids.concat(pk.srs); });
     ids.push(B.hankReward);
-    // Session 41: the 8 Magic Socks "coming soon" SRs are OFF the board for now (still
+    // the 8 Magic Socks "coming soon" SRs are OFF the board for now (still
     // playable in Quick Play); they'll be added back later. So comingSoon is NOT included.
     var seen={}, out=[];
     ids.forEach(function(id){ if(!seen[id] && CARDS.getSpecialRequest(id)){ seen[id]=1; out.push(id); } });
@@ -1949,7 +1947,7 @@ var Story = {
       sectionsHTML+
       this.backBar('Story.goStats()','← Back to profile'));
   },
-  // ===== Session 40: live (mid-match) achievement detection + toast =====
+  // ===== live (mid-match) achievement detection + toast =====
   // Build a stats snapshot from the IN-PROGRESS match — only the fields that are
   // meaningful before the game ends. Win/score/margin/beaten stay end-of-match only.
   _liveStats: function(){
@@ -1983,7 +1981,7 @@ var Story = {
       if(a.test(p, s)){
         self._liveToasted[a.id]=true;
         p.achievements[a.id]=Date.now();
-        self._stampAch(p, a.id, self._rematchOpp||self.currentOpp());   // Session 44: vs-rival stamp
+        self._stampAch(p, a.id, self._rematchOpp||self.currentOpp());   // vs-rival stamp
         p.bank+=a.pts; p.lifetimeStoryScore+=a.pts;
         self._matchEarned.push(a);
         newly.push(a);
@@ -2048,7 +2046,7 @@ var Story = {
     var earned = (this._matchEarned || []).slice();
     var sctx = Object.assign({beaten:beatenAfter}, (this.lastMatch&&this.lastMatch.stats)||{});
     this.ACH.forEach(function(a){ if(!p.achievements[a.id] && a.test && a.test(p,sctx)){ p.achievements[a.id]=Date.now(); Story._stampAch(p, a.id, c); p.bank+=a.pts; p.lifetimeStoryScore+=a.pts; earned.push(a); } });
-    // Session 41: SR Board unlocks — beating a crafter unlocks THEIR favorite SR;
+    // SR Board unlocks — beating a crafter unlocks THEIR favorite SR;
     // beating Hank unlocks Everyone's Welcome. Then sync achievement-milestone Packs
     // (counts the achievements just credited above; excludes pack-unlock awards).
     this.srEnsure(p);
@@ -2060,10 +2058,10 @@ var Story = {
   },
   save: async function(){
     if(!this.profile) return;
-    this.profile._savedAt = Date.now();   // Session 48j: merge anchor
+    this.profile._savedAt = Date.now();   // merge anchor
     try{ localStorage.setItem('ar_story_profile', JSON.stringify(this.profile)); }catch(e){}
     if(this.sb){
-      // Session 48j: session may have silently expired mid-match (the 'Sign In'
+      // session may have silently expired mid-match (the 'Sign In'
       // flip Adam hit) — re-check before deciding we're a guest, so wins keep
       // cloud-saving whenever the session is actually recoverable.
       if(!this.currentUser){
@@ -2073,17 +2071,17 @@ var Story = {
     }
   },
 
-  /* ---- SR preview ---- */
+  /* SR preview ---- */
   openSR: function(c){ var sr=this.faveSR(c); if(!sr) return; var lb=document.getElementById('srlightbox'); if(!lb){ lb=document.createElement('div'); lb.id='srlightbox'; lb.onclick=function(){ lb.classList.remove('open'); }; lb.innerHTML='<div class="lb-inner"><img id="srlbImg"><div class="lb-name" id="srlbName"></div><div class="lb-close">Tap anywhere to close</div></div>'; document.body.appendChild(lb); } document.getElementById('srlbImg').src=sr.img; document.getElementById('srlbName').textContent=sr.name; lb.classList.add('open'); this.unhoverSR(); },
   hoverSR: function(c,e){ var sr=this.faveSR(c); if(!sr) return; var h=document.getElementById('srhover'); if(!h){ h=document.createElement('div'); h.id='srhover'; h.innerHTML='<img id="srhoverImg"><div class="nm" id="srhoverName"></div>'; document.body.appendChild(h); } document.getElementById('srhoverImg').src=sr.img; document.getElementById('srhoverName').textContent=sr.name; h.style.display='block'; this.moveHover(e); },
   moveHover: function(e){ var h=document.getElementById('srhover'); if(!h) return; var x=e.clientX+18,y=e.clientY-130; if(x+250>window.innerWidth) x=e.clientX-248; if(y<10) y=10; h.style.left=x+'px'; h.style.top=y+'px'; },
   unhoverSR: function(){ var h=document.getElementById('srhover'); if(h) h.style.display='none'; },
 };
 
-// Load saved profile. Session 48j (PROGRESS-LOSS FIX): when signed in, cloud and
+// Load saved profile. (PROGRESS-LOSS FIX): when signed in, cloud and
 // local are MERGED instead of cloud blindly winning. Previously: session expires
 // mid-match -> win saves local-only -> re-sign-in loads stale cloud -> win EATEN
-// (Adam lost a Theo victory to this). Now the newer profile is the base and the
+// Now the newer profile is the base and the
 // older one's monotonic progress is folded in, then saved back to both stores.
 async function SaveAPISafe(S){
   var local=null;
@@ -2100,7 +2098,7 @@ async function SaveAPISafe(S){
       return merged;
     }
     if(cloud) return cloud;
-    if(local) return local;   // first save() uploads it
+    if(local) return local;   // first save uploads it
     return {};
   }
   return local || {};
@@ -2154,7 +2152,7 @@ function MergeStoryProfiles(a, b){
 
 document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ var lb=document.getElementById('srlightbox'); if(lb) lb.classList.remove('open'); } });
 window.addEventListener('resize', function(){ if(Story.root && Story.root.style.display!=='none' && Story.picked && document.getElementById('opptrack')) Story.renderLadder(); });
-// Session 43: re-render the Craft Circle when crossing the desktop/mobile breakpoint
+// re-render the Craft Circle when crossing the desktop/mobile breakpoint
 // so the layout (two-column list ↔ carousel) matches the current width.
 (function(){ var t, was=null;
   window.addEventListener('resize', function(){

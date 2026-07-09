@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ArchRavels Digital Prototype</title>
-    <!-- Session 49.6: GoatCounter traffic analytics (Adam's account) -->
+    <!-- GoatCounter traffic analytics -->
     <script data-goatcounter="https://ardigital.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
@@ -13,11 +13,11 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=297">
+    <link rel="stylesheet" href="css/style.css?v=104">
 </head>
 
 <body class="ar-pregame">
-    <!-- Session 49.10 (Adam): the page header — above EVERYTHING pre-game -->
+    <!-- : the page header — above EVERYTHING pre-game -->
     <div class="landing-topbar" id="landingTopbar">
         <button class="landing-menu" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>
         <img class="landing-topbar-logo ar-home-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels" title="Home" role="button" tabindex="0" onclick="UI.nmNav('the Home Screen', function(){UI.returnToMainMenu();})">
@@ -29,7 +29,7 @@
         </button>
     </div>
 
-    <!-- Session 21: Skip-to-content link for keyboard users -->
+    <!-- Skip-to-content link for keyboard users -->
     <a class="skip-link" href="#actionBar">Skip to game controls</a>
 
     <!-- ===== SESSION 34g: PRE-GAME LANDING / FRONT PAGE ===== -->
@@ -44,7 +44,7 @@
                 <div class="landing-auth" id="landingAuth"><a class="landing-link" href="#" onclick="Story.account();return false;">Sign in / view your stats →</a></div>
             </div>
 
-            <!-- Session 34h: Email capture → Mailchimp "ArchRavels Digital" audience -->
+            <!-- Email capture → Mailchimp "ArchRavels Digital" audience -->
             <form class="landing-signup" action="https://xyzgamelabs.us14.list-manage.com/subscribe/post?u=feacb78076b395bdb045f9e81&amp;id=b65d6945fb" method="post" target="_blank" novalidate>
                 <label class="landing-signup-label" for="mce-EMAIL">Get updates on the ArchRavels Digital beta</label>
                 <div class="landing-signup-row">
@@ -71,9 +71,9 @@
             <span class="nav-timer" id="navTimer" style="display:none">0:00</span>
             <button class="nav-pause" id="navPauseBtn" style="display:none" onclick="UI.pauseGame()" aria-label="Pause game" title="Pause"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
         </div>
-        <!-- Player cards — merged into the nav bar (Session 38) -->
+        <!-- Player cards — merged into the nav bar -->
         <div class="player-strip" id="playerStrip" style="display:none" role="navigation" aria-label="Player summaries">
-            <!-- Dynamically populated by UI.renderPlayerStrip() -->
+            <!-- Dynamically populated by UI.renderPlayerStrip -->
         </div>
         <div class="nav-right">
             <button class="nav-menu-btn" id="navMenuBtn" onclick="UI.onNavMenuToggle()" aria-label="Menu">☰</button>
@@ -105,10 +105,9 @@
     <div class="game-layout" role="main" aria-label="Game play area">
 
         <!-- =============================================================
-             ACTION FEED (Session 22 · moved to top Session 35)
-             Rolling ticker of recent game actions for ALL players.
-             Sits above the bazaar and player board in all modes.
-             ============================================================= -->
+ ACTION FEED · moved to top Rolling ticker of recent game actions for ALL players.
+ Sits above the bazaar and player board in all modes.
+ ============================================================= -->
         <div class="action-feed" id="actionFeed" style="display:none" role="log" aria-live="polite" aria-label="Game action feed">
             <span class="feed-color-block" id="feedColorBlock" aria-hidden="true"></span>
             <div class="feed-entries" id="feedEntries"></div>
@@ -116,11 +115,11 @@
         </div>
 
         <!-- =============================================================
-             GAME BOARD
-             The main Yarn Bazaar board with 6 face-up card slots.
-             The board image provides the visual surface; the overlay
-             grid is populated dynamically by JS.
-             ============================================================= -->
+ GAME BOARD
+ The main Yarn Bazaar board with 6 face-up card slots.
+ The board image provides the visual surface; the overlay
+ grid is populated dynamically by JS.
+ ============================================================= -->
         <div class="board-section" role="region" aria-label="Game board — Yarn Bazaar and Projects">
             <img class="board-image"
                  src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Game Board PNG/AR_YarnBazaarBoard.png"
@@ -131,15 +130,15 @@
                 <span class="deck-counter" id="deckCounter"></span>
             </div>
 
-            <!-- Session 15b: Yarn deck card back — sits in the deck slot (left column) -->
+            <!-- Yarn deck card back — sits in the deck slot (left column) -->
             <div class="deck-card-back yarn-deck-back" id="yarnDeckBack">
                 <img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Square Cards PNG/AR_YarnEvents_Final_0028_Square_CardBack.png" alt="Yarn Deck">
                 <span class="deck-card-count" id="yarnDeckCount"></span>
             </div>
 
-            <!-- Session 42: Active Gnome Rule slot — the empty bottom-left board slot
-                 (below the yarn deck, left of the card grid). Shows the active Gnome Rule
-                 during the Hank automa boss match; click for the rulebook reminder. -->
+            <!-- Active Gnome Rule slot — the empty bottom-left board slot
+ (below the yarn deck, left of the card grid). Shows the active Gnome Rule
+ during the Hank automa boss match; click for the rulebook reminder. -->
             <div class="gnome-rule-slot" id="gnomeRuleSlot" style="display:none" role="button" tabindex="0"
                  aria-label="Active Gnome Rule" onclick="UI.showGnomeRuleModal()">
                 <img id="gnomeRuleImg" src="" alt="Active Gnome Rule">
@@ -149,14 +148,14 @@
             <!-- Bazaar card grid — populated by js/ui.js -->
             <div class="yarn-bazaar-overlay" id="bazaar" role="group" aria-label="Yarn Bazaar — 6 face-up cards"></div>
 
-            <!-- Session 15b: Project deck card back — sits in the project deck slot -->
+            <!-- Project deck card back — sits in the project deck slot -->
             <div class="deck-card-back project-deck-back" id="projectDeckBack">
                 <img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" data-defer-src="Project Cards PNG/AR_ProjectCards_Back.png" alt="Project Deck">
                 <span class="deck-card-count" id="projectDeckCount"></span>
             </div>
 
             <!-- Project card overlay — 3 face-up project cards positioned over the
-                 board's bottom card zones. Populated by js/ui.js (Session 8). -->
+ board's bottom card zones. Populated by js/ui.js -->
             <div class="project-board-overlay" id="projectBoardOverlay" role="group" aria-label="Project cards on display"></div>
 
             <!-- Project deck count badge — over the embroidery hoop area (bottom-left) -->
@@ -165,23 +164,23 @@
 
 
         <!-- =============================================================
-             PLAYER AREA  (Session 9 layout)
-             Board fills most of the width with all elements overlaid
-             directly on it. Finished Objects panel sits to the right.
+ PLAYER AREA layout)
+ Board fills most of the width with all elements overlaid
+ directly on it. Finished Objects panel sits to the right.
 
-             Z-index layers inside .player-board-wrapper:
-               1 — bowl-wood-bg  (wood texture behind transparent notch)
-               2 — player-board-image  (the board PNG itself)
-               3 — yarn-bowl-overlay  (yarn tokens in the notch)
-               3 — craft-board-overlay  (craft cards on the tile strip)
-             ============================================================= -->
+ Z-index layers inside .player-board-wrapper:
+ 1 — bowl-wood-bg (wood texture behind transparent notch)
+ 2 — player-board-image (the board PNG itself)
+ 3 — yarn-bowl-overlay (yarn tokens in the notch)
+ 3 — craft-board-overlay (craft cards on the tile strip)
+ ============================================================= -->
         <div class="player-area" role="region" aria-label="Player board area">
 
             <div class="player-board-wrapper">
 
                 <!-- Wood texture fills the circular notch on the left side of
-                     the board (the notch is transparent in the PNG so this
-                     shows through at z-index 1, below the board image). -->
+ the board (the notch is transparent in the PNG so this
+ shows through at z-index 1, below the board image). -->
                 <div class="bowl-wood-bg"></div>
 
                 <!-- Full player board image (2587×1831 RGBA PNG) -->
@@ -194,20 +193,20 @@
                 <div class="yarn-bowl-overlay" id="yarnBowl" role="group" aria-label="Yarn Bowl"></div>
 
                 <!-- Action space grid — 2×2 clickable overlay on the board's
-                     printed action spaces (x≈52–88%, y≈22–69%).
-                     Populated by JS: clickable in chooseSpace phase,
-                     highlights selected space in playerActions/restock. -->
+ printed action spaces (x≈52–88%, y≈22–69%).
+ Populated by JS: clickable in chooseSpace phase,
+ highlights selected space in playerActions/restock. -->
                 <div class="action-grid-overlay" id="actionGridOverlay" role="group" aria-label="Action spaces"></div>
 
                 <!-- Craft pattern cards — rendered by JS onto the bottom
-                     tile strip (y ≈ 69–88% of board, x ≈ 9–91%) -->
+ tile strip (y ≈ 69–88% of board, x ≈ 9–91%) -->
                 <div class="craft-board-overlay" id="craftGrid" role="group" aria-label="Craft grid — pattern tiles"></div>
 
-                <!-- Session 15b: SR reminder overlay — mini thumbnails of held SRs
-                     visible on the player board so they're hard to miss -->
+                <!-- SR reminder overlay — mini thumbnails of held SRs
+ visible on the player board so they're hard to miss -->
                 <div class="sr-board-reminder" id="srBoardReminder"></div>
 
-                <!-- Session 15b: Finished Objects drawer — slides out from right edge strip -->
+                <!-- Finished Objects drawer — slides out from right edge strip -->
                 <div class="fo-drawer-tab" id="foDrawerTab" title="Finished Objects">
                     <span class="fo-drawer-count" id="foDrawerCount">0</span>
                 </div>
@@ -233,7 +232,7 @@
 
     </div><!-- /game-layout -->
 
-    <!-- ===== ACTION BAR — its own distinct section above the footer (Session 38) ===== -->
+    <!-- ===== ACTION BAR — its own distinct section above the footer ===== -->
     <div class="action-bar-wrapper" id="actionBarWrapper">
         <div class="tangled-cat-banner" id="tangledCatBanner" style="display:none" aria-live="assertive"></div>
         <div class="action-bar" id="actionBar" aria-live="polite"></div>
@@ -241,10 +240,10 @@
 
 
     <!-- =============================================================
-         TAKE YARN CONFIRMATION MODAL
-         Shown when clicking "Take Yarn" — previews the yarn you'll
-         receive and asks for confirmation before processing.
-         ============================================================= -->
+ TAKE YARN CONFIRMATION MODAL
+ Shown when clicking "Take Yarn" — previews the yarn you'll
+ receive and asks for confirmation before processing.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="confirmTakeModal" style="display:none">
         <div class="modal-content confirm-take-content">
             <div class="modal-title">Take These Cards?</div>
@@ -258,10 +257,10 @@
 
 
     <!-- =============================================================
-         CRAFT CONFIRMATION MODAL
-         Shown when clicking a pattern to craft — previews yarn cost
-         and the item you'll receive.
-         ============================================================= -->
+ CRAFT CONFIRMATION MODAL
+ Shown when clicking a pattern to craft — previews yarn cost
+ and the item you'll receive.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="craftConfirmModal" style="display:none">
         <div class="modal-content craft-confirm-content">
             <div class="modal-title" id="craftConfirmTitle">Craft Item?</div>
@@ -275,9 +274,9 @@
 
 
     <!-- =============================================================
-         CRAFT COLOR PICKER MODAL
-         For general patterns — player chooses which colors to spend.
-         ============================================================= -->
+ CRAFT COLOR PICKER MODAL
+ For general patterns — player chooses which colors to spend.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="craftColorModal" style="display:none">
         <div class="modal-content craft-color-content">
             <div class="modal-title" id="craftColorTitle">Choose Yarn to Spend</div>
@@ -291,15 +290,15 @@
 
 
     <!-- =============================================================
-         COLOR PICKER MODAL
-         Shown when taking an AnyColor (wild) card — player chooses
-         which yarn color to receive.
-         ============================================================= -->
+ COLOR PICKER MODAL
+ Shown when taking an AnyColor (wild) card — player chooses
+ which yarn color to receive.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="colorPickerModal" style="display:none">
         <div class="modal-content">
             <div class="modal-title">Choose a Yarn Color</div>
             <div class="otc-container" id="colorPickerContext"></div>
-            <!-- Session 35: live "selected so far" feedback for multi-pick Any Yarn -->
+            <!-- live "selected so far" feedback for multi-pick Any Yarn -->
             <div class="color-pick-progress" id="colorPickerProgress" style="display:none"></div>
             <div class="color-picker-grid" id="colorPickerGrid"></div>
         </div>
@@ -307,11 +306,11 @@
 
 
     <!-- =============================================================
-         EXCHANGE MODAL
-         For the Exchange action — player swaps yarn colors.
-         Give away yarn tokens of any color and receive the same
-         number of tokens in any other color(s).
-         ============================================================= -->
+ EXCHANGE MODAL
+ For the Exchange action — player swaps yarn colors.
+ Give away yarn tokens of any color and receive the same
+ number of tokens in any other color(s).
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="exchangeModal" style="display:none">
         <div class="modal-content exchange-content">
             <div class="modal-title">Exchange Yarn</div>
@@ -325,11 +324,11 @@
 
 
     <!-- =============================================================
-         SESSION 17: GAME MOMENT MODAL
-         Generic announcement modal for game moments:
-         project finishing, SR completion, event reveals, SR awards.
-         Shows card image + title + description. Click to dismiss.
-         ============================================================= -->
+ SESSION 17: GAME MOMENT MODAL
+ Generic announcement modal for game moments:
+ project finishing, SR completion, event reveals, SR awards.
+ Shows card image + title + description. Click to dismiss.
+ ============================================================= -->
     <div class="modal-overlay game-moment-overlay" role="dialog" aria-modal="true" id="gameMomentModal" style="display:none">
         <div class="game-moment-content">
             <div class="game-moment-badge" id="gameMomentBadge"></div>
@@ -343,10 +342,10 @@
 
 
     <!-- =============================================================
-         SESSION 6: EVENT MODAL
-         Shown when an Event card is revealed during Restock.
-         Auto-applies effects or requests player input via continue.
-         ============================================================= -->
+ SESSION 6: EVENT MODAL
+ Shown when an Event card is revealed during Restock.
+ Auto-applies effects or requests player input via continue.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="eventModal" style="display:none">
         <div class="modal-content event-modal-content">
             <div class="modal-title" id="eventModalTitle">Event!</div>
@@ -361,10 +360,10 @@
 
 
     <!-- =============================================================
-         SESSION 6: SPECIAL REQUEST TAKE MODAL
-         Shown when an SR card appears during Restock.
-         In single-player the active player always takes it.
-         ============================================================= -->
+ SESSION 6: SPECIAL REQUEST TAKE MODAL
+ Shown when an SR card appears during Restock.
+ In single-player the active player always takes it.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="srTakeModal" style="display:none">
         <div class="modal-content sr-take-content">
             <div class="modal-title" id="srTakeTitle">Special Request</div>
@@ -389,10 +388,10 @@
 
 
     <!-- =============================================================
-         SESSION 6: YARN SALE MODAL
-         Shown after Yarn Sale event — player picks 3 yarn colors
-         from the supply.
-         ============================================================= -->
+ SESSION 6: YARN SALE MODAL
+ Shown after Yarn Sale event — player picks 3 yarn colors
+ from the supply.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="yarnSaleModal" style="display:none">
         <div class="modal-content yarn-sale-content">
             <div class="modal-title event-modal-title"><img class="modal-title-card" src="Square Cards PNG/AR_YarnEvents_Final_0001_Yarn-Sale.png" alt="Yarn Sale"> Yarn Sale!</div>
@@ -403,11 +402,11 @@
 
 
     <!-- =============================================================
-         SESSION 6: DONATE MODAL
-         Shown after Donate event — player gives 1 yarn from their
-         stash to another player (SP: goes to supply). Click a color
-         button to donate that yarn immediately. Skip is optional.
-         ============================================================= -->
+ SESSION 6: DONATE MODAL
+ Shown after Donate event — player gives 1 yarn from their
+ stash to another player (SP: goes to supply). Click a color
+ button to donate that yarn immediately. Skip is optional.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="donateModal" style="display:none">
         <div class="modal-content donate-content">
             <div class="modal-title event-modal-title"><img class="modal-title-card" src="Square Cards PNG/AR_YarnEvents_Final_0002_Donate.png" alt="Donate"> Donate Yarn</div>
@@ -421,10 +420,10 @@
 
 
     <!-- =============================================================
-         SESSION 6: CRAFT CIRCLE MODAL
-         Shown after Craft Circle event — each player may immediately
-         craft 1 item using yarn already in their bowl. Skip allowed.
-         ============================================================= -->
+ SESSION 6: CRAFT CIRCLE MODAL
+ Shown after Craft Circle event — each player may immediately
+ craft 1 item using yarn already in their bowl. Skip allowed.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="craftCircleModal" style="display:none">
         <div class="modal-content craft-circle-content">
             <div class="modal-title craft-circle-title"><img class="modal-title-card" src="Square Cards PNG/AR_YarnEvents_Final_0004_Craft-Circle.png" alt="Craft Circle"> Craft Circle</div>
@@ -439,10 +438,10 @@
 
 
     <!-- =============================================================
-         SESSION 7: FINISH PROJECT MODAL
-         Shown when clicking "Finish a Project" during Restock.
-         Lists completable projects; player clicks to complete.
-         ============================================================= -->
+ SESSION 7: FINISH PROJECT MODAL
+ Shown when clicking "Finish a Project" during Restock.
+ Lists completable projects; player clicks to complete.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="finishProjectModal" style="display:none">
         <div class="modal-content finish-project-content">
             <div class="modal-title">🏆 Finish a Project</div>
@@ -455,10 +454,10 @@
 
 
     <!-- =============================================================
-         SESSION 7: LEARN PATTERN MODAL
-         Shown when clicking "Learn a Pattern" during Restock.
-         Lists unlearned tiles; player clicks one to flip.
-         ============================================================= -->
+ SESSION 7: LEARN PATTERN MODAL
+ Shown when clicking "Learn a Pattern" during Restock.
+ Lists unlearned tiles; player clicks one to flip.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="learnPatternModal" style="display:none">
         <div class="modal-content learn-pattern-content">
             <div class="modal-title">📖 Learn a Pattern</div>
@@ -471,10 +470,10 @@
 
 
     <!-- =============================================================
-         SESSION 7: FROG IT MODAL
-         Shown when clicking "Frog It" during Restock.
-         Lists crafted items; player clicks one to unravel.
-         ============================================================= -->
+ SESSION 7: FROG IT MODAL
+ Shown when clicking "Frog It" during Restock.
+ Lists crafted items; player clicks one to unravel.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="frogItModal" style="display:none">
         <div class="modal-content frog-it-content">
             <div class="modal-title">🐸 Frog It!</div>
@@ -487,10 +486,10 @@
 
 
     <!-- =============================================================
-         SESSION 9: GAME SETUP MODAL
-         Player count selection and character assignment.
-         Shown before the game starts.
-         ============================================================= -->
+ SESSION 9: GAME SETUP MODAL
+ Player count selection and character assignment.
+ Shown before the game starts.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="setupModal" style="display:none">
         <div class="modal-content setup-content">
             <div class="setup-logo">
@@ -511,7 +510,7 @@
             </div>
 
             <div class="setup-players" id="setupPlayers">
-                <!-- Dynamically populated by UI.buildSetupPlayerSlots() -->
+                <!-- Dynamically populated by UI.buildSetupPlayerSlots -->
             </div>
 
             <div class="setup-section" style="margin-top:12px">
@@ -529,10 +528,10 @@
 
 
     <!-- =============================================================
-         SESSION 9: PASS DEVICE MODAL
-         Shown between human turns in multiplayer.
-         Hides the board state so the next player can't see it.
-         ============================================================= -->
+ SESSION 9: PASS DEVICE MODAL
+ Shown between human turns in multiplayer.
+ Hides the board state so the next player can't see it.
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="passDeviceModal" style="display:none">
         <div class="modal-content pass-device-content">
             <div class="pass-device-icon">🧶</div>
@@ -546,12 +545,12 @@
 
 
     <!-- =============================================================
-         SESSION 9b: AI ACTION LOG OVERLAY
-         Floating panel that shows AI decisions step-by-step
-         during AI turns with fade-in animation.
-         ============================================================= -->
-    <!-- Session 22: AI overlay RETIRED — replaced by action feed ticker inside game-layout.
-         Kept in HTML for reference but permanently hidden. -->
+ SESSION 9b: AI ACTION LOG OVERLAY
+ Floating panel that shows AI decisions step-by-step
+ during AI turns with fade-in animation.
+ ============================================================= -->
+    <!-- AI overlay RETIRED — replaced by action feed ticker inside game-layout.
+ Kept in HTML for reference but permanently hidden. -->
     <div class="ai-log-overlay" id="aiLogOverlay" style="display:none !important" role="log" aria-live="polite" aria-label="Computer turn actions">
         <div class="ai-log-header">
             <div class="ai-log-title" id="aiLogTitle"></div>
@@ -561,16 +560,16 @@
     </div>
 
 
-    <!-- Session 9b: Takeover bar (spectate mode) -->
+    <!-- Takeover bar (spectate mode) -->
     <div class="takeover-bar" id="takeoverBar" style="display:none">
         <button class="takeover-btn" id="takeoverBtn" onclick="UI.onTakeoverToggle()">Take Over</button>
     </div>
 
     <!-- =============================================================
-         SESSION 13: TAKE 5 ANY COLORS MODAL
-         Shown when human Expert player uses the "Take 5 Any Colors +
-         Craft 1 Any Colors" action space. Pick 5 yarn colors (repeats OK).
-         ============================================================= -->
+ SESSION 13: TAKE 5 ANY COLORS MODAL
+ Shown when human Expert player uses the "Take 5 Any Colors +
+ Craft 1 Any Colors" action space. Pick 5 yarn colors (repeats OK).
+ ============================================================= -->
     <div class="modal-overlay" role="dialog" aria-modal="true" id="take5Modal" style="display:none">
         <div class="modal-content take5-content">
             <div class="modal-title">Take 5 Yarn — Pick Any Colors</div>
@@ -600,7 +599,6 @@
             <div class="info-publisher">
                 <img class="info-xyz-logo" src="Other Images Textures Details/XYZ biz assets/XYZ Logo/XYZ_logo.png" alt="XYZ Game Labs">
                 <div class="info-copyright">&copy; 2026 XYZ Game Labs &middot; All rights reserved</div>
-                <div class="info-tree">🌲 One tree planted per game sold</div>
             </div>
         </div>
     </div>
@@ -632,42 +630,42 @@
 
 
     <!-- =============================================================
-         GAME SCRIPTS
-         Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
-         ============================================================= -->
-    <script src="js/cards.js?v=200"></script>
-    <script src="js/game.js?v=260"></script>
-    <script src="js/audio.js?v=200"></script>
-    <script src="js/ai.js?v=200"></script>
-    <!-- UI module (Session 40: split from the 6,168-line monolith). ui-core.js MUST
-         load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=237"></script>
-    <script src="js/ui-modals1.js?v=249"></script>
-    <script src="js/ui-modals2.js?v=272"></script>
-    <script src="js/ui-panels1.js?v=273"></script>
-    <script src="js/ui-panels2.js?v=273"></script>
-    <script src="js/ui-extra.js?v=262"></script>
+ GAME SCRIPTS
+ Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
+ ============================================================= -->
+    <script src="js/cards.js?v=104"></script>
+    <script src="js/game.js?v=104"></script>
+    <script src="js/audio.js?v=104"></script>
+    <script src="js/ai.js?v=104"></script>
+    <!-- UI module split from the 6,168-line monolith). ui-core.js MUST
+ load first — it declares `var UI`; the rest extend it via Object.assign. -->
+    <script src="js/ui-core.js?v=104"></script>
+    <script src="js/ui-modals1.js?v=104"></script>
+    <script src="js/ui-modals2.js?v=104"></script>
+    <script src="js/ui-panels1.js?v=104"></script>
+    <script src="js/ui-panels2.js?v=104"></script>
+    <script src="js/ui-extra.js?v=104"></script>
 
-    <!-- Online multiplayer — DORMANT (Session 40 architecture pass).
-         The live game is solo + pass-and-play, with zero dependency on this layer
-         (it self-attaches by monkey-patching Game). Kept in the repo for the separate
-         online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
-         here. Re-add to revive online play from this page.
-    <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
-    <script src="js/network.js?v=200"></script>
-    <script src="js/online-bridge.js?v=200"></script>
-    -->
+    <!-- Online multiplayer — DORMANT architecture pass).
+ The live game is solo + pass-and-play, with zero dependency on this layer
+ (it self-attaches by monkey-patching Game). Kept in the repo for the separate
+ online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
+ here. Re-add to revive online play from this page.
+ <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
+ <script src="js/network.js?v=104"></script>
+ <script src="js/online-bridge.js?v=104"></script>
+ -->
 
-    <!-- Session 35: Story Mode (overlay layer) + Supabase auth/save -->
+    <!-- Story Mode (overlay layer) + Supabase auth/save -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=202"></script>
+    <script src="js/story.js?v=104"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
-         BUMP THIS each ship (build = session #). Deploy runbook step. -->
+ BUMP THIS each ship (build = session #). Deploy runbook step. -->
     <script>
     (function () {
-        // Session 48 dev hook: /?tutorial replays the first-game flow — clears the
+        // dev hook: /?tutorial replays the first-game flow — clears the
         // seen-flags AND auto-starts a quick solo game so How-to pops immediately.
         try {
             if (/[?&]tutorial\b/.test(location.search)) {
@@ -684,7 +682,7 @@
                 });
             }
         } catch (e) {}
-        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 103 };
+        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 104 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build + (AR_VERSION.rev ? '.' + AR_VERSION.rev : '');
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; var el4 = document.getElementById('landingBuild'); if (el4) el4.textContent = label; }
@@ -693,9 +691,9 @@
     </script>
 
 
-    <!-- Session 34c: keep the fixed bottom control bar above mobile browser
-         chrome (URL/nav bars, keyboard) using the visualViewport API.
-         No-ops on desktop and when there's no chrome offset. -->
+    <!-- keep the fixed bottom control bar above mobile browser
+ chrome (URL/nav bars, keyboard) using the visualViewport API.
+ No-ops on desktop and when there's no chrome offset. -->
     <script>
     (function () {
         var vv = window.visualViewport;
@@ -713,9 +711,9 @@
     })();
     </script>
 
-    <!-- Session 41: native (Capacitor) app-shell hook. Tags the page `cap-native`
-         so the locked-bar + notch CSS applies ONLY inside the app, and keeps page
-         content clear of the pinned, variable-height action bar. No-ops on the web. -->
+    <!-- native (Capacitor) app-shell hook. Tags the page `cap-native`
+ so the locked-bar + notch CSS applies ONLY inside the app, and keeps page
+ content clear of the pinned, variable-height action bar. No-ops on the web. -->
     <script>
     (function () {
         try {
@@ -725,12 +723,12 @@
                 : (cap.platform && cap.platform !== 'web')));
             // PHONE-WEB (Gen Con booth players on their own phones): opt-in test via ?phoneui —
             // applies the app's in-match layout to a narrow touch browser. To ship to ALL phone
-            // browsers, drop the "?phoneui" gate in phoneWeb() below.
+            // browsers, drop the "?phoneui" gate in phoneWeb below.
             var mq = window.matchMedia ? window.matchMedia('(max-width:768px) and (pointer:coarse)') : null;
             function phoneWeb(){ return !native && !!mq && mq.matches; }
-            // TABLET-WEB (Session 50, Adam): any tablet-class touch viewport gets the
+            // TABLET-WEB , Adam): any tablet-class touch viewport gets the
             // native tablet layout — iPad Safari test-drives the app UI, no wrapper needed.
-            // DESKTOP opt-in test via ?tabletui (Adam QA 7/6): forces the tablet layout on
+            // DESKTOP opt-in test via ?tabletui : forces the tablet layout on
             // a mouse browser. To ship to ALL wide browsers, drop the "?tabletui" gate below.
             var mqTab = window.matchMedia ? window.matchMedia('(min-width:600px) and (pointer:coarse)') : null;
             var tabletUiForced = /[?&]tabletui\b/.test(location.search);
@@ -741,7 +739,7 @@
                 document.body.classList.toggle('cap-native', on);
                 document.body.classList.toggle('phone-web', !native && phoneWeb());
                 document.body.classList.toggle('tablet-web', !native && tabletWeb());
-                // web-rich (Adam 7/6): S50 MODAL system (picker tray/bowl, Learn,
+                // web-rich : S50 MODAL system (picker tray/bowl, Learn,
                 // Craft Circle, event modals) on ALL web browsers — layout untouched.
                 document.body.classList.toggle('web-rich', !native);
             }
@@ -821,7 +819,7 @@
                 </a>
             </div>
 
-    <!-- Session 42: leave-current-game confirm (drawer Exit group) -->
+    <!-- leave-current-game confirm (drawer Exit group) -->
     <div class="nm-exit-overlay" id="nmExitOverlay" style="display:none">
         <div class="nm-exit-modal">
             <div class="nm-exit-ic"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>

@@ -1,5 +1,5 @@
 /* ui-panels2.js — UI module (split from the Session-40 LIVE monolith).
-   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+ ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
     renderProjectStrip: function() {
         var overlay   = this.els.projectBoardOverlay;
@@ -23,7 +23,7 @@ Object.assign(UI, {
             var canComplete = Game.canAffordProject(project);
             slot.className = 'project-overlay-slot' +
                              (canComplete ? ' project-completable' : '');
-            // Session 40: during restock, clicking a completable project opens the
+            // during restock, clicking a completable project opens the
             // Finish-a-Project picker directly.
             if (Game.state.phase === 'restock' && UI._restockDone && canComplete) {
                 slot.classList.add('project-restock-clickable');
@@ -46,7 +46,7 @@ Object.assign(UI, {
             pts.textContent = project.points + ' pts';
             slot.appendChild(pts);
 
-            // Session 19: Hover preview — just the enlarged card image
+            // Hover preview — just the enlarged card image
             (function(proj, parentSlot) {
                 var preview = document.createElement('div');
                 preview.className = 'project-hover-preview';
@@ -68,7 +68,7 @@ Object.assign(UI, {
             overlay.appendChild(slot);
         }
 
-        // Session 43: persistent Urgent Request reminder pill — the physical card sits
+        // persistent Urgent Request reminder pill — the physical card sits
         // "in front of you"; digitally it hangs above the project row. Click = detail.
         // (_snagBlocksFinish also auto-CLEARS the reminder if already satisfied, so the
         // pill disappears as soon as the requirement is met.)
@@ -82,7 +82,7 @@ Object.assign(UI, {
             overlay.appendChild(snag);
         }
 
-        // Session 15c: Single deck count — on the card back only (removed redundant deckBadge text)
+        // Single deck count — on the card back only (removed redundant deckBadge text)
         if (deckBadge) deckBadge.textContent = '';
         var projDeckCount = document.getElementById('projectDeckCount');
         if (projDeckCount) {
@@ -93,9 +93,9 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 7: FINISH PROJECT MODAL
-       Shows only completable projects. Player clicks one to finish.
-       ========================================================= */
+ SESSION 7: FINISH PROJECT MODAL
+ Shows only completable projects. Player clicks one to finish.
+ ========================================================= */
 
     showFinishProjectModal: function() {
         var completable = Game.getCompletableProjects();
@@ -129,12 +129,12 @@ Object.assign(UI, {
     },
 
     _onFinishProjectClick: function(projectUid) {
-        // Session 17: Capture project data before it's removed from display
+        // Capture project data before it's removed from display
         var project = Game.state.projectDisplay.find(function(p) { return p.uid === projectUid; });
 
         var pts = Game.finishProject(projectUid);
         if (pts === null) {
-            // Session 43: if the Urgent Request snag blocked the finish, SAY so.
+            // if the Urgent Request snag blocked the finish, SAY so.
             if (Game.state.enforceSnagReminder && Game.state.activeSnagReminder && Game._snagBlocksFinish()) {
                 this.els.finishProjectModal.style.display = 'none';
                 UI._showSnagBlockWarning();
@@ -144,7 +144,7 @@ Object.assign(UI, {
 
         this.els.finishProjectModal.style.display = 'none';
 
-        // Session 17: Show celebration game moment
+        // Show celebration game moment
         var projPlayer = Game.state.player;
         UI.showGameMoment({
             badge: 'Project Complete!',
@@ -154,9 +154,9 @@ Object.assign(UI, {
             desc: UI._getProjectDesc(project, projPlayer.name, projPlayer.isAI),
             points: pts
         }, function() {
-            // Session 42: any Snagged Project revealed on the refill draw plays now.
+            // any Snagged Project revealed on the refill draw plays now.
             UI.playHankReveals(function() {
-                // Session 10: Full re-render after finishing project
+                // Full re-render after finishing project
                 UI.renderFinishedObjects();
                 UI.renderProjectStrip();
                 UI.renderCraftGrid();
@@ -174,9 +174,9 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 7: LEARN PATTERN MODAL
-       Shows all unlearned tiles. Player clicks one to flip it.
-       ========================================================= */
+ SESSION 7: LEARN PATTERN MODAL
+ Shows all unlearned tiles. Player clicks one to flip it.
+ ========================================================= */
 
     showLearnPatternModal: function() {
         var learnable = Game.getLearnablePatterns();
@@ -240,11 +240,11 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 7: FROG IT MODAL
-       Shows all crafted regular items. Player clicks one to frog.
-       - Exact pattern: return stored yarnSpent, go to confirm.
-       - General/learned pattern: open color picker for yarn choice.
-       ========================================================= */
+ SESSION 7: FROG IT MODAL
+ Shows all crafted regular items. Player clicks one to frog.
+ - Exact pattern: return stored yarnSpent, go to confirm.
+ - General/learned pattern: open color picker for yarn choice.
+ ========================================================= */
 
     showFrogItModal: function() {
         var frogable = Game.getFrogItItems();
@@ -328,22 +328,22 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 22: OFF-TURN PLAYER CONTEXT
-       Builds contextual info panels shown inside modals when
-       a player acts during another player's turn.
-       Two modes:
-         'color-pick' → yarn bowl + patterns + SRs + instruction text
-         'craft-circle' → yarn bowl + project progress
-       ========================================================= */
+ SESSION 22: OFF-TURN PLAYER CONTEXT
+ Builds contextual info panels shown inside modals when
+ a player acts during another player's turn.
+ Two modes:
+ 'color-pick' → yarn bowl + patterns + SRs + instruction text
+ 'craft-circle' → yarn bowl + project progress
+ ========================================================= */
 
     /**
-     * Build the off-turn context HTML for a specific player.
-     * @param {Object} player — player object from Game.state.players[]
-     * @param {string} mode — 'color-pick' or 'craft-circle'
-     * @param {string} [instructionText] — e.g. "Choose 1 Yarn" (only for color-pick mode)
-     * @param {boolean} [force] — if true, show context even for the active player
-     * @returns {string} HTML string to inject into a modal, or '' if skipped
-     */
+ * Build the off-turn context HTML for a specific player.
+ * @param {Object} player — player object from Game.state.players[]
+ * @param {string} mode — 'color-pick' or 'craft-circle'
+ * @param {string} [instructionText] — e.g. "Choose 1 Yarn" (only for color-pick mode)
+ * @param {boolean} [force] — if true, show context even for the active player
+ * @returns {string} HTML string to inject into a modal, or '' if skipped
+ */
     // Small circular character portrait for player-pick buttons (tangled cat,
     // donate recipient, SR give-to). Character ids match story-assets/portraits.
     _playerAvatar: function(p) {
@@ -359,8 +359,8 @@ Object.assign(UI, {
     // App-wide standard yarn-chip picker grid. One row of 6 (two rows of 3 on
     // mobile, via CSS), tap-to-add, count badge, × clears that color.
     // opts: { sel:{color:count}, rule:'any'|'oneColor'|'different', need:int|null,
-    //         maxFor:fn(color)->cap (Infinity = supply/no cap), sub:fn(color)->str|null,
-    //         addFn:'UI.xxx', clearFn:'UI.yyy' }
+    // maxFor:fn(color)->cap (Infinity = supply/no cap), sub:fn(color)->str|null,
+    // addFn:'UI.xxx', clearFn:'UI.yyy' }
     // Selected yarn as shop-style pill chips (+N Color), for picker balance boxes.
     _selectedYarnChips: function(sel) {
         var h = '';
@@ -392,7 +392,7 @@ Object.assign(UI, {
             var hex = CARDS.COLOR_HEX[color];
             var cn = color.charAt(0).toUpperCase() + color.slice(1);
             var sub = opts.sub ? opts.sub(color) : null;
-            // Session 43: Cat Nap — GAIN flows pass lockCatNap; napped colors can't be collected.
+            // Cat Nap — GAIN flows pass lockCatNap; napped colors can't be collected.
             if (opts.lockCatNap && Game.catNapLocked && Game.catNapLocked(color)) {
                 disabled = true;
                 sub = '🐱 napping';
@@ -441,14 +441,14 @@ Object.assign(UI, {
         html += '<div class="otc-bowl-label">Your Yarn Bowl</div>';
         html += '<div class="otc-bowl-total">' + total + ' total</div>';
         html += '</div>';
-        // Session 50 (Adam): on tablets the modal shows the REAL bowl - the
+        // on tablets the modal shows the REAL bowl - the
         // wood-bowl + wedge-wheel from the peek drawer - instead of the chip strip.
-        // Adam 7/6 QA: web-rich (desktop web) gets the real bowl too.
+        // QA: web-rich (desktop web) gets the real bowl too.
         var _tabletBowl = (document.body.classList.contains('cap-native') ||
             document.body.classList.contains('web-rich')) &&
             window.matchMedia && window.matchMedia('(min-width: 600px)').matches;
         if (_tabletBowl) {
-            // Adam 7/5: the PEEK-DRAWER bowl (wide wood board, tokens 3+3,
+            // the PEEK-DRAWER bowl (wide wood board, tokens 3+3,
             // counts ON the tokens) - same classes as the opponent viewer.
             var _pkOrder = UI._yarnBowlOrder || CARDS.COLORS;
             html += '<div class="opp-yarn-bowl otc-peek-bowl"><div class="opp-yarn-grid opp-yarn-arc">';
@@ -641,8 +641,8 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       COLOR PICKER MODAL
-       ========================================================= */
+ COLOR PICKER MODAL
+ ========================================================= */
 
     _colorPickerCallback: null,
 
@@ -652,30 +652,30 @@ Object.assign(UI, {
         // Standard yarn-chip grid, single-pick (any color, ROYGBP). Covers every
         // showColorPicker use: Friendly Clerk, Spinner Take 3 (pick 1 → gain 3),
         // wild picks, etc. Picking a chip → UI.onColorPick(color) → the caller's cb.
-        // Session 43: every showColorPicker use is a GAIN flow (clerk, take-3, wild picks) →
+        // every showColorPicker use is a GAIN flow (clerk, take-3, wild picks) →
         // Cat Nap locks apply here.
         grid.innerHTML = UI._yarnChips({ single: true, rule: 'any', addFn: 'UI.onColorPick', lockCatNap: true });
-        // Session 50: this grid is a supply tray (global zone listener in ui-extra)
+        // this grid is a supply tray (global zone listener in ui-extra)
         grid.classList.add('ar-supply-tray');
         grid.setAttribute('data-minus-fn', '_wildUnpick');
     },
 
     /**
-     * @param {function} callback — called with the chosen color
-     * @param {string} [title] — modal title text
-     * @param {Object} [player] — if provided, context is injected
-     * @param {boolean} [forceContext] — if true, show context even for active player
-     */
+ * @param {function} callback — called with the chosen color
+ * @param {string} [title] — modal title text
+ * @param {Object} [player] — if provided, context is injected
+ * @param {boolean} [forceContext] — if true, show context even for active player
+ */
     showColorPicker: function(callback, title, player, forceContext) {
         this._colorPickerCallback = callback;
-        // Session 47b: entry-gain cancel row is per-use — clear any leftover
+        // entry-gain cancel row is per-use — clear any leftover
         var _oldCancel = this.els.colorModal && this.els.colorModal.querySelector('.cp-cancel-row');
         if (_oldCancel) _oldCancel.remove();
         var titleEl = this.els.colorModal.querySelector('.modal-title');
         if (titleEl) {
             titleEl.textContent = title || 'Choose a Yarn Color';
         }
-        // Session 24: Use static otc-container from HTML (replaces dynamic creation)
+        // Use static otc-container from HTML (replaces dynamic creation)
         var contextContainer = document.getElementById('colorPickerContext');
         if (player && contextContainer) {
             var instructionText = title || 'Choose a Yarn Color';
@@ -694,7 +694,7 @@ Object.assign(UI, {
             if (contextContainer) contextContainer.innerHTML = '';
             if (titleEl) titleEl.style.display = '';
         }
-        // Session 35: reset multi-pick progress; _collectWildChoices repopulates it.
+        // reset multi-pick progress; _collectWildChoices repopulates it.
         var progReset = document.getElementById('colorPickerProgress');
         if (progReset) { progReset.innerHTML = ''; progReset.style.display = 'none'; }
         this.els.colorModal.style.display = 'flex';
@@ -711,17 +711,17 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 12: PLAYER AVATAR STRIP
-       Horizontal strip of small player cards below the nav bar.
-       Click a non-active player to open the opponent board viewer.
-       ========================================================= */
+ SESSION 12: PLAYER AVATAR STRIP
+ Horizontal strip of small player cards below the nav bar.
+ Click a non-active player to open the opponent board viewer.
+ ========================================================= */
 
     /**
-     * Render the player avatar strip. Called from renderAll() and
-     * renderPlayerIndicator() so it stays in sync with turn changes.
-     */
+ * Render the player avatar strip. Called from renderAll and
+ * renderPlayerIndicator so it stays in sync with turn changes.
+ */
     renderPlayerStrip: function() {
-        this._renderMergedNav();   // Session 41: cap-native merged nav (round+timer+player → board dropdown)
+        this._renderMergedNav();   // cap-native merged nav (round+timer+player → board dropdown)
         var strip = document.getElementById('playerStrip');
         if (!strip) return;
 
@@ -741,7 +741,7 @@ Object.assign(UI, {
 
         var activeIdx = Game.state.activePlayerIndex;
 
-        // Session 40: collapse to "active card + menu" when there are more than two
+        // collapse to "active card + menu" when there are more than two
         // players or the screen is narrow (mobile) — otherwise the fixed-width cards
         // crush the nav bar. 2 players on a wide screen keep both cards inline.
         var narrow = (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 760);
@@ -793,12 +793,12 @@ Object.assign(UI, {
     },
 
     /* =========================================================
-       Session 41: MERGED NAV (cap-native / iOS app only).
-       Collapses the round/phase/timer status text + the big player
-       card into ONE compact control: [Round N · ⏱timer · avatar ▾].
-       Tapping it opens a dropdown of every player's board. The old
-       nav-center + player-strip are hidden in cap-native via CSS.
-       ========================================================= */
+ MERGED NAV (cap-native / iOS app only).
+ Collapses the round/phase/timer status text + the big player
+ card into ONE compact control: [Round N · ⏱timer · avatar ▾].
+ Tapping it opens a dropdown of every player's board. The old
+ nav-center + player-strip are hidden in cap-native via CSS.
+ ========================================================= */
     _renderMergedNav: function() {
         var nav = document.getElementById('navBar');
         if (!nav) return;
@@ -829,6 +829,9 @@ Object.assign(UI, {
                 '<span class="mn-name">' + (active ? active.name : '') + '</span>' +
                 '<span class="mn-caret">▾</span>' +
             '</button>' +
+            // (7/9): pause button in the cap-native merged nav (mirrors the
+            // desktop nav-pause, which is hidden on cap-native). Only mid-game (timer present).
+            (timer ? '<button class="mn-pause" type="button" onclick="UI.pauseGame()" aria-label="Pause game" title="Pause"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>' : '') +
             '<div class="mn-drawer" id="mergedNavMenu" style="display:none">' +
                 '<div class="mn-drawer-head">Players · tap a card to open their board</div>' +
                 '<div class="mn-drawer-cards" id="mergedNavCards"></div>' +
@@ -1002,9 +1005,9 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 12: OPPONENT BOARD VIEWER — Slide-out Panel
-       Read-only view of another player's full board state.
-       ========================================================= */
+ SESSION 12: OPPONENT BOARD VIEWER — Slide-out Panel
+ Read-only view of another player's full board state.
+ ========================================================= */
 
     /** Currently open opponent panel player index (-1 = closed) */
 });

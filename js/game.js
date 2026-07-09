@@ -3,45 +3,45 @@
  * =========================================================
  * Manages all mutable game data and core mechanics.
  * This file is DOM-free — all rendering goes through Game.render.*
- * delegates, wired up by ui.js during init (Session 11 refactor).
+ * delegates, wired up by ui.js during init refactor).
  *
  * Sessions 3–5 scope:
- *   - Game setup (build deck, shuffle, deal Bazaar, deal Pattern Tiles)
- *   - Turn structure (choose action space → player actions → restock)
- *   - Shop action (multi-select cards, gain yarn, confirmation flow)
- *   - Craft action (spend yarn to match patterns, gain Item tokens)
- *   - Exchange action (swap N yarn for N yarn, house rule)
- *   - Bazaar restock (fill empty slots from deck)
- *   - Per-character action space limits
+ * - Game setup (build deck, shuffle, deal Bazaar, deal Pattern Tiles)
+ * - Turn structure (choose action space → player actions → restock)
+ * - Shop action (multi-select cards, gain yarn, confirmation flow)
+ * - Craft action (spend yarn to match patterns, gain Item tokens)
+ * - Exchange action (swap N yarn for N yarn, house rule)
+ * - Bazaar restock (fill empty slots from deck)
+ * - Per-character action space limits
  *
- * Session 6 additions:
- *   - Special Requests: setup, reveal during restock, take, craft
- *   - Event cards: resolve during restock (5 event types, corrected rules)
- *   - Favorite Request tracking per character
- *   - Multiplayer foundation: state.players array, state.playerCount
- *   - Per-player flags: cantCraftNextTurn, freeCraftBonus (on player object)
- *   - Tangled Cat: active player CHOOSES a target player (auto in SP)
- *   - Friendly Clerk: each player picks 1 yarn color to gain
- *   - Donate: active player gives 1 yarn to another player (supply in SP)
- *   - Craft Circle: each player may immediately craft 1 item
+ * additions:
+ * - Special Requests: setup, reveal during restock, take, craft
+ * - Event cards: resolve during restock (5 event types, corrected rules)
+ * - Favorite Request tracking per character
+ * - Multiplayer foundation: state.players array, state.playerCount
+ * - Per-player flags: cantCraftNextTurn, freeCraftBonus (on player object)
+ * - Tangled Cat: active player CHOOSES a target player (auto in SP)
+ * - Friendly Clerk: each player picks 1 yarn color to gain
+ * - Donate: active player gives 1 yarn to another player (supply in SP)
+ * - Craft Circle: each player may immediately craft 1 item
  *
- * Session 7 additions:
- *   - Project Deck: 16 project cards, 3 face-up display
- *   - Finish a Project: Restock action — turn in required items, score points
- *   - Learn a Pattern: Restock action — flip tile to general side (free)
- *   - Frog It: Restock action — return crafted item, get yarn back
- *   - canAffordSpecialRequest: handles all colorRules (any/sameColor/different/give)
- *   - craft() now stores yarnSpent and patternLearned on each item (for Frog It)
- *   - takeSpecialRequest() preserves colorRule and yarnCount
+ * additions:
+ * - Project Deck: 16 project cards, 3 face-up display
+ * - Finish a Project: Restock action — turn in required items, score points
+ * - Learn a Pattern: Restock action — flip tile to general side (free)
+ * - Frog It: Restock action — return crafted item, get yarn back
+ * - canAffordSpecialRequest: handles all colorRules (any/sameColor/different/give)
+ * - craft now stores yarnSpent and patternLearned on each item (for Frog It)
+ * - takeSpecialRequest preserves colorRule and yarnCount
  * =========================================================
  */
 
 var Game = {
 
-    /* ----- Render delegate ----- */
+    /* Render delegate ----- */
     /* UI layer wires these up during init.
-       game.js calls Game.render.*() instead of UI.*() directly,
-       keeping the logic layer DOM-free for future Unity port. */
+ game.js calls Game.render.* instead of UI.* directly,
+ keeping the logic layer DOM-free for future Unity port. */
     render: {
         all:              function() {},
         bazaar:           function() {},
@@ -55,14 +55,14 @@ var Game = {
         showPassDevice:   function() {},
         showFinalCraftPhase: function() {},
         playerStrip:      function() {},
-        turnHistory:      function() {},   // Session 13: turn history panel update
-        navTimer:         function() {},   // Session 15: nav bar game clock update
-        actionFeed:       function() {},   // Session 22: action feed ticker update
-        gameOver:         function() {},   // Session 35: fired once when a match ends (Story Mode hook)
-        gnomeRule:        function() {},   // Session 42: active Gnome Rule slot on the bazaar board
+        turnHistory:      function() {},   // turn history panel update
+        navTimer:         function() {},   // nav bar game clock update
+        actionFeed:       function() {},   // action feed ticker update
+        gameOver:         function() {},   // fired once when a match ends (Story Mode hook)
+        gnomeRule:        function() {},   // active Gnome Rule slot on the bazaar board
     },
 
-    /* ----- Game state ----- */
+    /* Game state ----- */
     state: {
         /* Yarn Bazaar: 6 face-up slots (null = empty) */
         bazaar: [null, null, null, null, null, null],
@@ -74,16 +74,16 @@ var Game = {
         discard: [],
 
         /* Current game phase:
-             chooseSpace   — player picks an action space on their board
-             playerActions — player performs Shop / Craft / Exchange
-             restock       — fill empty Bazaar slots from deck
-        */
+ chooseSpace — player picks an action space on their board
+ playerActions — player performs Shop / Craft / Exchange
+ restock — fill empty Bazaar slots from deck
+ */
         phase: 'chooseSpace',
 
         /* Currently selected Bazaar slot indices */
         selectedSlots: new Set(),
 
-        /* --- Turn tracking --- */
+        /* Turn tracking --- */
         turn: {
             number: 1,
             currentSpace: null,   // index (0-3) of chosen action space this turn
@@ -98,75 +98,75 @@ var Game = {
         craftLimit: 0,
         hasExchange: false,
 
-        /* Session 8c: Unique ability flags (set per-turn when space is chosen) */
+        /* Unique ability flags (set per-turn when space is chosen) */
         pendingTake3Yarn: false,   // Ted/Eliza Space 3: gain 3 yarn of one color before actions
-        pendingTake3Any: false,    // Session 36: Hank boss Space 2: gain 3 yarn of ANY (mixed) colors
+        pendingTake3Any: false,    // Hank boss Space 2: gain 3 yarn of ANY (mixed) colors
         craftAnyColors: false,     // Neeha/Alex Space 3: next craft ignores color matching
 
         /* Character id for looking up action spaces */
         characterId: 'rebecca',
 
-        /* Session 7: Project Deck — separate from Yarn Deck */
+        /* Project Deck — separate from Yarn Deck */
         projectDeck:    [],  // remaining project cards (face-down)
         projectDisplay: [],  // 3 face-up project cards (may be fewer at end of deck)
 
-        /* Session 9: Multiplayer infrastructure */
+        /* Multiplayer infrastructure */
         playerCount: 1,
         activePlayerIndex: 0,   // index into players[] for whose turn it is
-        players: [],            // populated in init(); state.player === players[activePlayerIndex]
+        players: [],            // populated in init; state.player === players[activePlayerIndex]
         finalRound: false,      // true once end-game trigger fires
         endGameTriggerPlayer: -1, // which player triggered end-game
         finalCraftQueue: null,    // array of player indices for final craft phase
         finalCraftIndex: 0,       // current position in finalCraftQueue
 
         /* Active player reference — always points to players[activePlayerIndex].
-           All existing code reads state.player; this alias keeps changes minimal. */
+ All existing code reads state.player; this alias keeps changes minimal. */
         player: null,
 
-        /* Session 15: Game timer */
-        gameStartTime: null,         // Date.now() when game starts
-        turnStartTime: null,         // Date.now() when current turn begins
+        /* Game timer */
+        gameStartTime: null,         // Date.now when game starts
+        turnStartTime: null,         // Date.now when current turn begins
         _timerInterval: null,        // setInterval id for nav clock
     },
 
 
     /* =========================================================
-       INITIALIZATION
-       ========================================================= */
+ INITIALIZATION
+ ========================================================= */
 
     /**
-     * Set up a new game: build deck, shuffle, deal Bazaar, create players.
-     * Session 9: accepts optional config for multiplayer.
-     * @param {Object} [config] — { players: [{characterId, name}] }
-     *   If omitted, defaults to single-player Rebecca.
-     */
+ * Set up a new game: build deck, shuffle, deal Bazaar, create players.
+ * accepts optional config for multiplayer.
+ * @param {Object} [config] — { players: [{characterId, name}] }
+ * If omitted, defaults to single-player Rebecca.
+ */
     init: function(config) {
         this._gen = (this._gen || 0) + 1;
         config = config || { players: [{ characterId: 'rebecca', name: 'Rebecca' }] };
         var playerConfigs = config.players;
         var numPlayers = playerConfigs.length;
-        // Session 41 (Story SR Board): optional enabled-SR filter. Story Mode passes the
+        // (Story SR Board): optional enabled-SR filter. Story Mode passes the
         // player's enabled set; Quick Play / pass-and-play leave it null (full SR pool).
         var srEnabledIds = config.srEnabledIds || null;
 
-        // --- Build player objects ---
+        // Build player objects ---
         var players = [];
         var characterIds = [];
         playerConfigs.forEach(function(pc) {
             var character = CARDS.getCharacter(pc.characterId);
             characterIds.push(pc.characterId);
-            // Session 36: Hank boss head start — +3 extra yarn (one color) on top of the standard 1-of-each.
+            // Hank boss head start — +3 extra yarn (one color) on top of the standard 1-of-each.
             var startBowl = { red: 1, blue: 1, green: 1, yellow: 1, orange: 1, purple: 1 };
             if (character && character.isHank) { startBowl.red += 3; }
             players.push({
                 name:                  pc.name || character.name,
                 characterId:           pc.characterId,
                 characterType:         character.type,
-                // Session 42 (P1 automa): Hank is no longer an AI turn-taker — he's a
+                // (P1 automa): Hank is no longer an AI turn-taker — he's a
                 // score-only automa. Force isAI off for him so AI.takeTurn never runs.
-                isAI:                  !!pc.isAI && !(character && character.isHank),  // Session 9b: AI opponent flag
-                isHank:                !!(character && character.isHank),  // Session 36: boss rule-hook flag
-                isAutoma:              !!(character && character.isHank),  // Session 42: score-only automa (skipped in turn rotation)
+                isAI:                  !!pc.isAI && !(character && character.isHank),  // AI opponent flag
+                isHank:                !!(character && character.isHank),  // boss rule-hook flag
+                isAutoma:              !!(character && character.isHank),  // score-only automa (skipped in turn rotation)
                 yarnBowl:              startBowl,
                 patternTiles:          CARDS.dealPatternTiles(),
                 items:                 [],
@@ -176,7 +176,7 @@ var Game = {
                 cantCraftNextTurn:     false,
                 freeCraftBonus:        false,
                 _previousSpace:        null,  // per-player: their last action space
-                // Session 15: Per-player timer tracking
+                // Per-player timer tracking
                 totalTurnTime:         0,     // cumulative ms spent on turns
                 turnCount:             0,     // number of completed turns
             });
@@ -192,7 +192,7 @@ var Game = {
         this.state.finalCraftQueue = null;
         this.state.finalCraftIndex = 0;
 
-        // Session 42 (P2 automa): Hank final-boss card layer.
+        // (P2 automa): Hank final-boss card layer.
         this.state.hankAutoma     = !!config.hankAutoma;   // is this the Hank automa match?
         this.state.hankReds       = config.hankReds || 0;  // difficulty = # of Hard(red) cards
         this.state.activeGnomeRule = null;                 // single ongoing Gnome Rule (enforcement = P3)
@@ -202,18 +202,18 @@ var Game = {
         // Urgent Request HARD-BLOCK enforcement is deferred (fiddly player-behavior
         // constraint, like Cat Nap / Emergency). The reminder still installs + displays;
         // flip this true once UI + real-player flow can satisfy it without stalling.
-        this.state.enforceSnagReminder = true;   // Session 43: Urgent Request enforcement ON (spec decision #3)
-        this.state.emergencySRUid = null;        // Session 43: Emergency! craft-order — the tagged must-craft-first SR
+        this.state.enforceSnagReminder = true;   // Urgent Request enforcement ON (spec decision #3)
+        this.state.emergencySRUid = null;        // Emergency! craft-order — the tagged must-craft-first SR
         this.state._emergencyTagged = false;     // has Emergency! already tagged its "next SR revealed"?
-        this.state.catNapColors = [];            // Session 43: Cat Nap — colors the cat is sleeping on (locked)
-        // Session 42: queue of tangle/snag reveals for the UI to animate (instants + snagged).
+        this.state.catNapColors = [];            // Cat Nap — colors the cat is sleeping on (locked)
+        // queue of tangle/snag reveals for the UI to animate (instants + snagged).
         this.state.hankReveals = [];
 
-        // --- Build Yarn Deck (Yarn + Events) ---
+        // Build Yarn Deck (Yarn + Events) ---
         var deck = CARDS.buildDeck();
         this.shuffle(deck);
 
-        // --- Special Requests setup ---
+        // Special Requests setup ---
         var srCards;
         if (numPlayers === 1) {
             srCards = CARDS.buildSpecialRequestsForSetup(characterIds[0], 1, srEnabledIds);
@@ -221,7 +221,7 @@ var Game = {
             srCards = CARDS.buildSpecialRequestsForMultiplayer(characterIds, srEnabledIds);
         }
 
-        // Session 40: Seed Special Requests toward the FRONT of the deck so they
+        // Seed Special Requests toward the FRONT of the deck so they
         // actually come up in a match. Non-favorites go into the front third;
         // each player's own favorite goes into the front quarter (earlier) so
         // players reliably encounter their favorite SR.
@@ -261,24 +261,24 @@ var Game = {
         this.state.pendingTake3Any = false;
         this.state.craftAnyColors = false;
 
-        // Session 13: Maker & Expert unique ability flags
+        // Maker & Expert unique ability flags
         this.state.makeTwoItems = false;
         this.state.pendingTake5Any = false;
 
-        // Session 13: Turn history log
+        // Turn history log
         this.state.turnHistory = [];
         this.state._currentTurnLog = [];
 
-        // Session 22: Action feed — rolling list of recent game actions for all players
+        // Action feed — rolling list of recent game actions for all players
         this.state.actionFeed = [];
 
-        // Session 7: Initialize the project deck (3 face-up, rest face-down)
+        // Initialize the project deck (3 face-up, rest face-down)
         this.initProjects();
 
         // Deal initial Bazaar: 6 Yarn cards (skip Events AND SRs during setup, per rules p.5)
         this.dealInitialBazaar();
 
-        // Session 15: Start game timer
+        // Start game timer
         this.state.gameStartTime = Date.now();
         this.state.turnStartTime = Date.now();
         // Clear any previous timer interval
@@ -288,25 +288,25 @@ var Game = {
             self.render.navTimer();
         }, 1000);
 
-        // Session 42 (P2): seed the Hank automa's Tangled Yarn cards through the yarn deck.
+        // (P2): seed the Hank automa's Tangled Yarn cards through the yarn deck.
         // (Snagged Projects seeding + resolution lands in P4.)
         if (this.state.hankAutoma) {
             this.seedHankAutomaDecks(this.state.hankReds);
         }
 
-        // Session 48d: make sure deferred board art is loading (deep-link safety)
+        // make sure deferred board art is loading (deep-link safety)
         try { if (window.UI && UI._deferredAssetsGo) UI._deferredAssetsGo(); } catch (e) {}
-        // Session 48e: reveal the game layer (hidden pre-game so no stale board
+        // reveal the game layer (hidden pre-game so no stale board
         // peeks out from behind the landing/setup screens)
         try { document.body.classList.remove('ar-pregame'); } catch (e) {}
 
-        // Session 48: first-ever game → How-to-Play as a PRE-GAME screen (fires at
-        // game start regardless of turn order — Adam: it popped mid-game when the
+        // first-ever game → How-to-Play as a PRE-GAME screen (fires at
+        // game start regardless of turn order — it popped mid-game when the
         // CPU went first).
         try {
             try { if (window.UI && UI.logEvent) UI.logEvent('game_start', { players: this.state.playerCount }); } catch (e) {}
             if (window.UI && UI.maybeShowFirstGameHelp) {
-                // Session 48k: show IMMEDIATELY so the overlay covers the board
+                // show IMMEDIATELY so the overlay covers the board
                 // building behind it (the 700ms gap let half-built layout flash)
                 setTimeout(function(){ UI.maybeShowFirstGameHelp(); }, 0);
             }
@@ -314,8 +314,8 @@ var Game = {
     },
 
     /* =========================================================
-       HANK AUTOMA — deck seeding + Tangled Yarn resolution (P2)
-       ========================================================= */
+ HANK AUTOMA — deck seeding + Tangled Yarn resolution (P2)
+ ========================================================= */
 
     /** The score-only automa player record (or null). */
     _automaPlayer: function() {
@@ -327,12 +327,12 @@ var Game = {
     },
 
     /**
-     * Session 42: rulebook solo SR rule — "you may keep a revealed Special Request or give
-     * it to Hank." Giving it to Hank means he claims it and completes it FREE at end of game
-     * (calculateFinalScore already scores every SR he holds + a +5 favorite bonus each).
-     * You give away SRs you can't finish (dodging YOUR unfinished-SR penalty) — but it feeds
-     * Hank's pile, so it's a real trade-off.
-     */
+ * rulebook solo SR rule — "you may keep a revealed Special Request or give
+ * it to Hank." Giving it to Hank means he claims it and completes it FREE at end of game
+ * (calculateFinalScore already scores every SR he holds + a +5 favorite bonus each).
+ * You give away SRs you can't finish (dodging YOUR unfinished-SR penalty) — but it feeds
+ * Hank's pile, so it's a real trade-off.
+ */
     giveSRToHank: function(card) {
         var hank = this._automaPlayer();
         if (!hank) { this.takeSpecialRequest(card); return; }   // safety: no automa → just keep
@@ -357,10 +357,10 @@ var Game = {
     },
 
     /**
-     * Session 43: Cat Nap — is this color locked for the HUMAN right now?
-     * True only while Cat Nap is the displayed rule and the cat sits on the color.
-     * AI/sim seats are exempt (same scoping as the other fiddly constraints).
-     */
+ * Cat Nap — is this color locked for the HUMAN right now?
+ * True only while Cat Nap is the displayed rule and the cat sits on the color.
+ * AI/sim seats are exempt (same scoping as the other fiddly constraints).
+ */
     catNapLocked: function(color) {
         var r = this.state.activeGnomeRule;
         if (!r || r.fx !== 'catNap') return false;
@@ -370,7 +370,7 @@ var Game = {
         return this.state.catNapColors.indexOf(color) !== -1;
     },
 
-    /** Session 43: Cat Nap placement — the player chose where the cat sleeps. */
+    /** Cat Nap placement — the player chose where the cat sleeps. */
     placeCatNap: function(colors) {
         this.state.catNapColors = (colors || []).slice();
         this._logAction('Cat Nap — the cat is sleeping on ' + this.state.catNapColors.join(' + ') +
@@ -378,13 +378,13 @@ var Game = {
     },
 
     /**
-     * Session 43: Emergency! craft-order — is the tagged SR still an outstanding
-     * obligation? Lives only while Emergency! is the displayed rule AND the human
-     * still holds the tagged SR uncrafted. Self-clears otherwise.
-     * @param {string} [craftingUid] — the SR the player is trying to craft (crafting
-     *                                 the emergency SR itself is always allowed)
-     * @returns {Object|null} the outstanding SR, or null if nothing blocks
-     */
+ * Emergency! craft-order — is the tagged SR still an outstanding
+ * obligation? Lives only while Emergency! is the displayed rule AND the human
+ * still holds the tagged SR uncrafted. Self-clears otherwise.
+ * @param {string} [craftingUid] — the SR the player is trying to craft (crafting
+ * the emergency SR itself is always allowed)
+ * @returns {Object|null} the outstanding SR, or null if nothing blocks
+ */
     emergencyBlocks: function(craftingUid) {
         var r = this.state.activeGnomeRule;
         if (!r || r.fx !== 'emergency' || !this.state.emergencySRUid) return null;
@@ -396,11 +396,11 @@ var Game = {
     },
 
     /**
-     * Session 43: solo Event resolutions — Hank's share of an event's yarn.
-     * Gains n tokens of his most-stocked color (same pile-on logic as
-     * applyHankAutoYarn, but with an event-flavored log line).
-     * Used by Friendly Clerk (+1) and Yarn Sale (+3).
-     */
+ * solo Event resolutions — Hank's share of an event's yarn.
+ * Gains n tokens of his most-stocked color (same pile-on logic as
+ * applyHankAutoYarn, but with an event-flavored log line).
+ * Used by Friendly Clerk (+1) and Yarn Sale (+3).
+ */
     hankEventYarn: function(n, eventName) {
         var hank = this._automaPlayer();
         if (!hank) return null;
@@ -416,10 +416,10 @@ var Game = {
     },
 
     /**
-     * Session 43: Craft Circle solo resolution (rulebook) — Hank crafts a
-     * Blanket for FREE (no yarn spent, no action used).
-     * @returns {Object|null} the blanket item def for the UI announcement
-     */
+ * Craft Circle solo resolution (rulebook) — Hank crafts a
+ * Blanket for FREE (no yarn spent, no action used).
+ * @returns {Object|null} the blanket item def for the UI announcement
+ */
     hankCraftFreeBlanket: function() {
         var hank = this._automaPlayer();
         if (!hank) return null;
@@ -440,10 +440,10 @@ var Game = {
     },
 
     /**
-     * Seed the Hank automa cards into the decks.
-     * P2: 8 Tangled Yarn cards distributed evenly through the yarn deck (mirrors the
-     * rulebook's 8-piles rule). Snagged Projects are held for P4.
-     */
+ * Seed the Hank automa cards into the decks.
+ * P2: 8 Tangled Yarn cards distributed evenly through the yarn deck (mirrors the
+ * rulebook's 8-piles rule). Snagged Projects are held for P4.
+ */
     seedHankAutomaDecks: function(redCount) {
         var built = CARDS.buildHankAutomaCards(redCount);
         this.state.hankCards = built;                 // keep a reference for UI/debug
@@ -458,18 +458,18 @@ var Game = {
         // whole deck (old behavior); 0.5 → concentrate in the front half.
         this._seedIntoDeck(this.state.deck, tangles, this.HANK_TANGLE_FRONTLOAD, 2);
 
-        // Session 42 (P4): seed the 4 Snagged Projects into the face-down Project deck
+        // (P4): seed the 4 Snagged Projects into the face-down Project deck
         // (the initial 3 face-up were already dealt in initProjects, so they stay clean).
         var snagged = built.snagged.slice();
         this.shuffle(snagged);
-        // Session 43 (playtest fix): min gap 3 — no more back-to-back snags.
+        // (playtest fix): min gap 3 — no more back-to-back snags.
         this._seedIntoDeck(this.state.projectDeck, snagged, null, 3);
     },
 
     /**
-     * Draw the next real Project from the deck, resolving (and discarding) any Snagged
-     * Projects revealed on top along the way (rulebook Step 3). Returns a project or null.
-     */
+ * Draw the next real Project from the deck, resolving (and discarding) any Snagged
+ * Projects revealed on top along the way (rulebook Step 3). Returns a project or null.
+ */
     _drawNextProjectCard: function() {
         var guard = 0;
         while (this.state.projectDeck.length > 0 && guard < 60) {
@@ -485,10 +485,10 @@ var Game = {
     },
 
     /**
-     * Resolve a Snagged Project revealed on top of the Project deck.
-     * Instants resolve immediately; the Urgent Request "reminder" installs a persistent
-     * finish constraint on the player.
-     */
+ * Resolve a Snagged Project revealed on top of the Project deck.
+ * Instants resolve immediately; the Urgent Request "reminder" installs a persistent
+ * finish constraint on the player.
+ */
     resolveSnaggedProject: function(card) {
         this._logAction('Snagged Project — ' + card.name + (card.hard ? ' (Hard)' : '') + ': ' + card.text);
         this.state.hankReveals.push({ kind: 'snaggedProject', card: card });
@@ -519,7 +519,7 @@ var Game = {
     },
 
     /** Yarnball Wizard: Hank crafts the most valuable item he can afford (any colors);
-     *  'asMany' repeats until he can't afford the cheapest. */
+ * 'asMany' repeats until he can't afford the cheapest. */
     applyYarnballWizard: function(arg) {
         var hank = this._automaPlayer();
         if (!hank) return;
@@ -579,7 +579,7 @@ var Game = {
     },
 
     /** Urgent Request enforcement: does the active snag reminder currently block a finish?
-     *  Clears the reminder once satisfied. */
+ * Clears the reminder once satisfied. */
     _snagBlocksFinish: function() {
         var rem = this.state.activeSnagReminder;
         if (!rem) return false;
@@ -600,19 +600,19 @@ var Game = {
     // Fraction of the deck's front to spread tangles across (1.0 = whole deck).
     HANK_TANGLE_FRONTLOAD: 0.6,
 
-    // Session 43 (P5 tuning): Hank's auto-yarn per turn ramps with red count.
+    // (P5 tuning): Hank's auto-yarn per turn ramps with red count.
     // Re-tuned after the It's Gone!?→Where'd It Go? base-mix swap: games run LONGER
     // now (shuffle-back extends the project clock instead of burning it), which
     // favors the player — so the spin firms up. Index = hankReds (clamped).
     HANK_AUTOYARN_RAMP: [3],         // rulebook +3 at every rung (see tuning note below)
 
     /**
-     * Spread `inserts` at randomized positions within even segments of the deck.
-     * frontFraction (0–1] limits seeding to the FRONT portion of the deck (default whole).
-     * Session 43 (playtest fix): minGap enforces a minimum spacing between inserts —
-     * the old per-segment jitter could drop two cards ADJACENT at segment boundaries
-     * (Adam hit back-to-back Snagged Projects). Gap auto-shrinks if the deck's too small.
-     */
+ * Spread `inserts` at randomized positions within even segments of the deck.
+ * frontFraction (0–1] limits seeding to the FRONT portion of the deck (default whole).
+ * (playtest fix): minGap enforces a minimum spacing between inserts —
+ * the old per-segment jitter could drop two cards ADJACENT at segment boundaries
+ * . Gap auto-shrinks if the deck's too small.
+ */
     _seedIntoDeck: function(deck, inserts, frontFraction, minGap) {
         var n = inserts.length;
         if (!n || !deck) return;
@@ -637,17 +637,17 @@ var Game = {
             if (positions[i] > deck.length) positions[i] = deck.length;
         }
         // 3. Insert from the BACK so earlier indices stay valid (each earlier insert
-        //    also adds +1 real card between neighbors, widening the final gap).
+        // also adds +1 real card between neighbors, widening the final gap).
         for (var j = n - 1; j >= 0; j--) {
             deck.splice(positions[j], 0, inserts[j]);
         }
     },
 
     /**
-     * Resolve a Tangled Yarn card revealed during Restock.
-     * Instants resolve immediately (+ discard). Gnome Rules install into the single
-     * active-rule slot (ongoing enforcement is P3). The card never occupies a bazaar slot.
-     */
+ * Resolve a Tangled Yarn card revealed during Restock.
+ * Instants resolve immediately (+ discard). Gnome Rules install into the single
+ * active-rule slot (ongoing enforcement is P3). The card never occupies a bazaar slot.
+ */
     resolveTangledYarn: function(card) {
         this._logAction('Tangled Yarn — ' + card.name + (card.hard ? ' (Hard)' : '') + ': ' + card.text);
 
@@ -655,19 +655,19 @@ var Game = {
             // One Gnome Rule active at a time; a new one replaces the old (P3 enforces effects).
             // It slides into the board slot (with a pulse) rather than popping a modal.
             this.state.activeGnomeRule = card;
-            // Session 43: Emergency craft-order bookkeeping resets on ANY rule install —
+            // Emergency craft-order bookkeeping resets on ANY rule install —
             // "the next SR revealed" is relative to when Emergency! goes up, and the
             // obligation only lives while Emergency! is the displayed rule.
             this.state.emergencySRUid = null;
             this.state._emergencyTagged = false;
-            // Session 43: Cat Nap — "remove the cat when this rule is discarded" (card
+            // Cat Nap — "remove the cat when this rule is discarded" (card
             // text): ANY new rule install clears the lock. A fresh Cat Nap queues a
             // placement pick for the human (the reveal queue plays it after restock).
             this.state.catNapColors = [];
             if (card.fx === 'catNap') {
                 this.state.hankReveals.push({ kind: 'catNapPick', card: card });
             } else {
-                // Session 43 (playtest fix, Adam): a new Gnome Rule shouldn't just slide
+                // (playtest fix, Adam): a new Gnome Rule shouldn't just slide
                 // silently into the corner — announce it like an event reveal too.
                 this.state.hankReveals.push({ kind: 'gnomeRule', card: card });
             }
@@ -690,9 +690,9 @@ var Game = {
     },
 
     /**
-     * Hank Finishes a Project from the market for free (no yarn), scoring it.
-     * arg.which: 'lowest' | 'highest'. arg.thenMarket: 'shuffleBack' | 'discard' | undefined.
-     */
+ * Hank Finishes a Project from the market for free (no yarn), scoring it.
+ * arg.which: 'lowest' | 'highest'. arg.thenMarket: 'shuffleBack' | 'discard' | undefined.
+ */
     hankFinishProject: function(arg) {
         arg = arg || {};
         var disp = this.state.projectDisplay;
@@ -728,9 +728,9 @@ var Game = {
     },
 
     /**
-     * Lessons Learned: flip the human's learned Pattern(s) back to their original side.
-     * arg.count: 'one' | 'all'.
-     */
+ * Lessons Learned: flip the human's learned Pattern(s) back to their original side.
+ * arg.count: 'one' | 'all'.
+ */
     applyFlipPatterns: function(arg) {
         arg = arg || {};
         var you = this._humanPlayer();
@@ -752,12 +752,12 @@ var Game = {
     },
 
     /**
-     * Session 42 (P3): apply the active Gnome Rule to a card drawn during Restock.
-     * Returns 'place' (normal), 'discardRedraw' (card gone, draw again for this slot),
-     * or 'skipEmpty' (leave this bazaar slot empty this Restock).
-     * Enforced here: Grumpy Shopper, Yarn Ration, ArchRivals. High Demand / Emergency /
-     * Cat Nap are installed but enforced elsewhere / deferred (see notes).
-     */
+ * (P3): apply the active Gnome Rule to a card drawn during Restock.
+ * Returns 'place' (normal), 'discardRedraw' (card gone, draw again for this slot),
+ * or 'skipEmpty' (leave this bazaar slot empty this Restock).
+ * Enforced here: Grumpy Shopper, Yarn Ration, ArchRivals. High Demand / Emergency /
+ * Cat Nap are installed but enforced elsewhere / deferred (see notes).
+ */
     _applyGnomeToDraw: function(card) {
         var rule = this.state.activeGnomeRule;
         if (!rule || !card) return 'place';
@@ -797,8 +797,8 @@ var Game = {
     },
 
     /**
-     * Fisher-Yates shuffle (in-place).
-     */
+ * Fisher-Yates shuffle (in-place).
+ */
     shuffle: function(arr) {
         for (var i = arr.length - 1; i > 0; i--) {
             var j = Math.floor(Math.random() * (i + 1));
@@ -810,9 +810,9 @@ var Game = {
     },
 
     /**
-     * Deal the initial 6 Bazaar cards.
-     * Per the rules (p.5): skip Events AND Special Requests during initial deal.
-     */
+ * Deal the initial 6 Bazaar cards.
+ * Per the rules (p.5): skip Events AND Special Requests during initial deal.
+ */
     dealInitialBazaar: function() {
         var setAside = [];
 
@@ -829,10 +829,10 @@ var Game = {
     },
 
     /**
-     * Draw a card from the deck that is a Yarn card only.
-     * Events and SRs are set aside into the provided array.
-     * Used for initial Bazaar deal (setup) only.
-     */
+ * Draw a card from the deck that is a Yarn card only.
+ * Events and SRs are set aside into the provided array.
+ * Used for initial Bazaar deal (setup) only.
+ */
     drawYarnCard: function(setAsideArr) {
         while (this.state.deck.length > 0) {
             var card = this.state.deck.shift();
@@ -846,9 +846,9 @@ var Game = {
     },
 
     /**
-     * Draw any card from the top of the deck (yarn, event, or SR).
-     * Used during Restock (Session 6+).
-     */
+ * Draw any card from the top of the deck (yarn, event, or SR).
+ * Used during Restock +).
+ */
     drawCard: function() {
         // If deck is empty, shuffle discard pile back in
         if (this.state.deck.length === 0 && this.state.discard.length > 0) {
@@ -861,26 +861,26 @@ var Game = {
 
 
     /* =========================================================
-       TURN STRUCTURE
-       ========================================================= */
+ TURN STRUCTURE
+ ========================================================= */
 
     /**
-     * Get the character definition for the current player.
-     */
+ * Get the character definition for the current player.
+ */
     getCharacter: function() {
         return CARDS.getCharacter(this.state.characterId);
     },
 
     /**
-     * Get the 4 action spaces for the current character,
-     * each annotated with whether it's available this turn.
-     */
+ * Get the 4 action spaces for the current character,
+ * each annotated with whether it's available this turn.
+ */
     getActionSpaces: function() {
         var character = this.getCharacter();
         if (!character) return [];
 
         var prevSpace = this.state.turn.previousSpace;
-        var isFirstTurn = prevSpace === null;  // Session 9: works per-player (null = first turn for this player)
+        var isFirstTurn = prevSpace === null;  // works per-player (null = first turn for this player)
 
         return character.actionSpaces.map(function(space, idx) {
             return {
@@ -896,11 +896,11 @@ var Game = {
     },
 
     /**
-     * Choose an action space for this turn.
-     * Sets up the limits and transitions to playerActions phase.
-     * @param {number} spaceIndex — 0-3 index of the action space to choose
-     * @returns {boolean} true if space was successfully chosen, false if rejected
-     */
+ * Choose an action space for this turn.
+ * Sets up the limits and transitions to playerActions phase.
+ * @param {number} spaceIndex — 0-3 index of the action space to choose
+ * @returns {boolean} true if space was successfully chosen, false if rejected
+ */
     chooseActionSpace: function(spaceIndex) {
         // Guard: must be in chooseSpace phase
         if (this.state.phase !== 'chooseSpace') {
@@ -940,27 +940,27 @@ var Game = {
         this.state.craftLimit = space.craft || 0;
         this.state.hasExchange = !!space.exchange;
 
-        // Session 6: Apply Tangled Cat penalty (can't craft this turn)
-        // Session 21: Flag stays true for the entire turn so the UI banner
-        // persists. It is cleared in endTurn() after the restock phase.
+        // Apply Tangled Cat penalty (can't craft this turn)
+        // Flag stays true for the entire turn so the UI banner
+        // persists. It is cleared in endTurn after the restock phase.
         if (this.state.player.cantCraftNextTurn) {
             this.state.craftLimit = 0;
         }
 
-        // Session 6: Apply Craft Circle bonus (extra craft this turn)
+        // Apply Craft Circle bonus (extra craft this turn)
         if (this.state.player.freeCraftBonus) {
             this.state.craftLimit += 1;
             this.state.player.freeCraftBonus = false;
         }
 
-        // Session 8c: Unique ability flags
+        // Unique ability flags
         this.state.pendingTake3Yarn = !!(space.unique === 'take3Yarn');
         this.state.craftAnyColors   = !!(space.unique === 'craftAnyColors');
 
-        // Session 13: Maker unique — craft 1 item but receive 2 copies
+        // Maker unique — craft 1 item but receive 2 copies
         this.state.makeTwoItems = !!(space.unique === 'makeTwoItems');
 
-        // Session 13: Expert unique — take 5 yarn of any colors + craft 1 with any colors
+        // Expert unique — take 5 yarn of any colors + craft 1 with any colors
         if (space.unique === 'take5AnyCraft1Any') {
             this.state.pendingTake5Any = true;
             this.state.craftAnyColors = true;
@@ -968,10 +968,10 @@ var Game = {
             this.state.pendingTake5Any = false;
         }
 
-        // Session 36: Hank boss Space 2 — gain 3 yarn of ANY (mixed) colors
+        // Hank boss Space 2 — gain 3 yarn of ANY (mixed) colors
         this.state.pendingTake3Any = !!(space.unique === 'take3Any');
 
-        // Session 36: Hank crafts ignoring color-matching on EVERY craft action
+        // Hank crafts ignoring color-matching on EVERY craft action
         // (the master "tops the crafting circle" — any yarn feeds any pattern).
         if (this.state.player.isHank) {
             this.state.craftAnyColors = true;
@@ -981,7 +981,7 @@ var Game = {
         this.state.phase = 'playerActions';
         this.state.selectedSlots = new Set();
 
-        // Session 22: Log space choice to action feed
+        // Log space choice to action feed
         this._logAction('Chose ' + space.label);
 
         // Update UI via render delegate
@@ -994,13 +994,13 @@ var Game = {
     },
 
     /**
-     * Session 9b: Undo the action space choice and return to chooseSpace phase.
-     * Only valid if no actions have been taken yet.
-     */
+ * Undo the action space choice and return to chooseSpace phase.
+ * Only valid if no actions have been taken yet.
+ */
     undoSpaceChoice: function() {
         if (this.state.phase !== 'playerActions') return;
         if (this.state.turn.shopDone || this.state.turn.craftUsed > 0 || this.state.turn.exchangeDone) return;
-        if (this.state.turn.entryGainDone) return;   // Session 47: yarn already gained on entry — no take-backs
+        if (this.state.turn.entryGainDone) return;   // yarn already gained on entry — no take-backs
 
         this.state.phase = 'chooseSpace';
         this.state.turn.currentSpace = null;
@@ -1013,12 +1013,12 @@ var Game = {
     },
 
     /**
-     * Session 47: FREE-ROAMING ACTION MARKER (Adam's design).
-     * Until the first CONFIRMED state change this turn (yarn take confirmed,
-     * item crafted, exchange done, or an entry-gain unique applied), the
-     * space choice stays soft — the player can hop the marker to any other
-     * legal space. Cancelling a confirm modal does NOT lock.
-     */
+ * FREE-ROAMING ACTION MARKER .
+ * Until the first CONFIRMED state change this turn (yarn take confirmed,
+ * item crafted, exchange done, or an entry-gain unique applied), the
+ * space choice stays soft — the player can hop the marker to any other
+ * legal space. Cancelling a confirm modal does NOT lock.
+ */
     canRoamSpace: function() {
         if (this.state.phase !== 'playerActions') return false;
         var t = this.state.turn;
@@ -1028,9 +1028,9 @@ var Game = {
     },
 
     /**
-     * Session 47: hop the marker to a different legal space (soft re-choose).
-     * @returns {boolean} true if the switch happened
-     */
+ * hop the marker to a different legal space (soft re-choose).
+ * @returns {boolean} true if the switch happened
+ */
     switchActionSpace: function(spaceIndex) {
         if (!this.canRoamSpace()) return false;
         if (spaceIndex === this.state.turn.currentSpace) return false;
@@ -1046,8 +1046,8 @@ var Game = {
     },
 
     /**
-     * Check what actions are still available this turn.
-     */
+ * Check what actions are still available this turn.
+ */
     getAvailableActions: function() {
         return {
             canShop: this.state.shopLimit > 0 && !this.state.turn.shopDone,
@@ -1060,25 +1060,25 @@ var Game = {
     },
 
     /**
-     * The current ROUND number. A round = one turn per player, so this also
-     * equals how many turns the current player has taken. Display-facing:
-     * internal turn.number still counts every individual player turn (used by
-     * history, stats, achievements). Solo play: round === turn number.
-     */
+ * The current ROUND number. A round = one turn per player, so this also
+ * equals how many turns the current player has taken. Display-facing:
+ * internal turn.number still counts every individual player turn (used by
+ * history, stats, achievements). Solo play: round === turn number.
+ */
     currentRound: function() {
         var pc = this.state.playerCount || 1;
         return Math.ceil((this.state.turn.number || 1) / pc);
     },
 
     /**
-     * How many bazaar cards the player MUST take to complete a Shop action.
-     * Core rule: shopping is exact — you take the full number listed on the
-     * space (unlike crafting, which is "up to"). If fewer slots are selectable
-     * than the listed number, you take as many as are available.
-     *   - Solo: only face-up cards are selectable → min(shopLimit, cards in bazaar)
-     *   - Multiplayer: empty slots are selectable too (count as wild) → all 6 slots
-     * Returns 0 when there's no shop on this space or nothing to take.
-     */
+ * How many bazaar cards the player MUST take to complete a Shop action.
+ * Core rule: shopping is exact — you take the full number listed on the
+ * space (unlike crafting, which is "up to"). If fewer slots are selectable
+ * than the listed number, you take as many as are available.
+ * - Solo: only face-up cards are selectable → min(shopLimit, cards in bazaar)
+ * - Multiplayer: empty slots are selectable too (count as wild) → all 6 slots
+ * Returns 0 when there's no shop on this space or nothing to take.
+ */
     shopRequiredCount: function() {
         if (!this.state.shopLimit || this.state.shopLimit <= 0) return 0;
         var selectable = (this.state.playerCount <= 1)
@@ -1088,8 +1088,8 @@ var Game = {
     },
 
     /**
-     * End the player actions phase and move to restock.
-     */
+ * End the player actions phase and move to restock.
+ */
     endPlayerActions: function() {
         this.state.phase = 'restock';
 
@@ -1099,9 +1099,9 @@ var Game = {
     },
 
     /**
-     * End a player's final craft action and advance to the next player
-     * in the final craft queue, or to game over if all done.
-     */
+ * End a player's final craft action and advance to the next player
+ * in the final craft queue, or to game over if all done.
+ */
     endFinalCraft: function() {
         this.state.finalCraftIndex++;
         // Re-enter endTurn to process next in queue (or trigger game over)
@@ -1109,18 +1109,18 @@ var Game = {
     },
 
     /**
-     * End the current turn: restock done, advance to next player/turn.
-     * Session 9: handles multiplayer turn cycling and end-game trigger.
-     */
+ * End the current turn: restock done, advance to next player/turn.
+ * handles multiplayer turn cycling and end-game trigger.
+ */
     endTurn: function() {
-        // Session 15: Accumulate turn time for the finishing player
+        // Accumulate turn time for the finishing player
         if (this.state.turnStartTime && this.state.player) {
             var turnElapsed = Date.now() - this.state.turnStartTime;
             this.state.player.totalTurnTime += turnElapsed;
             this.state.player.turnCount += 1;
         }
 
-        // Session 13: Build turn history summary before resetting state
+        // Build turn history summary before resetting state
         var character = CARDS.getCharacter(this.state.player.characterId);
         var spaceLabel = '';
         if (character && this.state.turn.currentSpace !== null) {
@@ -1155,12 +1155,12 @@ var Game = {
         this.state.craftLimit = 0;
         this.state.hasExchange = false;
         this.state.pendingTake3Yarn = false;
-        this.state.pendingTake3Any = false;    // Session 36
+        this.state.pendingTake3Any = false;    // 
         this.state.craftAnyColors = false;
-        this.state.makeTwoItems = false;      // Session 13
-        this.state.pendingTake5Any = false;    // Session 13
+        this.state.makeTwoItems = false;      // 
+        this.state.pendingTake5Any = false;    // 
 
-        // Session 21: Clear Tangled Cat flag after restock (was applied in startTurn,
+        // Clear Tangled Cat flag after restock (was applied in startTurn,
         // kept alive so the banner persists for the whole turn)
         if (this.state.player.cantCraftNextTurn) {
             this.state.player.cantCraftNextTurn = false;
@@ -1179,7 +1179,7 @@ var Game = {
             if (!this.state.finalCraftQueue) {
                 this.state.finalCraftQueue = [];
                 for (var p = 0; p < this.state.playerCount; p++) {
-                    // Session 42 (P1 automa): automa players get no final craft (they never craft).
+                    // (P1 automa): automa players get no final craft (they never craft).
                     if (p !== this.state.endGameTriggerPlayer && !this.state.players[p].isAutoma) {
                         this.state.finalCraftQueue.push(p);
                     }
@@ -1215,7 +1215,7 @@ var Game = {
                         Game.endFinalCraft();
                     });
                 } else if (this.state.playerCount > 1) {
-                    // Session 10: Skip pass-device when only 1 human among AI players
+                    // Skip pass-device when only 1 human among AI players
                     var humanCount = this.state.players.filter(function(p) { return !p.isAI && !p.isAutoma; }).length;
                     if (humanCount > 1) {
                         this.render.showPassDevice();
@@ -1234,7 +1234,7 @@ var Game = {
             this.state.phase = 'gameOver';
             try { if (window.UI && UI.logEvent) UI.logEvent('game_finish', { rounds: this.getRoundNumber ? this.getRoundNumber() : null }); } catch (e) {}
             this.state.selectedSlots = new Set();
-            this.stopTimer();  // Session 15: stop the game clock
+            this.stopTimer();  // stop the game clock
             this.state.finalCraftQueue = null;
             this.state.finalCraftIndex = 0;
             this.render.bazaar();
@@ -1243,18 +1243,18 @@ var Game = {
             this.render.specialRequests();
             this.render.projectStrip();
             try{ if(window.Sound){ var _ps=this.state.players,_top=_ps[0],_i; for(_i=1;_i<_ps.length;_i++){ if(Game.calculateFinalScore(_ps[_i])>Game.calculateFinalScore(_top)) _top=_ps[_i]; } if(!(window.Story&&Story.storyGame)) Sound.play(_top && !_top.isAI ? 'game-win' : 'game-lose'); } }catch(e){}
-            this.render.gameOver();   // Session 35: notify Story Mode the match ended
+            this.render.gameOver();   // notify Story Mode the match ended
             return;
         }
 
-        // Session 42 (P1 automa): "Hank goes shopping" — the automa banks +3 yarn at the
+        // (P1 automa): "Hank goes shopping" — the automa banks +3 yarn at the
         // end of each real (non-automa) turn. This replaces his old turn-start auto-yarn,
         // since the automa no longer takes turns of his own.
         if (!this.state.player.isAutoma) {
             for (var ap = 0; ap < this.state.playerCount; ap++) {
                 if (this.state.players[ap].isAutoma) {
                     var _gainColor = this.applyHankAutoYarn(this.state.players[ap]);
-                    // Session 43: stash a "Hank's Turn" beat so the UI can dramatize his
+                    // stash a "Hank's Turn" beat so the UI can dramatize his
                     // response (the +3 was invisible — turn just snapped back to you).
                     if (this.state.hankAutoma) {
                         var hank = this.state.players[ap];
@@ -1282,12 +1282,12 @@ var Game = {
             _skipGuard++;
         } while (this.state.players[nextIdx].isAutoma && _skipGuard <= this.state.playerCount);
 
-        // --- Switch active player ---
+        // Switch active player ---
         this.state.activePlayerIndex = nextIdx;
         this.state.player = this.state.players[nextIdx];
         this.state.characterId = this.state.player.characterId;
 
-        // Session 9b: Apply pending takeover/give-back flags
+        // Apply pending takeover/give-back flags
         if (this.state.player._pendingHuman) {
             this.state.player.isAI = false;
             this.state.player._pendingHuman = false;
@@ -1299,29 +1299,29 @@ var Game = {
 
         // Load this player's previous space for the "can't repeat" rule
         this.state.turn.previousSpace = this.state.player._previousSpace;
-        this.state.turn.entryGainDone = false;   // Session 47: entry-gain uniques lock roaming once applied
+        this.state.turn.entryGainDone = false;   // entry-gain uniques lock roaming once applied
         this.state.turn.number++;
 
-        // Session 42 (P1 automa): the automa's +3 yarn now fires at the END of your turn
+        // (P1 automa): the automa's +3 yarn now fires at the END of your turn
         // (see "Hank goes shopping" above), not here — he no longer takes turns himself.
 
         // Back to choosing a space
         this.state.phase = 'chooseSpace';
         this.state.selectedSlots = new Set();
 
-        // Session 15: Record turn start time for the new player
+        // Record turn start time for the new player
         this.state.turnStartTime = Date.now();
         try{ if(window.Sound && this.state.player && !this.state.player.isAI) Sound.play('turn-start'); }catch(e){}
         try{ if(window.Sound && this.state.player && this.state.player.cantCraftNextTurn) Sound.play('ev-tangled-cat'); }catch(e){}
 
-        // Session 9b: If next player is AI, run AI turn automatically
+        // If next player is AI, run AI turn automatically
         if (this.state.player.isAI) {
             this.render.all();
             AI.takeTurn(function() {
                 // AI turn complete — endTurn will be called by AI when done
             });
         } else if (this.state.playerCount > 1) {
-            // Session 10: Skip pass-device when only 1 human among AI players.
+            // Skip pass-device when only 1 human among AI players.
             // Pass-device is only needed in hot-seat with multiple humans.
             var humanCount2 = this.state.players.filter(function(p) { return !p.isAI && !p.isAutoma; }).length;
             if (humanCount2 > 1) {
@@ -1338,23 +1338,23 @@ var Game = {
 
 
     /* =========================================================
-       BAZAAR SELECTION
-       ========================================================= */
+ BAZAAR SELECTION
+ ========================================================= */
 
     /**
-     * Toggle selection of a Bazaar slot.
-     * Enforces the shop limit (max cards selectable).
-     * Session 9: Empty slots ARE selectable in multiplayer (count as 1 any-color yarn).
-     */
+ * Toggle selection of a Bazaar slot.
+ * Enforces the shop limit (max cards selectable).
+ * Empty slots ARE selectable in multiplayer (count as 1 any-color yarn).
+ */
     toggleSlotSelection: function(index) {
         if (this.state.phase !== 'playerActions') return;
         if (this.state.turn.shopDone) return;
         if (this.state.shopLimit === 0) return;
 
-        // Session 9: Empty slots are selectable only in multiplayer (empty bazaar rule)
+        // Empty slots are selectable only in multiplayer (empty bazaar rule)
         if (this.state.bazaar[index] === null && this.state.playerCount <= 1) return;
 
-        // Session 43: Cat Nap — can't SHOP a yarn card that grants a napped-on color.
+        // Cat Nap — can't SHOP a yarn card that grants a napped-on color.
         // (Wild picks are locked at the color picker instead.)
         var cnCard = this.state.bazaar[index];
         if (cnCard && cnCard.type === 'yarn' && cnCard.yarn) {
@@ -1375,24 +1375,24 @@ var Game = {
     },
 
     /**
-     * Clear all Bazaar selections.
-     */
+ * Clear all Bazaar selections.
+ */
     clearSelection: function() {
         this.state.selectedSlots = new Set();
     },
 
 
     /* =========================================================
-       SHOP ACTION
-       ========================================================= */
+ SHOP ACTION
+ ========================================================= */
 
     /**
-     * Finalize the Shop: discard taken cards, clear selection.
-     * After shopping, player returns to playerActions (may still craft).
-     */
+ * Finalize the Shop: discard taken cards, clear selection.
+ * After shopping, player returns to playerActions (may still craft).
+ */
     finalizeShop: function(slotIndices) {
         // Move cards to discard, empty the slots.
-        // Session 9: skip null slots (empty bazaar rule — already null).
+        // skip null slots (empty bazaar rule — already null).
         slotIndices.forEach(function(i) {
             if (Game.state.bazaar[i] !== null) {
                 Game.state.discard.push(Game.state.bazaar[i]);
@@ -1406,7 +1406,7 @@ var Game = {
         // Mark shop as done for this turn
         this.state.turn.shopDone = true;
 
-        // Session 18: Detailed shop log moved to applyShopChoices
+        // Detailed shop log moved to applyShopChoices
 
         // Stay in playerActions phase (player may still craft/exchange)
         // Update UI via render delegate
@@ -1417,24 +1417,24 @@ var Game = {
 
 
     /* =========================================================
-       RESTOCK BAZAAR — Session 6 update
-       Now draws ALL card types (Yarn + Events + Special Requests).
-       Returns an array of {slot, card} for Events/SRs that appeared
-       in the Bazaar, which the UI resolves sequentially before
-       calling endTurn().
-       ========================================================= */
+ RESTOCK BAZAAR — update
+ Now draws ALL card types (Yarn + Events + Special Requests).
+ Returns an array of {slot, card} for Events/SRs that appeared
+ in the Bazaar, which the UI resolves sequentially before
+ calling endTurn.
+ ========================================================= */
 
     /**
-     * Fill empty Bazaar slots from the deck, drawing any card type.
-     * After filling, Events and SRs must be resolved by the UI.
-     * Returns an array of { slot, card } for each Event/SR drawn.
-     * Does NOT call endTurn() — the UI calls it after resolution.
-     */
+ * Fill empty Bazaar slots from the deck, drawing any card type.
+ * After filling, Events and SRs must be resolved by the UI.
+ * Returns an array of { slot, card } for each Event/SR drawn.
+ * Does NOT call endTurn — the UI calls it after resolution.
+ */
     restockBazaar: function() {
         var revealed = [];
 
         for (var i = 0; i < 6; i++) {
-            // Session 42 (P2 automa): keep drawing for this slot, resolving any Tangled
+            // (P2 automa): keep drawing for this slot, resolving any Tangled
             // Yarn reveals along the way — tangles don't occupy a slot and don't count
             // toward the restock (they're extra reveals). Guard against a runaway loop.
             var guard = 0;
@@ -1445,7 +1445,7 @@ var Game = {
                     this.resolveTangledYarn(card);
                     continue;   // draw again to actually fill this slot
                 }
-                // Session 42 (P3): an active Gnome Rule may intercept the drawn card.
+                // (P3): an active Gnome Rule may intercept the drawn card.
                 var g = this._applyGnomeToDraw(card);
                 if (g === 'discardRedraw') { continue; }  // discarded → draw again for this slot
                 if (g === 'skipEmpty')     { break; }     // leave this slot empty, move on
@@ -1476,36 +1476,36 @@ var Game = {
     },
 
     /**
-     * Remove a resolved Event or SR from the Bazaar slot.
-     * Events go to discard. SRs go to the player's hand (see takeSpecialRequest).
-     * The slot stays EMPTY (not refilled) per rules p.9.
-     */
+ * Remove a resolved Event or SR from the Bazaar slot.
+ * Events go to discard. SRs go to the player's hand (see takeSpecialRequest).
+ * The slot stays EMPTY (not refilled) per rules p.9.
+ */
     resolveRestockCard: function(slotIndex, card) {
         if (card.type === 'event') {
             this.state.discard.push(card);
         }
-        // SRs are handled by takeSpecialRequest() before calling this
+        // SRs are handled by takeSpecialRequest before calling this
         this.state.bazaar[slotIndex] = null;
     },
 
 
     /* =========================================================
-       EVENT EFFECTS — Session 6 (corrected rules + MP foundation)
-       All 5 events return needsInput so the UI always drives
-       resolution. The UI handles SP auto-selection where needed.
-       ========================================================= */
+ EVENT EFFECTS — (corrected rules + MP foundation)
+ All 5 events return needsInput so the UI always drives
+ resolution. The UI handles SP auto-selection where needed.
+ ========================================================= */
 
     /**
-     * Dispatch an event effect — always returns needsInput so the UI
-     * can sequence properly even for auto-apply events (SP shortcut).
-     */
+ * Dispatch an event effect — always returns needsInput so the UI
+ * can sequence properly even for auto-apply events (SP shortcut).
+ */
     applyEventEffect: function(card) {
         switch (card.effect) {
 
             case 'tangledCat':
                 // Active player CHOOSES another player who can't craft next turn.
                 // SP: auto-targets the only player.
-                // Session 43 Hank automa: solo rule — it ALWAYS affects you.
+                // Hank automa: solo rule — it ALWAYS affects you.
                 if (this.state.hankAutoma) {
                     return {
                         status: 'needsInput',
@@ -1530,7 +1530,7 @@ var Game = {
             case 'donate':
                 // Active player gives 1 yarn from their stash to another player.
                 // SP: yarn goes back to the supply (no valid recipient).
-                // Session 43 Hank automa: solo rule — the donated yarn goes to Hank's bowl.
+                // Hank automa: solo rule — the donated yarn goes to Hank's bowl.
                 return {
                     status: 'needsInput',
                     inputType: 'donate',
@@ -1560,42 +1560,42 @@ var Game = {
         }
     },
 
-    /* --- Individual event apply functions --- */
+    /* Individual event apply functions --- */
 
     /**
-     * Tangled Cat: set cantCraftNextTurn on the target player.
-     * @param {number} playerIndex — index into state.players
-     */
+ * Tangled Cat: set cantCraftNextTurn on the target player.
+ * @param {number} playerIndex — index into state.players
+ */
     applyTangledCat: function(playerIndex) {
         var target = this.state.players[playerIndex];
         if (target) {
             target.cantCraftNextTurn = true;
             try{ if(window.Sound) Sound.play('ev-tangled-cat'); }catch(e){}
-            // Session 18: Log event for turn history
+            // Log event for turn history
             this._logAction('Event: Tangled Cat → ' + target.name + ' can\'t craft next turn', 'event');
         }
     },
 
     /**
-     * Friendly Clerk: give 1 yarn token of the chosen color to a player.
-     * @param {number} playerIndex — index into state.players
-     * @param {string} color       — yarn color chosen
-     * @returns {string[]} changed colors for animation
-     */
+ * Friendly Clerk: give 1 yarn token of the chosen color to a player.
+ * @param {number} playerIndex — index into state.players
+ * @param {string} color — yarn color chosen
+ * @returns {string[]} changed colors for animation
+ */
     applyFriendlyClerk: function(playerIndex, color) {
         var target = this.state.players[playerIndex];
         if (!target || target.yarnBowl[color] === undefined) return [];
         target.yarnBowl[color] += 1;
-        // Session 18: Log event for turn history
+        // Log event for turn history
         this._logAction('Event: Friendly Clerk → ' + target.name + ' gained 1 ' + color + ' yarn', 'event');
         return [color];
     },
 
     /**
-     * Yarn Sale: the active player gains 3 yarn tokens.
-     * @param {string[]} colors — array of 3 chosen color strings
-     * @returns {string[]} changed colors for animation
-     */
+ * Yarn Sale: the active player gains 3 yarn tokens.
+ * @param {string[]} colors — array of 3 chosen color strings
+ * @returns {string[]} changed colors for animation
+ */
     applyYarnSale: function(colors) {
         var bowl = this.state.player.yarnBowl;
         var changed = [];
@@ -1605,7 +1605,7 @@ var Game = {
                 if (changed.indexOf(color) === -1) changed.push(color);
             }
         });
-        // Session 18: Log event for turn history
+        // Log event for turn history
         var saleParts = {};
         colors.forEach(function(c) { saleParts[c] = (saleParts[c] || 0) + 1; });
         var saleSummary = [];
@@ -1615,12 +1615,12 @@ var Game = {
     },
 
     /**
-     * Donate: active player gives 1 yarn to a target player.
-     * If toPlayerIndex is -1 (SP / no valid target), yarn returns to supply.
-     * @param {string} color         — yarn color to give
-     * @param {number} toPlayerIndex — recipient index, or -1 for supply
-     * @returns {string[]} changed colors for animation
-     */
+ * Donate: active player gives 1 yarn to a target player.
+ * If toPlayerIndex is -1 (SP / no valid target), yarn returns to supply.
+ * @param {string} color — yarn color to give
+ * @param {number} toPlayerIndex — recipient index, or -1 for supply
+ * @returns {string[]} changed colors for animation
+ */
     applyDonate: function(color, toPlayerIndex) {
         var from = this.state.player;
         var changed = [];
@@ -1633,7 +1633,7 @@ var Game = {
             var to = this.state.players[toPlayerIndex];
             if (to) {
                 to.yarnBowl[color] += 1;
-                // Session 18: Log event for turn history
+                // Log event for turn history
                 this._logAction('Event: Donate → gave 1 ' + color + ' yarn to ' + to.name, 'event');
             }
         } else {
@@ -1645,19 +1645,19 @@ var Game = {
     },
 
     /**
-     * Craft Circle: craft an item immediately without consuming a turn craft action.
-     * Works for both regular items (itemId) and Special Requests (srUid).
-     * @param {string} itemId      — item id (or null if crafting an SR)
-     * @param {string} srUid       — SR uid (or null if crafting a regular item)
-     * @param {Object} yarnToSpend — { color: count }
-     * @param {number} playerIndex — index into state.players
-     * @returns {string[]|null} changed colors, or null if invalid
-     */
+ * Craft Circle: craft an item immediately without consuming a turn craft action.
+ * Works for both regular items (itemId) and Special Requests (srUid).
+ * @param {string} itemId — item id (or null if crafting an SR)
+ * @param {string} srUid — SR uid (or null if crafting a regular item)
+ * @param {Object} yarnToSpend — { color: count }
+ * @param {number} playerIndex — index into state.players
+ * @returns {string[]|null} changed colors, or null if invalid
+ */
     craftCircleItem: function(itemId, srUid, yarnToSpend, playerIndex) {
         var player = this.state.players[playerIndex];
         if (!player) return null;
 
-        // Session 43: Emergency! craft-order — even a free Craft Circle craft counts as
+        // Emergency! craft-order — even a free Craft Circle craft counts as
         // "crafting anything else." Human seats only; crafting the tagged SR is allowed.
         if (!player.isAI && !player.isAutoma && this.emergencyBlocks(srUid)) {
             this.state._lastCraftBlock = 'emergency';
@@ -1705,7 +1705,7 @@ var Game = {
         }
         // NOTE: does NOT increment craftUsed — this is a free event craft
 
-        // Session 18: Log craft circle for turn history
+        // Log craft circle for turn history
         var ccName = srUid ? 'an SR' : (CARDS.getItem(itemId) ? CARDS.getItem(itemId).name : itemId);
         this._logAction('Event: Craft Circle → ' + player.name + ' crafted ' + ccName, 'event');
 
@@ -1713,10 +1713,10 @@ var Game = {
     },
 
     /**
-     * Get all craft options (regular + SR) for a given player during Craft Circle.
-     * @param {number} playerIndex
-     * @returns {Array} options matching getCraftOptions() shape + SR options
-     */
+ * Get all craft options (regular + SR) for a given player during Craft Circle.
+ * @param {number} playerIndex
+ * @returns {Array} options matching getCraftOptions shape + SR options
+ */
     getCraftCircleOptions: function(playerIndex) {
         var player = this.state.players[playerIndex];
         if (!player) return [];
@@ -1724,7 +1724,7 @@ var Game = {
         var bowl = player.yarnBowl;
         var options = [];
 
-        // Regular items — same logic as getCraftOptions()
+        // Regular items — same logic as getCraftOptions
         var hatDef = CARDS.getItem('hat');
         options.push({
             type: 'general', tile: null, sr: null, itemDef: hatDef, learned: true,
@@ -1751,7 +1751,7 @@ var Game = {
             canAfford: Game._canAffordGeneral(blanketDef, bowl),
         });
 
-        // Session 15b: SRs are NOT craftable during Craft Circle events
+        // SRs are NOT craftable during Craft Circle events
         // (Designer rule: Craft Circle only allows regular items, not SRs)
 
         return options;
@@ -1759,34 +1759,34 @@ var Game = {
 
 
     /* =========================================================
-       SESSION 8c: UNIQUE ABILITIES
-       ========================================================= */
+ SESSION 8c: UNIQUE ABILITIES
+ ========================================================= */
 
     /**
-     * Take 3 Yarn (Ted/Eliza Space 3):
-     * Gain 3 yarn tokens of a single chosen color from supply.
-     * Called after the color picker modal resolves.
-     * @param {string} color — the chosen yarn color
-     * @returns {string[]} changed colors for animation
-     */
+ * Take 3 Yarn (Ted/Eliza Space 3):
+ * Gain 3 yarn tokens of a single chosen color from supply.
+ * Called after the color picker modal resolves.
+ * @param {string} color — the chosen yarn color
+ * @returns {string[]} changed colors for animation
+ */
     applyTake3Yarn: function(color) {
         var bowl = this.state.player.yarnBowl;
         if (bowl[color] === undefined) return [];
         bowl[color] += 3;
         this.state.pendingTake3Yarn = false;
-        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
-        // Session 13: Log for turn history
+        this.state.turn.entryGainDone = true;   // locks the space choice
+        // Log for turn history
         this._logAction('Took 3 ' + color + ' yarn');
         return [color];
     },
 
     /**
-     * Session 36: Take 3 Any (Hank boss Space 2):
-     * Gain 3 yarn tokens of any chosen colors from supply (mixed; can repeat).
-     * Mirrors applyTake5Any. AI-only path (the human never plays Hank).
-     * @param {string[]} colors — array of exactly 3 color names
-     * @returns {string[]} changed colors for animation, or empty if invalid
-     */
+ * Take 3 Any (Hank boss Space 2):
+ * Gain 3 yarn tokens of any chosen colors from supply (mixed; can repeat).
+ * Mirrors applyTake5Any. AI-only path (the human never plays Hank).
+ * @param {string[]} colors — array of exactly 3 color names
+ * @returns {string[]} changed colors for animation, or empty if invalid
+ */
     applyTake3Any: function(colors) {
         if (!Array.isArray(colors) || colors.length !== 3) {
             console.error('applyTake3Any: expected exactly 3 colors, got ' + (colors ? colors.length : 'null'));
@@ -1804,26 +1804,26 @@ var Game = {
             if (changed.indexOf(c) === -1) changed.push(c);
         }
         this.state.pendingTake3Any = false;
-        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
+        this.state.turn.entryGainDone = true;   // locks the space choice
         this._logAction('Took 3 yarn: ' + changed.join(', '));
         return changed;
     },
 
     /**
-     * Hank's per-turn "shopping" yarn. Session 43 (Adam): distribute the tokens
-     * ROUND-ROBIN — one per color, filling the colors he holds LEAST of first, so
-     * he trends toward one-of-each, then two-of-each. This is balance-NEUTRAL (Hank
-     * crafts any-color and scores leftovers 2:1 by count, so color spread is purely
-     * cosmetic) but reads as an intentional, animatable "collect the set" moment.
-     * @param {Object} player — the Hank automa
-     * @returns {string} the FIRST/primary color gained (back-compat), or ''
-     * @sideeffect sets state._hankGainColors = full ordered list for the UI animation
-     */
+ * Hank's per-turn "shopping" yarn. : distribute the tokens
+ * ROUND-ROBIN — one per color, filling the colors he holds LEAST of first, so
+ * he trends toward one-of-each, then two-of-each. This is balance-NEUTRAL (Hank
+ * crafts any-color and scores leftovers 2:1 by count, so color spread is purely
+ * cosmetic) but reads as an intentional, animatable "collect the set" moment.
+ * @param {Object} player — the Hank automa
+ * @returns {string} the FIRST/primary color gained (back-compat), or ''
+ * @sideeffect sets state._hankGainColors = full ordered list for the UI animation
+ */
     applyHankAutoYarn: function(player) {
         var bowl = player.yarnBowl;
         var reds = this.state.hankReds || 0;
         var amount = (reds < this.HANK_AUTOYARN_RAMP.length) ? this.HANK_AUTOYARN_RAMP[reds] : 3;
-        // Session 43 (Adam): Hank grabs one full "Yarn3" bundle — `amount` of a SINGLE
+        // Hank grabs one full "Yarn3" bundle — `amount` of a SINGLE
         // color — picking the color he holds LEAST of (still trends toward a balanced
         // hoard, but as one satisfying 3-token grab we can show with the Yarn3 art).
         // Balance-neutral: he crafts any-color + scores leftovers 2:1 by count.
@@ -1839,12 +1839,12 @@ var Game = {
     },
 
     /**
-     * Session 13: Take 5 Any (Expert unique — Irene/Mauro Space 2):
-     * Gain 5 yarn tokens of any chosen colors from supply.
-     * Colors can repeat (e.g., [blue, blue, blue, red, red]).
-     * @param {string[]} colors — array of exactly 5 color names
-     * @returns {string[]} changed colors for animation, or empty if invalid
-     */
+ * Take 5 Any (Expert unique — Irene/Mauro Space 2):
+ * Gain 5 yarn tokens of any chosen colors from supply.
+ * Colors can repeat (e.g., [blue, blue, blue, red, red]).
+ * @param {string[]} colors — array of exactly 5 color names
+ * @returns {string[]} changed colors for animation, or empty if invalid
+ */
     applyTake5Any: function(colors) {
         if (!Array.isArray(colors) || colors.length !== 5) {
             console.error('applyTake5Any: expected exactly 5 colors, got ' + (colors ? colors.length : 'null'));
@@ -1862,23 +1862,22 @@ var Game = {
             if (changed.indexOf(c) === -1) changed.push(c);
         }
         this.state.pendingTake5Any = false;
-        this.state.turn.entryGainDone = true;   // Session 47: locks the space choice
-        // Session 13: Log for turn history
+        this.state.turn.entryGainDone = true;   // locks the space choice
+        // Log for turn history
         this._logAction('Took 5 yarn: ' + changed.join(', '));
         return changed;
     },
 
 
     /* =========================================================
-       SPECIAL REQUESTS — Session 6
-       ========================================================= */
+ SPECIAL REQUESTS — ========================================================= */
 
     /**
-     * Take a Special Request: move from Bazaar to a player's SR hand.
-     * Session 9: isFavorite is resolved at take-time based on the taking player's character.
-     * @param {Object} card — the SR card object
-     * @param {number} [playerIndex] — index into state.players (defaults to active player)
-     */
+ * Take a Special Request: move from Bazaar to a player's SR hand.
+ * isFavorite is resolved at take-time based on the taking player's character.
+ * @param {Object} card — the SR card object
+ * @param {number} [playerIndex] — index into state.players (defaults to active player)
+ */
     takeSpecialRequest: function(card, playerIndex) {
         var pIdx = (playerIndex !== undefined) ? playerIndex : this.state.activePlayerIndex;
         var player = this.state.players[pIdx];
@@ -1895,13 +1894,13 @@ var Game = {
         };
         if (card.yarn)      sr.yarn      = Object.assign({}, card.yarn);
         if (card.yarnCount) sr.yarnCount = card.yarnCount;
-        // Session 13: Pass through new colorRule fields
+        // Pass through new colorRule fields
         if (card.anyCount)  sr.anyCount  = card.anyCount;
         if (card.plusYarn)   sr.plusYarn   = Object.assign({}, card.plusYarn);
         if (card.sameCount) sr.sameCount = card.sameCount;
         player.specialRequests.push(sr);
 
-        // Session 43: Emergency! craft-order — the FIRST SR revealed while Emergency! is
+        // Emergency! craft-order — the FIRST SR revealed while Emergency! is
         // the active Gnome Rule must be crafted before crafting anything else. Tag it.
         // Human seats only (AI/sim seats can't strategize toward it — same scoping as
         // the Urgent Request block).
@@ -1913,7 +1912,7 @@ var Game = {
             this._logAction('Emergency! — ' + card.name + ' must be crafted before anything else', 'event');
         }
 
-        // Session 18: Detailed SR taken log for turn history
+        // Detailed SR taken log for turn history
         var srTakeLog = 'Took SR: ' + card.name + ' (' + card.points + ' pts)';
         if (sr.isFavorite) srTakeLog += ' ★ Favorite!';
         if (pIdx !== this.state.activePlayerIndex) {
@@ -1923,11 +1922,11 @@ var Game = {
     },
 
     /**
-     * Craft a Special Request: spend yarn, gain crafted SR.
-     * @param {string} srUid — unique id of the SR to craft
-     * @param {Object} yarnToSpend — { color: count } yarn to spend from bowl
-     * @returns {string[]|null} changed color names, or null if invalid
-     */
+ * Craft a Special Request: spend yarn, gain crafted SR.
+ * @param {string} srUid — unique id of the SR to craft
+ * @param {Object} yarnToSpend — { color: count } yarn to spend from bowl
+ * @returns {string[]|null} changed color names, or null if invalid
+ */
     craftSpecialRequest: function(srUid, yarnToSpend) {
         // Guard: must be in a phase that allows crafting
         if (this.state.phase !== 'playerActions' && this.state.phase !== 'finalCraft') {
@@ -1935,7 +1934,7 @@ var Game = {
             return null;
         }
 
-        // Session 43: Emergency! craft-order — must craft the tagged SR before any OTHER SR.
+        // Emergency! craft-order — must craft the tagged SR before any OTHER SR.
         if (!this.state.player.isAI && !this.state.player.isAutoma && this.emergencyBlocks(srUid)) {
             this.state._lastCraftBlock = 'emergency';
             return null;
@@ -1991,10 +1990,10 @@ var Game = {
         // Move from specialRequests to craftedSpecialRequests
         srList.splice(srIdx, 1);
         this.state.player.craftedSpecialRequests.push(sr);
-        // Session 42 (P4): completing an SR satisfies an Urgent Request (Hard) reminder.
+        // (P4): completing an SR satisfies an Urgent Request (Hard) reminder.
         if (!this.state.player.isAutoma) this.state._snagSRdone = true;
 
-        // Session 18: Log SR craft for turn history
+        // Log SR craft for turn history
         var srLogMsg = 'Completed SR: ' + sr.name + ' (' + sr.points + ' pts)';
         if (sr.isFavorite) srLogMsg += ' ★ Favorite';
         this._logAction(srLogMsg, 'sr');
@@ -2006,9 +2005,9 @@ var Game = {
     },
 
     /**
-     * Check if a Special Request can be afforded.
-     * Handles all colorRule variants: specific / any / sameColor / different / give.
-     */
+ * Check if a Special Request can be afforded.
+ * Handles all colorRule variants: specific / any / sameColor / different / give.
+ */
     canAffordSpecialRequest: function(sr) {
         var bowl = this.state.player.yarnBowl;
         var rule = sr.colorRule || 'specific';
@@ -2046,7 +2045,7 @@ var Game = {
                 return giveTotal >= giveNeeded;
             }
 
-            // Session 13: New colorRules for Magic Socks expansion SRs
+            // New colorRules for Magic Socks expansion SRs
 
             case 'sameColorPlus': {
                 // N of same color + specific extras. Same color CANNOT be a plusYarn color.
@@ -2109,21 +2108,21 @@ var Game = {
 
 
     /* =========================================================
-       CRAFT ACTION
-       Player spends yarn to match a pattern → gains an Item token.
-       Session 6: also handles Special Request crafting.
-       ========================================================= */
+ CRAFT ACTION
+ Player spends yarn to match a pattern → gains an Item token.
+ also handles Special Request crafting.
+ ========================================================= */
 
     /**
-     * Get all craftable options for the current player.
-     * Includes: hat, bear/mittens/scarf tiles, blanket, and held SRs.
-     */
+ * Get all craftable options for the current player.
+ * Includes: hat, bear/mittens/scarf tiles, blanket, and held SRs.
+ */
     getCraftOptions: function() {
         var bowl = this.state.player.yarnBowl;
         var options = [];
         var anyColors = this.state.craftAnyColors;
 
-        // Session 8c: total yarn in bowl (for craftAnyColors affordability override)
+        // total yarn in bowl (for craftAnyColors affordability override)
         var totalYarnInBowl = 0;
         if (anyColors) {
             CARDS.COLORS.forEach(function(c) { totalYarnInBowl += (bowl[c] || 0); });
@@ -2186,12 +2185,12 @@ var Game = {
     },
 
     /**
-     * Get Special Request craft options (held SRs the player can craft).
-     */
+ * Get Special Request craft options (held SRs the player can craft).
+ */
     getSRCraftOptions: function() {
         var bowl = this.state.player.yarnBowl;
         var anyColors = this.state.craftAnyColors;
-        // Session 8c: total yarn for craftAnyColors affordability override
+        // total yarn for craftAnyColors affordability override
         var totalYarn = 0;
         if (anyColors) {
             CARDS.COLORS.forEach(function(c) { totalYarn += (bowl[c] || 0); });
@@ -2238,10 +2237,10 @@ var Game = {
     },
 
     /**
-     * Get a human-readable description of yarn needed for a general (learned) pattern.
-     * @param {Object} itemDef — item definition from CARDS.getItem()
-     * @returns {string} e.g. "2 of one color", "3 different colors"
-     */
+ * Get a human-readable description of yarn needed for a general (learned) pattern.
+ * @param {Object} itemDef — item definition from CARDS.getItem
+ * @returns {string} e.g. "2 of one color", "3 different colors"
+ */
     generalYarnNeeded: function(itemDef) {
         var labels = {
             oneColor: itemDef.yarnCount + ' of one color',
@@ -2252,11 +2251,11 @@ var Game = {
     },
 
     /**
-     * Execute a craft action: spend yarn, gain item.
-     * @param {string} itemId — item id to craft (e.g. 'hat', 'bear', 'mittens', 'scarf', 'blanket')
-     * @param {Object} yarnToSpend — { color: count } yarn to spend from bowl
-     * @returns {string[]|null} changed color names, or null if invalid
-     */
+ * Execute a craft action: spend yarn, gain item.
+ * @param {string} itemId — item id to craft (e.g. 'hat', 'bear', 'mittens', 'scarf', 'blanket')
+ * @param {Object} yarnToSpend — { color: count } yarn to spend from bowl
+ * @returns {string[]|null} changed color names, or null if invalid
+ */
     craft: function(itemId, yarnToSpend) {
         // Guard: must be in a phase that allows crafting
         if (this.state.phase !== 'playerActions' && this.state.phase !== 'finalCraft') {
@@ -2270,7 +2269,7 @@ var Game = {
             return null;
         }
 
-        // Session 43: Emergency! craft-order — items count as "crafting anything else."
+        // Emergency! craft-order — items count as "crafting anything else."
         if (!this.state.player.isAI && !this.state.player.isAutoma && this.emergencyBlocks()) {
             this.state._lastCraftBlock = 'emergency';
             return null;
@@ -2320,7 +2319,7 @@ var Game = {
         };
         this.state.player.items.push(craftedItem);
 
-        // Session 13: Maker unique — craft 1, receive 2 copies
+        // Maker unique — craft 1, receive 2 copies
         if (this.state.makeTwoItems) {
             this.state.player.items.push({
                 id:             craftedItem.id,
@@ -2335,7 +2334,7 @@ var Game = {
             });
         }
 
-        // Session 18: Detailed craft log for turn history
+        // Detailed craft log for turn history
         var logMsg = 'Crafted ' + itemDef.name + ' (' + itemDef.points + ' pts)';
         if (this.state.makeTwoItems) logMsg += ' ×2 (Make Two)';
         var spentParts = [];
@@ -2354,18 +2353,18 @@ var Game = {
 
 
     /* =========================================================
-       EXCHANGE ACTION
-       House rule: swap any number of yarn tokens for the same
-       number of different-colored yarn tokens. Any colors in,
-       any colors out. Costs the entire turn (exchange-only space).
-       ========================================================= */
+ EXCHANGE ACTION
+ House rule: swap any number of yarn tokens for the same
+ number of different-colored yarn tokens. Any colors in,
+ any colors out. Costs the entire turn (exchange-only space).
+ ========================================================= */
 
     /**
-     * Execute an exchange: give yarn, receive yarn.
-     * @param {Object} give    — { color: count, ... } yarn to return to supply
-     * @param {Object} receive — { color: count, ... } yarn to take from supply
-     * @returns {string[]|null} changed color names, or null if invalid
-     */
+ * Execute an exchange: give yarn, receive yarn.
+ * @param {Object} give — { color: count, ... } yarn to return to supply
+ * @param {Object} receive — { color: count, ... } yarn to take from supply
+ * @returns {string[]|null} changed color names, or null if invalid
+ */
     exchange: function(give, receive) {
         // Guard: must be in playerActions phase
         if (this.state.phase !== 'playerActions') {
@@ -2418,7 +2417,7 @@ var Game = {
         // Mark exchange as done
         this.state.turn.exchangeDone = true;
 
-        // Session 18: Detailed exchange log for turn history
+        // Detailed exchange log for turn history
         var giveParts = [];
         CARDS.COLORS.forEach(function(c) { if (give[c]) giveParts.push(give[c] + ' ' + c); });
         var recvParts = [];
@@ -2430,18 +2429,18 @@ var Game = {
 
 
     /* =========================================================
-       APPLY CONFIRMED SHOP CHOICES
-       Called after the player has selected colors for wilds
-       and confirmed the full take.
-       ========================================================= */
+ APPLY CONFIRMED SHOP CHOICES
+ Called after the player has selected colors for wilds
+ and confirmed the full take.
+ ========================================================= */
 
     /**
-     * Apply confirmed shop choices: add yarn to bowl, finalize shop.
-     * @param {Object} normalYarn — { color: count } yarn from normal cards
-     * @param {string[]} wildChoices — chosen colors for wild/empty slots
-     * @param {number[]} slotIndices — bazaar slot indices that were selected
-     * @returns {string[]} changed color names
-     */
+ * Apply confirmed shop choices: add yarn to bowl, finalize shop.
+ * @param {Object} normalYarn — { color: count } yarn from normal cards
+ * @param {string[]} wildChoices — chosen colors for wild/empty slots
+ * @param {number[]} slotIndices — bazaar slot indices that were selected
+ * @returns {string[]} changed color names
+ */
     applyShopChoices: function(normalYarn, wildChoices, slotIndices) {
         // Guard: must be in playerActions phase with shop available
         if (this.state.phase !== 'playerActions') {
@@ -2466,7 +2465,7 @@ var Game = {
             if (changedColors.indexOf(color) === -1) changedColors.push(color);
         });
 
-        // Session 18: Log detailed shop action for turn history
+        // Log detailed shop action for turn history
         var yarnSummary = {};
         Object.keys(normalYarn).forEach(function(c) {
             if (normalYarn[c] > 0) yarnSummary[c] = (yarnSummary[c] || 0) + normalYarn[c];
@@ -2490,14 +2489,14 @@ var Game = {
 
 
     /* =========================================================
-       UTILITY
-       ========================================================= */
+ UTILITY
+ ========================================================= */
 
     /**
-     * Session 22: Internal helper — logs to both _currentTurnLog and the action feed.
-     * @param {string} text — action description
-     * @param {string} [type] — feed type: 'action', 'event', 'sr', 'project'
-     */
+ * Internal helper — logs to both _currentTurnLog and the action feed.
+ * @param {string} text — action description
+ * @param {string} [type] — feed type: 'action', 'event', 'sr', 'project'
+ */
     _logAction: function(text, type) {
         if (this.state._currentTurnLog) {
             this.state._currentTurnLog.push(text);
@@ -2507,11 +2506,11 @@ var Game = {
     },
 
     /**
-     * Session 22: Log an action to the rolling action feed.
-     * @param {number|null} playerIndex — index into players[], or null for system events
-     * @param {string} text — action description
-     * @param {string} [type] — 'action' (default), 'event', 'sr', 'project', 'system'
-     */
+ * Log an action to the rolling action feed.
+ * @param {number|null} playerIndex — index into players[], or null for system events
+ * @param {string} text — action description
+ * @param {string} [type] — 'action' (default), 'event', 'sr', 'project', 'system'
+ */
     logFeedAction: function(playerIndex, text, type) {
         var entry = {
             playerIndex: playerIndex,
@@ -2535,9 +2534,9 @@ var Game = {
     },
 
     /**
-     * Session 15: Get formatted elapsed game time as "M:SS" or "H:MM:SS".
-     * @returns {string}
-     */
+ * Get formatted elapsed game time as "M:SS" or "H:MM:SS".
+ * @returns {string}
+ */
     getGameTimeFormatted: function() {
         if (!this.state.gameStartTime) return '0:00';
         var elapsed = Math.floor((Date.now() - this.state.gameStartTime) / 1000);
@@ -2551,10 +2550,10 @@ var Game = {
     },
 
     /**
-     * Session 15: Get formatted per-player average turn time as "M:SS".
-     * @param {Object} player
-     * @returns {string}
-     */
+ * Get formatted per-player average turn time as "M:SS".
+ * @param {Object} player
+ * @returns {string}
+ */
     getAvgTurnTimeFormatted: function(player) {
         if (!player.turnCount || player.turnCount === 0) return '0:00';
         var avgMs = player.totalTurnTime / player.turnCount;
@@ -2565,8 +2564,8 @@ var Game = {
     },
 
     /**
-     * Session 15: Stop the game timer (called at game over).
-     */
+ * Stop the game timer (called at game over).
+ */
     stopTimer: function() {
         if (this.state._timerInterval) {
             clearInterval(this.state._timerInterval);
@@ -2586,12 +2585,12 @@ var Game = {
     },
 
     /**
-     * Session 9: Get the file path for a player's board image.
-     * @param {string} characterId
-     * @returns {string} image path
-     */
+ * Get the file path for a player's board image.
+ * @param {string} characterId
+ * @returns {string} image path
+ */
     getPlayerBoardImage: function(characterId) {
-        // Session 20: Use blank boards — action icons are now overlaid by UI
+        // Use blank boards — action icons are now overlaid by UI
         var map = {
             rebecca: 'rebecca_blank.png',
             theo:    'theo_blank.png',
@@ -2601,12 +2600,12 @@ var Game = {
             alex:    'alex_blank.png',
             ted:     'ted_blank.png',
             eliza:   'eliza_blank.png',
-            // Session 13: Magic Socks expansion characters
+            // Magic Socks expansion characters
             jo:      'jo_blank.png',
             noah:    'noah_blank.png',
             irene:   'irene_blank.png',
             mauro:   'mauro_blank.png',
-            // Session 36: Hank boss uses his full solo-board art (not a blank board —
+            // Hank boss uses his full solo-board art (not a blank board —
             // the human never selects on it, so no action-icon overlay is drawn).
             hank:    'AR_Hank_SoloBoard.png',
         };
@@ -2615,17 +2614,17 @@ var Game = {
 
 
     /* =========================================================
-       SESSION 8c: END-GAME TRIGGER & SCORING
-       Game ends when Project Deck is empty AND fewer than 3
-       projects remain in the display.
-       ========================================================= */
+ SESSION 8c: END-GAME TRIGGER & SCORING
+ Game ends when Project Deck is empty AND fewer than 3
+ projects remain in the display.
+ ========================================================= */
 
     /**
-     * Check if the end-game condition is met.
-     * @returns {boolean} true if game should end after the current turn
-     */
+ * Check if the end-game condition is met.
+ * @returns {boolean} true if game should end after the current turn
+ */
     isGameOver: function() {
-        // Safety net (Session 42): if a match somehow never reaches a natural end
+        // Safety net if a match somehow never reaches a natural end
         // (e.g. neither player ever completes a project, so the project deck never
         // drains), force it after a very high turn count so a live game can't hang.
         if (this.state.turn && this.state.turn.number > 200) return true;
@@ -2634,10 +2633,10 @@ var Game = {
     },
 
     /**
-     * Check if end-game should trigger and set state accordingly.
-     * Called after completing a project (the only way display shrinks).
-     * Sets finalRound flag and records which player triggered it.
-     */
+ * Check if end-game should trigger and set state accordingly.
+ * Called after completing a project (the only way display shrinks).
+ * Sets finalRound flag and records which player triggered it.
+ */
     checkEndGameTrigger: function() {
         if (!this.state.finalRound && this.isGameOver()) {
             this.state.finalRound = true;
@@ -2646,23 +2645,23 @@ var Game = {
     },
 
     /**
-     * Calculate the final score for a player.
-     * Scoring categories:
-     *   + Crafted items (regular finished objects) — each item's points
-     *   + Crafted Special Requests — each SR's points
-     *   + Favorite SR bonus — +5 if any crafted SR is the character's favorite
-     *   + Completed Projects — each project's points
-     *   + Learned pattern tiles — +5 each
-     *   - Unfinished SRs (held but not crafted) — -5 each
-     *   - Leftover yarn — -1 per yarn in bowl
-     * @param {Object} [player] — player object (defaults to state.player)
-     * @returns {Object} { items, specialRequests, favoriteBonus, projects,
-     *                     learnedTiles, srPenalty, yarnPenalty, total, breakdown }
-     */
+ * Calculate the final score for a player.
+ * Scoring categories:
+ * + Crafted items (regular finished objects) — each item's points
+ * + Crafted Special Requests — each SR's points
+ * + Favorite SR bonus — +5 if any crafted SR is the character's favorite
+ * + Completed Projects — each project's points
+ * + Learned pattern tiles — +5 each
+ * - Unfinished SRs (held but not crafted) — -5 each
+ * - Leftover yarn — -1 per yarn in bowl
+ * @param {Object} [player] — player object (defaults to state.player)
+ * @returns {Object} { items, specialRequests, favoriteBonus, projects,
+ * learnedTiles, srPenalty, yarnPenalty, total, breakdown }
+ */
     calculateFinalScore: function(player) {
         player = player || this.state.player;
 
-        // Session 15: Build crafted items detail — group by id with counts
+        // Build crafted items detail — group by id with counts
         var itemsPoints = 0;
         var itemCounts = {};  // { id: { id, name, img, points, count } }
         player.items.forEach(function(item) {
@@ -2678,7 +2677,7 @@ var Game = {
             if (itemCounts[id]) craftedItemDetails.push(itemCounts[id]);
         });
 
-        // Session 15: Build SR detail — both crafted and uncrafted
+        // Build SR detail — both crafted and uncrafted
         var srPoints = 0;
         var favoriteBonus = 0;
         var srCardDetails = [];
@@ -2687,7 +2686,7 @@ var Game = {
         var isAutoma = player.isHank || player.isAutoma;
         player.craftedSpecialRequests.forEach(function(sr) {
             srPoints += sr.points;
-            // Rulebook (Session 42 fix): Hank scores each SR's face points only — NO per-SR
+            // Rulebook fix): Hank scores each SR's face points only — NO per-SR
             // favorite bonus (that was an old juiced-Hank over-implementation). Human players
             // still get +5 once if their single favorite SR is among the crafted.
             if (!isAutoma && sr.isFavorite) favoriteBonus = 5;
@@ -2712,7 +2711,7 @@ var Game = {
             }
         });
 
-        // Session 15: Build project detail
+        // Build project detail
         var projectPoints = 0;
         var projectDetails = [];
         player.projects.forEach(function(proj) {
@@ -2721,7 +2720,7 @@ var Game = {
         });
 
         // Learned pattern tiles — per-item crafting cost (Bear=3, Mittens=3, Scarf=4)
-        // Session 15: Fixed from flat +5 to per-item values using item's yarnCount
+        // Fixed from flat +5 to per-item values using item's yarnCount
         var learnedPoints = 0;
         var learnedTileDetails = [];
         player.patternTiles.forEach(function(tile) {
@@ -2748,7 +2747,7 @@ var Game = {
         }
 
         // Leftover yarn penalty (-1 per yarn).
-        // Session 36: Hank boss inverts this — leftover yarn SCORES +1 per 2 (odd one rounds
+        // Hank boss inverts this — leftover yarn SCORES +1 per 2 (odd one rounds
         // down), so hoarding helps him. "yarnPenalty" then holds a positive bonus for Hank.
         var yarnPenalty = 0;
         if (player.isHank) {
@@ -2774,7 +2773,7 @@ var Game = {
             srPenalty: srPenalty,
             yarnPenalty: yarnPenalty,
             total: total,
-            // Session 15: Detail data for enhanced scorecard
+            // Detail data for enhanced scorecard
             srCount: srCraftedCount + '/' + srTotalCount,
             craftedItemDetails: craftedItemDetails,
             srCardDetails: srCardDetails,
@@ -2785,22 +2784,22 @@ var Game = {
 
 
     /* =========================================================
-       SESSION 7: PROJECT DECK
-       ========================================================= */
+ SESSION 7: PROJECT DECK
+ ========================================================= */
 
     /**
-     * Get total project count based on player count.
-     * @param {number} playerCount — 2–6
-     * @returns {number} Total projects in deck (8, 9, or 10)
-     */
+ * Get total project count based on player count.
+ * @param {number} playerCount — 2–6
+ * @returns {number} Total projects in deck (8, 9, or 10)
+ */
     getTotalProjectCount: function(playerCount) {
         return playerCount <= 2 ? 8 : playerCount === 3 ? 9 : 10;
     },
 
     /**
-     * Build and shuffle the project deck, then deal 3 face-up.
-     * Called from init().
-     */
+ * Build and shuffle the project deck, then deal 3 face-up.
+ * Called from init.
+ */
     initProjects: function() {
         var deck = CARDS.buildProjectDeck();
 
@@ -2815,11 +2814,11 @@ var Game = {
     },
 
     /**
-     * Check if the player can afford to complete a given project.
-     * Requirements specify itemId → count needed.
-     * @param {Object} project — project card object
-     * @returns {boolean}
-     */
+ * Check if the player can afford to complete a given project.
+ * Requirements specify itemId → count needed.
+ * @param {Object} project — project card object
+ * @returns {boolean}
+ */
     canAffordProject: function(project) {
         var items = this.state.player.items;
         var reqs = project.requirements;
@@ -2832,11 +2831,11 @@ var Game = {
     },
 
     /**
-     * Complete a project: remove required items from Finished Objects,
-     * score points, remove project from display, draw new one from deck.
-     * @param {string} projectUid — uid of the project to complete
-     * @returns {number|null} points earned, or null if invalid
-     */
+ * Complete a project: remove required items from Finished Objects,
+ * score points, remove project from display, draw new one from deck.
+ * @param {string} projectUid — uid of the project to complete
+ * @returns {number|null} points earned, or null if invalid
+ */
     finishProject: function(projectUid) {
         // Guard: must be in restock phase (projects can't be finished during finalCraft)
         if (this.state.phase !== 'restock') {
@@ -2844,7 +2843,7 @@ var Game = {
             return null;
         }
 
-        // Session 42 (P4) / Session 43 (enforced): Urgent Request snag — a persistent
+        // (P4) / (enforced): Urgent Request snag — a persistent
         // constraint blocks the HUMAN from finishing a project until satisfied (holds 1 of
         // each item type / completed an SR). Scoped to real human seats only: AI proxy seats
         // (sim harness) can't strategize toward the requirement and deadlock the game to the
@@ -2896,7 +2895,7 @@ var Game = {
             display.splice(projIdx, 0, replacement);
         }
 
-        // Session 18: Log project completion for turn history
+        // Log project completion for turn history
         var reqParts = [];
         Object.keys(reqs).forEach(function(itemId) {
             var def = CARDS.getItem(itemId);
@@ -2912,9 +2911,9 @@ var Game = {
     },
 
     /**
-     * Get all projects in the display that the player can currently complete.
-     * @returns {Array} subset of state.projectDisplay
-     */
+ * Get all projects in the display that the player can currently complete.
+ * @returns {Array} subset of state.projectDisplay
+ */
     getCompletableProjects: function() {
         return this.state.projectDisplay.filter(function(p) {
             return Game.canAffordProject(p);
@@ -2923,17 +2922,17 @@ var Game = {
 
 
     /* =========================================================
-       SESSION 7: LEARN A PATTERN
-       Free Restock action — flip a tile to its general (learned) side.
-       Requires at least one unlearned tile.
-       ========================================================= */
+ SESSION 7: LEARN A PATTERN
+ Free Restock action — flip a tile to its general (learned) side.
+ Requires at least one unlearned tile.
+ ========================================================= */
 
     /**
-     * Get all tiles that can still be learned (not yet flipped).
-     * Rule (corrected Session 8): the player must also have the corresponding
-     * finished object in player.items — that item is consumed when learning.
-     * @returns {Array} tile objects with learned === false AND matching item held
-     */
+ * Get all tiles that can still be learned (not yet flipped).
+ * Rule (corrected the player must also have the corresponding
+ * finished object in player.items — that item is consumed when learning.
+ * @returns {Array} tile objects with learned === false AND matching item held
+ */
     getLearnablePatterns: function() {
         var items = this.state.player.items;
         return this.state.player.patternTiles.filter(function(t) {
@@ -2944,11 +2943,11 @@ var Game = {
     },
 
     /**
-     * Learn a pattern tile: flip it to the general side.
-     * Consumes the first matching item from player.items (the trade-in cost).
-     * @param {string} tileId — id of the tile to learn
-     * @returns {boolean} true if successful
-     */
+ * Learn a pattern tile: flip it to the general side.
+ * Consumes the first matching item from player.items (the trade-in cost).
+ * @param {string} tileId — id of the tile to learn
+ * @returns {boolean} true if successful
+ */
     learnPattern: function(tileId) {
         // Guard: must be in restock phase
         if (this.state.phase !== 'restock') {
@@ -2970,7 +2969,7 @@ var Game = {
         items.splice(itemIdx, 1);
         tile.learned = true;
 
-        // Session 18: Log pattern learning for turn history
+        // Log pattern learning for turn history
         var itemDef = CARDS.getItem(tile.itemId);
         var tileName = itemDef ? itemDef.name : tile.itemId;
         this._logAction('Learned Pattern: ' + tileName + ' (traded in 1 ' + tileName + ')');
@@ -2980,17 +2979,17 @@ var Game = {
 
 
     /* =========================================================
-       SESSION 7: FROG IT
-       Free Restock action — return a crafted item and get yarn back.
-       Unlearned exact pattern: get back exact yarn spent.
-       Learned/general pattern: player chooses equivalent yarn.
-       ========================================================= */
+ SESSION 7: FROG IT
+ Free Restock action — return a crafted item and get yarn back.
+ Unlearned exact pattern: get back exact yarn spent.
+ Learned/general pattern: player chooses equivalent yarn.
+ ========================================================= */
 
     /**
-     * Get all regular crafted items that can be frogged.
-     * (Only regular items — not Special Requests, not Project items.)
-     * @returns {Array} items array with index
-     */
+ * Get all regular crafted items that can be frogged.
+ * (Only regular items — not Special Requests, not Project items.)
+ * @returns {Array} items array with index
+ */
     getFrogItItems: function() {
         return this.state.player.items.map(function(item, idx) {
             return { item: item, index: idx };
@@ -2998,13 +2997,13 @@ var Game = {
     },
 
     /**
-     * Execute Frog It: remove item at index, return yarn to bowl.
-     * For exact (unlearned) items: yarnToReceive is the stored yarnSpent.
-     * For general (learned) items: yarnToReceive is player's chosen equivalent.
-     * @param {number} itemIndex    — index into player.items
-     * @param {Object} yarnToReceive — { color: count } to add back to bowl
-     * @returns {string[]|null} changed color names, or null if invalid
-     */
+ * Execute Frog It: remove item at index, return yarn to bowl.
+ * For exact (unlearned) items: yarnToReceive is the stored yarnSpent.
+ * For general (learned) items: yarnToReceive is player's chosen equivalent.
+ * @param {number} itemIndex — index into player.items
+ * @param {Object} yarnToReceive — { color: count } to add back to bowl
+ * @returns {string[]|null} changed color names, or null if invalid
+ */
     frogIt: function(itemIndex, yarnToReceive) {
         // Guard: must be in restock phase
         if (this.state.phase !== 'restock') {
@@ -3033,7 +3032,7 @@ var Game = {
             if (changed.indexOf(c) === -1) changed.push(c);
         });
 
-        // Session 18: Log frog it for turn history
+        // Log frog it for turn history
         var frogParts = [];
         CARDS.COLORS.forEach(function(c) {
             if (yarnToReceive[c]) frogParts.push(yarnToReceive[c] + ' ' + c);

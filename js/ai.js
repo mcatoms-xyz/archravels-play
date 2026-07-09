@@ -1,75 +1,75 @@
 /**
  * ArchRavels — AI Decision Engine
  * =========================================================
- * Session 9b: Basic AI opponent with greedy "Normal" strategy.
+ * Basic AI opponent with greedy "Normal" strategy.
  *
  * The AI uses the same Game.* API as the human player.
  * All decisions are made programmatically and animated
  * step-by-step so the human player can follow along.
  *
- * Entry point: AI.takeTurn(callback) — called from Game.endTurn()
+ * Entry point: AI.takeTurn(callback) — called from Game.endTurn
  * when the next player has isAI === true.
  *
  * Architecture:
- *   takeTurn → chooseSpace → executeActions → handleRestockActions
- *            → handleRestock → endTurn → callback
+ * takeTurn → chooseSpace → executeActions → handleRestockActions
+ * → handleRestock → endTurn → callback
  *
  * Decision logic (greedy Normal):
- *   - Choose the action space that maximizes shop+craft value
- *   - Shop: pick bazaar cards that provide the most needed yarn
- *   - Craft: prioritize favorite SR > high-point SR > project items > regular items
- *   - Exchange: only when yarn is very mismatched for goals
- *   - Restock: finish projects > learn patterns
+ * - Choose the action space that maximizes shop+craft value
+ * - Shop: pick bazaar cards that provide the most needed yarn
+ * - Craft: prioritize favorite SR > high-point SR > project items > regular items
+ * - Exchange: only when yarn is very mismatched for goals
+ * - Restock: finish projects > learn patterns
  * =========================================================
  */
 
 var AI = {
 
-    /* ----- Configuration ----- */
+    /* Configuration ----- */
     DELAY: 1200,      // ms between animated steps
     THINK_DELAY: 800, // ms for "thinking" pause
 
-    /* ----- Character-Specific Strategy Profiles ----- */
+    /* Character-Specific Strategy Profiles ----- */
     /**
-     * Each profile adjusts the AI's weighting for different decisions.
-     * Higher multipliers = AI values that activity more.
-     *
-     * shopWeight     — how much the AI values shopping (getting yarn cards)
-     * craftWeight    — how much the AI values crafting (making items/SRs)
-     * projectWeight  — how much the AI values working toward projects
-     * srWeight       — how much the AI values Special Requests
-     * exchangeWeight — how much the AI values using the Exchange action
-     * uniqueWeight   — how much the AI values its unique ability space
-     * preferCraftSpace — bias toward picking the high-craft space (0–3 index)
-     * preferShopSpace  — bias toward picking the high-shop space (0–3 index)
-     */
+ * Each profile adjusts the AI's weighting for different decisions.
+ * Higher multipliers = AI values that activity more.
+ *
+ * shopWeight — how much the AI values shopping (getting yarn cards)
+ * craftWeight — how much the AI values crafting (making items/SRs)
+ * projectWeight — how much the AI values working toward projects
+ * srWeight — how much the AI values Special Requests
+ * exchangeWeight — how much the AI values using the Exchange action
+ * uniqueWeight — how much the AI values its unique ability space
+ * preferCraftSpace — bias toward picking the high-craft space (0–3 index)
+ * preferShopSpace — bias toward picking the high-shop space (0–3 index)
+ */
     PROFILES: {
         thriftyShopper: {
-            // Session 16: RETUNED for post-Yarn 1 removal. With Yarn 1 cards gone and
+            // RETUNED for post-Yarn 1 removal. With Yarn 1 cards gone and
             // more Yarn 2 cards, each shop gives ~2 yarn/card instead of ~1.4. Shop 4
             // now yields ~8 yarn per turn — accumulation is much faster.
             // Strategy shift: shop aggressively early, then pivot hard to crafting.
-            // Session 40 retune (values below are current): shopWeight→1.05, craftWeight→1.7
+            // retune (values below are current): shopWeight→1.05, craftWeight→1.7
             // (Rebecca was hoarding yarn), projectWeight 1.4. hoardYarn is OFF now, so the
             // profile.hoardYarn shopping branch is dead code — safe to prune later.
-            shopWeight:     0.85,  // Session 42: shop even less — she still hoarded (yarnPen ~-26); pivot to crafting
-            craftWeight:    1.7,   // Session 40: Rebecca was hoarding yarn — craft much more
+            shopWeight:     0.85,  // shop even less — she still hoarded (yarnPen ~-26); pivot to crafting
+            craftWeight:    1.7,   // Rebecca was hoarding yarn — craft much more
             projectWeight:  1.4,   // fast accumulation feeds project strategy
-            srWeight:       1.1,   // Session 16: slight boost to avoid SR penalties
+            srWeight:       1.1,   // slight boost to avoid SR penalties
             exchangeWeight: 0.7,
             uniqueWeight:   1.0,
-            hoardYarn: false,      // Session 40: stop padding shop turns — convert yarn into items
+            hoardYarn: false,      // stop padding shop turns — convert yarn into items
             alwaysMaxCards: true,  // always pick the maximum number of bazaar cards
         },
         masterCrafter: {
             // Craft 4 is their superpower — but only swing to it when loaded with yarn
             // Strategy: shop/accumulate until you can get max value from a Craft 4 turn
-            // Session 10b: Light pass — raised shopWeight slightly so they don't starve for yarn
-            // Session 16: Raised srWeight 1.0→1.15 to reduce SR penalties at end-game
+            // Light pass — raised shopWeight slightly so they don't starve for yarn
+            // Raised srWeight 1.0→1.15 to reduce SR penalties at end-game
             shopWeight:     1.2,
             craftWeight:    1.6,
             projectWeight:  1.5,   // projects are their path to victory
-            srWeight:       1.15,  // Session 16: slight boost to prioritize SR completion
+            srWeight:       1.15,  // slight boost to prioritize SR completion
             exchangeWeight: 0.8,
             uniqueWeight:   1.0,
             waitForBigCraft: true, // prefer shopping until 3+ items are affordable
@@ -87,48 +87,48 @@ var AI = {
         yarnSpinner: {
             // Take 3 Yarn gives free yarn — build stockpile, then craft big
             // Also leverages "take 3 + craft 1" as "take 3 + make a bear" when idle
-            // Session 10b: Light pass — bump craftWeight from 1.1→1.2 so spinner
+            // Light pass — bump craftWeight from 1.1→1.2 so spinner
             // actually converts their yarn hoard into items mid-game
-            // Session 16: Raised srWeight 1.1→1.2 to reduce SR penalties
+            // Raised srWeight 1.1→1.2 to reduce SR penalties
             shopWeight:     0.8,
             craftWeight:    1.2,
             projectWeight:  1.2,
-            srWeight:       1.2,   // Session 16: slight boost to prioritize SR completion
+            srWeight:       1.2,   // slight boost to prioritize SR completion
             exchangeWeight: 0.6,   // less need — already gets free yarn
             uniqueWeight:   1.6,   // strongly prefer Take 3 Yarn space
             yarnHoarder: true,     // prefers building yarn reserves before crafting
             take3MakeBear: true,   // when on Take3+Craft1, default to making a bear
         },
 
-        // Session 13: Maker — "Make Two Items" is their superpower
-        // Session 16: Retuned — was over-indexing on hats. Reduced raw craftWeight,
+        // Maker — "Make Two Items" is their superpower
+        // Retuned — was over-indexing on hats. Reduced raw craftWeight,
         // boosted projectWeight so the AI targets project-relevant items for doubling.
         maker: {
             shopWeight:     1.1,   // gentle shop emphasis — need yarn for crafting
             craftWeight:    1.3,   // still loves crafting, but more selective now
-            projectWeight:  1.6,   // Session 16: raised — project-aware doubling is key strategy
-            srWeight:       1.1,   // Session 16: slight boost to avoid SR penalties
+            projectWeight:  1.6,   // raised — project-aware doubling is key strategy
+            srWeight:       1.1,   // slight boost to avoid SR penalties
             exchangeWeight: 0.8,
             uniqueWeight:   1.7,   // strongly prefer the make-two-items space
             makeTwoItems:   true,  // AI flag: knows about the double-craft ability
         },
 
-        // Session 13: Expert — Take 5 Any + Craft 1 Any Colors, only 3 spaces
-        // Session 16: Boosted srWeight 1.2→1.5 — Expert's craftAnyColors makes SRs
+        // Expert — Take 5 Any + Craft 1 Any Colors, only 3 spaces
+        // Boosted srWeight 1.2→1.5 — Expert's craftAnyColors makes SRs
         // trivially affordable, so they should aggressively pursue SR completion.
         // Also boosted craftWeight to encourage using the unique space for SRs.
         expert: {
             shopWeight:     0.9,   // less reliant on shopping — take5 gives yarn
-            craftWeight:    1.5,   // Session 16: raised to leverage craftAnyColors for SRs
+            craftWeight:    1.5,   // raised to leverage craftAnyColors for SRs
             projectWeight:  1.3,   // flexible yarn helps projects
-            srWeight:       1.5,   // Session 16: raised — craftAnyColors makes SRs easy
+            srWeight:       1.5,   // raised — craftAnyColors makes SRs easy
             exchangeWeight: 0.0,   // no exchange space at all
             uniqueWeight:   1.8,   // strongly prefer take5+craft1 space
             take5AnyCraft:  true,  // AI flag: handle the combined take5+craft1 ability
             preferAnyColors: true, // like colorSpecialist, leverages any-colors crafting
         },
 
-        // Session 36: Hank, The Stitchmeister — Story Mode FINAL BOSS.
+        // Hank, The Stitchmeister — Story Mode FINAL BOSS.
         // Relentless scoring machine: crafts every turn, chases every SR (all are his
         // favorite → +5 each), hoards yarn (leftovers score for him). He only has two
         // craft spaces, so he alternates between them. Tuned aggressive on purpose.
@@ -145,8 +145,8 @@ var AI = {
     },
 
     /**
-     * Get the strategy profile for the current AI player.
-     */
+ * Get the strategy profile for the current AI player.
+ */
     _getProfile: function() {
         var player = Game.state.player;
         var charDef = CARDS.getCharacter(player.characterId);
@@ -156,31 +156,31 @@ var AI = {
 
 
     /* =========================================================
-       UI HELPERS — Animated Action Log
-       ========================================================= */
+ UI HELPERS — Animated Action Log
+ ========================================================= */
 
     /**
-     * Pause for DELAY ms, then call callback. AI action pacing.
-     * Session 22: No longer logs to feed (game.js handles that via _logAction).
-     * @param {string}   msg      — message text (ignored for logging)
-     * @param {function} callback — called after delay
-     * @param {string}   [cls]    — optional CSS class (ignored)
-     */
+ * Pause for DELAY ms, then call callback. AI action pacing.
+ * No longer logs to feed (game.js handles that via _logAction).
+ * @param {string} msg — message text (ignored for logging)
+ * @param {function} callback — called after delay
+ * @param {string} [cls] — optional CSS class (ignored)
+ */
     showAction: function(msg, callback, cls) {
         setTimeout(callback, this.DELAY);
     },
 
 
     /* =========================================================
-       MAIN ENTRY POINT
-       ========================================================= */
+ MAIN ENTRY POINT
+ ========================================================= */
 
     /**
-     * Run a complete AI turn for the current active player.
-     * Assumes Game.state.player is the AI player and
-     * Game.state.phase is 'chooseSpace'.
-     * @param {function} callback — called when AI turn is fully complete
-     */
+ * Run a complete AI turn for the current active player.
+ * Assumes Game.state.player is the AI player and
+ * Game.state.phase is 'chooseSpace'.
+ * @param {function} callback — called when AI turn is fully complete
+ */
     takeTurn: function(callback) {
         var player = Game.state.player;
         if (!player || !player.isAI) {
@@ -223,9 +223,9 @@ var AI = {
 
 
     /**
-     * Final Craft phase: AI gets 1 craft action with existing yarn.
-     * @param {function} callback — called when final craft is complete
-     */
+ * Final Craft phase: AI gets 1 craft action with existing yarn.
+ * @param {function} callback — called when final craft is complete
+ */
     doFinalCraft: function(callback) {
         var self = this;
         var player = Game.state.player;
@@ -264,7 +264,7 @@ var AI = {
                     UI.renderCraftGrid();
                     UI.renderSpecialRequests();
                     UI.renderFinishedObjects();
-                    // Session 17: Show game moment for AI SR completion
+                    // Show game moment for AI SR completion
                     if (srData) {
                         var aiSRPlayer = Game.state.player;
                         UI.showGameMoment({
@@ -290,13 +290,13 @@ var AI = {
     },
 
     /* =========================================================
-       STEP 1: CHOOSE ACTION SPACE
-       ========================================================= */
+ STEP 1: CHOOSE ACTION SPACE
+ ========================================================= */
 
     /**
-     * Step 1: Evaluate and choose the best action space for this turn.
-     * @param {function} callback — called after space is chosen and UI updated
-     */
+ * Step 1: Evaluate and choose the best action space for this turn.
+ * @param {function} callback — called after space is chosen and UI updated
+ */
     _stepChooseSpace: function(callback) {
         var spaces = Game.getActionSpaces();
         var bestIdx = this._pickBestSpace(spaces);
@@ -316,7 +316,7 @@ var AI = {
                 callback();
             });
 
-        // Session 36: Handle take3Any unique ability (Hank boss Space 2 — craft 2 + take 3 mixed yarn)
+        // Handle take3Any unique ability (Hank boss Space 2 — craft 2 + take 3 mixed yarn)
         } else if (space.unique === 'take3Any') {
             Game.chooseActionSpace(bestIdx);
             var c3 = self._pick3MostNeededColors();
@@ -332,7 +332,7 @@ var AI = {
                 callback();
             });
 
-        // Session 13: Handle take5AnyCraft1Any unique ability (Expert)
+        // Handle take5AnyCraft1Any unique ability (Expert)
         } else if (space.unique === 'take5AnyCraft1Any') {
             Game.chooseActionSpace(bestIdx);
             // Pick 5 most-needed colors
@@ -362,10 +362,10 @@ var AI = {
     },
 
     /**
-     * Pick the best action space based on greedy profile-weighted evaluation.
-     * @param {Array} spaces — action spaces from Game.getActionSpaces()
-     * @returns {number} index (0–3) of the chosen space
-     */
+ * Pick the best action space based on greedy profile-weighted evaluation.
+ * @param {Array} spaces — action spaces from Game.getActionSpaces
+ * @returns {number} index (0–3) of the chosen space
+ */
     _pickBestSpace: function(spaces) {
         var bestScore = -999;
         var bestIdx = 0;
@@ -400,7 +400,7 @@ var AI = {
                 score += shopScore;
 
                 // Thrifty Shopper: hoard yarn even without immediate crafts (but less so late game)
-                // Session 16: Lowered cap from 10→8 (post-Yarn 1 removal: cards yield more yarn,
+                // Lowered cap from 10→8 (post-Yarn 1 removal: cards yield more yarn,
                 // so the AI hits the cap faster and should pivot to crafting sooner)
                 if (profile.hoardYarn && affordableCrafts === 0 && totalYarn < 8) {
                     score += space.shop * Math.max(0.3, 1.5 - gameProgress * 2);
@@ -468,7 +468,7 @@ var AI = {
                 // Maker: doubling a craft is extremely valuable when we can afford items
                 if (affordableCrafts > 0) {
                     var makeTwoBase = 9;
-                    // Session 13: Late-game awareness — if we only need 1 more item to
+                    // Late-game awareness — if we only need 1 more item to
                     // complete a project, the extra copy is wasted. Prefer Shop+Craft instead.
                     var gameProgress = self._gameProgress();
                     if (gameProgress > 0.6) {
@@ -486,7 +486,7 @@ var AI = {
                 // Expert: take 5 any colors + craft 1 any colors — always decent, great with low yarn
                 var totalYarnE = Game.totalYarn(player);
                 var expertBase = totalYarnE < 5 ? 10 : totalYarnE < 10 ? 7 : 4;
-                // Session 13: Late-game awareness — when yarn-rich, Craft 3 is often better
+                // Late-game awareness — when yarn-rich, Craft 3 is often better
                 // than Take5+Craft1 since you get 3 items vs 1
                 var gameProgress2 = self._gameProgress();
                 if (totalYarnE >= 12 && gameProgress2 > 0.5) {
@@ -499,15 +499,15 @@ var AI = {
                 }
             }
 
-            // ---------------------------------------------------------------
-            // Session 42: END-GAME YARN-CONVERSION BIAS (anti-hoarding).
+            // 
+            // END-GAME YARN-CONVERSION BIAS (anti-hoarding).
             // Leftover yarn scores -1 each at game end, so late-game a big yarn
             // reserve is pure liability. Push the AI off yarn-gaining spaces
             // (shop / take-yarn) and onto craft spaces so it converts the hoard
             // into scoring items before the end. Gated on game progress AND
             // actually holding excess yarn, so the lean top-4 are barely touched.
             // (Sim-verified: thriftyShopper 25%->45% overall, top-4 stay balanced.)
-            // ---------------------------------------------------------------
+            // 
             (function() {
                 var prog = self._gameProgress();
                 if (prog < 0.45) return;
@@ -534,13 +534,13 @@ var AI = {
 
 
     /* =========================================================
-       STEP 2: EXECUTE ACTIONS (SHOP, CRAFT, EXCHANGE)
-       ========================================================= */
+ STEP 2: EXECUTE ACTIONS (SHOP, CRAFT, EXCHANGE)
+ ========================================================= */
 
     /**
-     * Step 2: Execute player actions — shop, then craft loop, then exchange.
-     * @param {function} callback — called when all actions are complete
-     */
+ * Step 2: Execute player actions — shop, then craft loop, then exchange.
+ * @param {function} callback — called when all actions are complete
+ */
     _stepExecuteActions: function(callback) {
         var self = this;
         var actions = Game.getAvailableActions();
@@ -560,8 +560,8 @@ var AI = {
     },
 
     /**
-     * AI Shopping: select the best cards from the bazaar.
-     */
+ * AI Shopping: select the best cards from the bazaar.
+ */
     _doShop: function(callback) {
         var self = this;
         var shopLimit = Game.state.shopLimit;
@@ -642,8 +642,8 @@ var AI = {
     },
 
     /**
-     * AI Craft loop: craft items while we have craft actions remaining.
-     */
+ * AI Craft loop: craft items while we have craft actions remaining.
+ */
     _doCraftLoop: function(callback) {
         var self = this;
         var actions = Game.getAvailableActions();
@@ -714,7 +714,7 @@ var AI = {
             UI.renderFinishedObjects();
             UI.renderSpecialRequests();
             UI.renderActionBar();
-            // Session 17: Show game moment for AI SR completion in craft loop
+            // Show game moment for AI SR completion in craft loop
             if (srData2) {
                 var aiSRPlayer2 = Game.state.player;
                 UI.showGameMoment({
@@ -735,8 +735,8 @@ var AI = {
     },
 
     /**
-     * AI Exchange: only if beneficial.
-     */
+ * AI Exchange: only if beneficial.
+ */
     _doExchange: function(callback) {
         var self = this;
         var actions = Game.getAvailableActions();
@@ -773,14 +773,14 @@ var AI = {
 
 
     /* =========================================================
-       STEP 3: RESTOCK ACTIONS (before drawing from deck)
-       Finish Project, Learn Pattern (AI skips Frog It for now)
-       ========================================================= */
+ STEP 3: RESTOCK ACTIONS (before drawing from deck)
+ Finish Project, Learn Pattern (AI skips Frog It for now)
+ ========================================================= */
 
     /**
-     * Step 3: Post-action restock actions — finish projects, learn patterns.
-     * @param {function} callback — called when restock actions are complete
-     */
+ * Step 3: Post-action restock actions — finish projects, learn patterns.
+ * @param {function} callback — called when restock actions are complete
+ */
     _stepRestockActions: function(callback) {
         var self = this;
 
@@ -800,14 +800,14 @@ var AI = {
             return;
         }
 
-        // Session 43: Urgent Request enforcement is human-only (AI seats are exempt in
+        // Urgent Request enforcement is human-only (AI seats are exempt in
         // game.js finishProject — they can't strategize toward the requirement and
         // deadlock the sim). No AI-side guard needed.
 
         // Pick highest-point project
         completable.sort(function(a, b) { return b.points - a.points; });
         var project = completable[0];
-        // Session 17: Capture project data before it's removed from display
+        // Capture project data before it's removed from display
         var projData = { name: project.name, img: project.img, points: project.points, requirements: project.requirements };
         var points = Game.finishProject(project.uid);
 
@@ -818,7 +818,7 @@ var AI = {
 
         var msg = 'Completed ' + project.name + '! (+' + points + ' pts)';
         self.showAction(msg, function() {
-            // Session 17: Show game moment for AI project completion
+            // Show game moment for AI project completion
             UI.showGameMoment({
                 badge: 'Project Complete!',
                 badgeClass: 'moment-project',
@@ -867,13 +867,13 @@ var AI = {
 
 
     /* =========================================================
-       STEP 4: RESTOCK FROM DECK (Events & SRs)
-       ========================================================= */
+ STEP 4: RESTOCK FROM DECK (Events & SRs)
+ ========================================================= */
 
     /**
-     * Step 4: Restock bazaar from deck, auto-resolve any Events/SRs drawn.
-     * @param {function} callback — called when restock is complete
-     */
+ * Step 4: Restock bazaar from deck, auto-resolve any Events/SRs drawn.
+ * @param {function} callback — called when restock is complete
+ */
     _stepRestock: function(callback) {
         var self = this;
         var emptyCount = 6 - Game.bazaarCardCount();
@@ -899,8 +899,8 @@ var AI = {
     },
 
     /**
-     * Process revealed Events/SRs during restock — AI auto-resolves.
-     */
+ * Process revealed Events/SRs during restock — AI auto-resolves.
+ */
     _processAIRestockQueue: function(queue, idx, done) {
         var self = this;
         if (idx >= queue.length) {
@@ -913,7 +913,7 @@ var AI = {
         var slot = item.slot;
 
         if (card.type === 'event') {
-            // Session 17: Show game moment for AI event reveal
+            // Show game moment for AI event reveal
             var player = Game.state.player;
             var eventFlavor = UI._getEventDesc(card.effect, player.name, player.isAI);
             UI.showGameMoment({
@@ -930,7 +930,7 @@ var AI = {
                 });
             });
         } else if (card.type === 'specialRequest') {
-            // Session 21: Two-step SR flow (like Tangled Cat).
+            // Two-step SR flow (like Tangled Cat).
             // Step 1: Reveal — "[Player] found a Special Request"
             // Step 2: Award — "[SR Name] given to [Player]" with confetti
             var isFav = card.favoriteOf === Game.state.player.characterId;
@@ -958,8 +958,8 @@ var AI = {
 
 
     /* =========================================================
-       EVENT HANDLING — AI auto-resolves all 5 types
-       ========================================================= */
+ EVENT HANDLING — AI auto-resolves all 5 types
+ ========================================================= */
 
     _handleEvent: function(card, callback) {
         var self = this;
@@ -968,7 +968,7 @@ var AI = {
         switch (result.inputType) {
 
             case 'tangledCat': {
-                // Session 43 Hank automa: solo rule — Tangled Cat ALWAYS affects the
+                // Hank automa: solo rule — Tangled Cat ALWAYS affects the
                 // active (non-Hank) player, even when the AI is driving the seat.
                 if (Game.state.hankAutoma) {
                     var selfIdx = Game.state.activePlayerIndex;
@@ -1014,7 +1014,7 @@ var AI = {
                     colors.push(self._pickMostNeededColor());
                 }
                 Game.applyYarnSale(colors);
-                // Session 43 Hank automa: solo rule — BOTH shop the sale. Hank +3.
+                // Hank automa: solo rule — BOTH shop the sale. Hank +3.
                 if (Game.state.hankAutoma) Game.hankEventYarn(3, 'Yarn Sale');
                 var summary = self._summarizeColors(colors);
                 self.showAction('Yarn Sale! Took ' + summary, function() {
@@ -1078,9 +1078,9 @@ var AI = {
     },
 
     /**
-     * Friendly Clerk: iterate through all players, AI picks for AI players,
-     * human players get the modal.
-     */
+ * Friendly Clerk: iterate through all players, AI picks for AI players,
+ * human players get the modal.
+ */
     _handleFriendlyClerkAI: function(playerIdx, callback) {
         var self = this;
         if (playerIdx >= Game.state.playerCount) {
@@ -1090,7 +1090,7 @@ var AI = {
 
         var player = Game.state.players[playerIdx];
 
-        // Session 43 Hank automa: Hank's +1 piles onto his most-stocked color.
+        // Hank automa: Hank's +1 piles onto his most-stocked color.
         if (player.isAutoma) {
             Game.hankEventYarn(1, 'Friendly Clerk');
             self.showAction('Hank gained 1 yarn (Clerk)', function() {
@@ -1120,9 +1120,9 @@ var AI = {
     },
 
     /**
-     * Craft Circle: iterate through all players, AI crafts if possible,
-     * human players get the modal.
-     */
+ * Craft Circle: iterate through all players, AI crafts if possible,
+ * human players get the modal.
+ */
     _handleCraftCircleAI: function(playerIdx, callback) {
         var self = this;
         if (playerIdx >= Game.state.playerCount) {
@@ -1132,7 +1132,7 @@ var AI = {
 
         var player = Game.state.players[playerIdx];
 
-        // Session 43 Hank automa: solo rule — Hank crafts a Blanket for FREE
+        // Hank automa: solo rule — Hank crafts a Blanket for FREE
         // (no yarn spent), never a normal AI craft.
         if (player.isAutoma) {
             Game.hankCraftFreeBlanket();
@@ -1195,11 +1195,11 @@ var AI = {
     },
 
     /**
-     * AI takes a Special Request card (rules: someone must take it).
-     * Session 16: Strong bias toward giving SRs to human players.
-     * AI keeps only its own favorite and easily-affordable SRs.
-     * Non-favorite, non-affordable SRs go to human players first.
-     */
+ * AI takes a Special Request card (rules: someone must take it).
+ * Strong bias toward giving SRs to human players.
+ * AI keeps only its own favorite and easily-affordable SRs.
+ * Non-favorite, non-affordable SRs go to human players first.
+ */
     _handleSRTake: function(card, callback) {
         var self = this;
         var player = Game.state.player;
@@ -1208,12 +1208,12 @@ var AI = {
         var activeIdx = Game.state.activePlayerIndex;
 
         /**
-         * Session 21: Show award game moment after SR assignment.
-         * Two-step flow: reveal → decision → award announcement with confetti.
-         * @param {string} recipientName — who ended up with the SR
-         */
+ * Show award game moment after SR assignment.
+ * Two-step flow: reveal → decision → award announcement with confetti.
+ * @param {string} recipientName — who ended up with the SR
+ */
         function showAwardMoment(recipientName) {
-            // Session 48W (Adam): landing someone's FAVORITE = WOW moment,
+            // landing someone's FAVORITE = WOW moment,
             // including when the human RECEIVES it from a CPU
             var recip = null;
             Game.state.players.forEach(function(pl){ if (pl.name === recipientName) recip = pl; });
@@ -1238,7 +1238,7 @@ var AI = {
             return;
         }
 
-        // Session 42: Hank automa boss match — the rulebook keep-or-give-to-Hank choice.
+        // Hank automa boss match — the rulebook keep-or-give-to-Hank choice.
         // Hank is NOT a normal opponent to "burden": giving him an SR HELPS him (free
         // end-game completion). So you keep the ones you can finish and hand Hank the rest
         // to avoid your own unfinished-SR penalty. Gnome Rules (High Demand / Emergency) can
@@ -1257,11 +1257,11 @@ var AI = {
             return;
         }
 
-        // Session 16: Decision tree for keep vs. give
+        // Decision tree for keep vs. give
         // 1. Always keep favorites (too valuable to give away)
         // 2. If affordable AND no human players exist, keep it
         // 3. If a human player exists, strongly prefer giving to them
-        //    (human players are the competition — burden them with SR penalties)
+        // (human players are the competition — burden them with SR penalties)
         // 4. Only keep affordable SRs if NO human players exist
 
         var humanPlayers = [];
@@ -1340,14 +1340,14 @@ var AI = {
 
 
     /* =========================================================
-       DECISION HELPERS
-       ========================================================= */
+ DECISION HELPERS
+ ========================================================= */
 
     /**
-     * Pick the best craft action for the current AI player.
-     * Priority: favorite SR > high-point SR > project items > regular items.
-     * Returns { type, itemId?, itemDef?, sr?, yarnToSpend } or null.
-     */
+ * Pick the best craft action for the current AI player.
+ * Priority: favorite SR > high-point SR > project items > regular items.
+ * Returns { type, itemId?, itemDef?, sr?, yarnToSpend } or null.
+ */
     _pickBestCraft: function() {
         var player = Game.state.player;
         var bowl = player.yarnBowl;
@@ -1355,8 +1355,8 @@ var AI = {
         var candidates = [];
         var profile = this._getProfile();
 
-        // --- Special Requests ---
-        // Session 16: SR urgency — as game progresses, uncompleted SRs become increasingly
+        // Special Requests ---
+        // SR urgency — as game progresses, uncompleted SRs become increasingly
         // costly (each costs -points at end-game). Factor this penalty risk into scoring.
         var gameProgress = this._gameProgress();
         var heldSRCount = Game.state.player.specialRequests.length;
@@ -1372,7 +1372,7 @@ var AI = {
             var effectivePoints = sr.points + (sr.isFavorite ? 5 : 0);
             var yarnToSpend = AI._buildSRYarnToSpend(sr, bowl, anyColors);
             if (yarnToSpend) {
-                // Session 16: Added srUrgencyBonus — avoiding SR penalties is critical
+                // Added srUrgencyBonus — avoiding SR penalties is critical
                 // The penalty for NOT crafting this SR is -(sr.points), so the AI should
                 // value completion as: actual points gained + penalty avoided.
                 var penaltyAvoidance = sr.points * gameProgress;  // rising with game progress
@@ -1388,7 +1388,7 @@ var AI = {
             }
         });
 
-        // --- Regular items ---
+        // Regular items ---
         var craftOptions = Game.getCraftOptions();
         var isMakingTwo = Game.state.makeTwoItems;
         craftOptions.forEach(function(opt) {
@@ -1403,7 +1403,7 @@ var AI = {
 
                 var baseScore = (opt.itemDef.points * profile.craftWeight) + projectBonus + completionBonus;
 
-                // Session 16: Maker makeTwoItems — project-aware targeting.
+                // Maker makeTwoItems — project-aware targeting.
                 // Strongly prefer items that appear 2+ times in visible projects,
                 // penalize low-value items (hats) unless they help projects.
                 if (isMakingTwo && profile.makeTwoItems) {
@@ -1443,8 +1443,8 @@ var AI = {
     },
 
     /**
-     * Pick the best craft from Craft Circle options (for any player).
-     */
+ * Pick the best craft from Craft Circle options (for any player).
+ */
     _pickBestCraftFromOptions: function(affordable, player) {
         var bowl = player.yarnBowl;
         var best = null;
@@ -1477,9 +1477,9 @@ var AI = {
     },
 
     /**
-     * Build the yarnToSpend object for a Special Request.
-     * Handles all colorRules: specific, any, sameColor, different, give.
-     */
+ * Build the yarnToSpend object for a Special Request.
+ * Handles all colorRules: specific, any, sameColor, different, give.
+ */
     _buildSRYarnToSpend: function(sr, bowl, anyColors) {
         var rule = sr.colorRule || 'specific';
 
@@ -1624,8 +1624,8 @@ var AI = {
     },
 
     /**
-     * Build the yarnToSpend object for a regular craft item.
-     */
+ * Build the yarnToSpend object for a regular craft item.
+ */
     _buildItemYarnToSpend: function(opt, bowl, anyColors) {
         if (anyColors) {
             return this._pickAnyYarn(bowl, opt.itemDef.yarnCount);
@@ -1693,8 +1693,8 @@ var AI = {
     },
 
     /**
-     * Pick N yarn from the bowl, choosing least-needed colors first.
-     */
+ * Pick N yarn from the bowl, choosing least-needed colors first.
+ */
     _pickAnyYarn: function(bowl, count) {
         var spend = {};
         var remaining = count;
@@ -1715,13 +1715,13 @@ var AI = {
 
 
     /* =========================================================
-       SCORING / EVALUATION HELPERS
-       ========================================================= */
+ SCORING / EVALUATION HELPERS
+ ========================================================= */
 
     /**
-     * Estimate how far along the game is (0 = start, 1 = near end).
-     * Based on project deck depletion.
-     */
+ * Estimate how far along the game is (0 = start, 1 = near end).
+ * Based on project deck depletion.
+ */
     _gameProgress: function() {
         var totalProjects = Game.getTotalProjectCount(Game.state.playerCount);
         var deckLeft = Game.state.projectDeck.length;
@@ -1731,8 +1731,8 @@ var AI = {
     },
 
     /**
-     * Count total yarn in a player's bowl.
-     */
+ * Count total yarn in a player's bowl.
+ */
     _totalYarnCount: function(player) {
         var total = 0;
         CARDS.COLORS.forEach(function(c) { total += (player.yarnBowl[c] || 0); });
@@ -1740,10 +1740,10 @@ var AI = {
     },
 
     /**
-     * Score a yarn card based on how useful its colors are.
-     * Late-game penalty: unneeded yarn is worth less (or negative)
-     * because leftover yarn costs -1 per at end of game.
-     */
+ * Score a yarn card based on how useful its colors are.
+ * Late-game penalty: unneeded yarn is worth less (or negative)
+ * because leftover yarn costs -1 per at end of game.
+ */
     _scoreYarnCard: function(card, player) {
         var needed = this._getNeededColors(player);
         var profile = this._getProfile();
@@ -1787,10 +1787,10 @@ var AI = {
     },
 
     /**
-     * Calculate which colors the AI player needs most.
-     * Based on pattern tiles, held SRs, and visible projects.
-     * Returns { color: need_score }
-     */
+ * Calculate which colors the AI player needs most.
+ * Based on pattern tiles, held SRs, and visible projects.
+ * Returns { color: need_score }
+ */
     _getNeededColors: function(player) {
         var needs = {};
         CARDS.COLORS.forEach(function(c) { needs[c] = 0; });
@@ -1807,7 +1807,7 @@ var AI = {
         });
 
         // Held Special Requests
-        // Session 16: Enhanced SR color needs — factor in game progress so the AI
+        // Enhanced SR color needs — factor in game progress so the AI
         // shops for SR-completing yarn more urgently as the game progresses.
         // Also handle more colorRules beyond just 'specific'.
         var srProgress = AI._gameProgress();
@@ -1889,22 +1889,22 @@ var AI = {
     },
 
     /**
-     * Pick the single most needed color for the current AI player.
-     */
+ * Pick the single most needed color for the current AI player.
+ */
     _pickMostNeededColor: function() {
         return this._pickMostNeededColorForPlayer(Game.state.player);
     },
 
     /**
-     * Session 13: Pick 5 most-needed colors for Expert's Take 5 Any ability.
-     * Returns an array of 5 color strings (may contain duplicates).
-     */
+ * Pick 5 most-needed colors for Expert's Take 5 Any ability.
+ * Returns an array of 5 color strings (may contain duplicates).
+ */
     /**
-     * Session 36: Pick 3 (mixed) colors for Hank's take-3-any. He crafts ignoring
-     * color-matching and leftover yarn scores for him, so he just snowballs his
-     * three biggest holdings — distinct colors, genuinely mixed.
-     * @returns {string[]} 3 color names
-     */
+ * Pick 3 (mixed) colors for Hank's take-3-any. He crafts ignoring
+ * color-matching and leftover yarn scores for him, so he just snowballs his
+ * three biggest holdings — distinct colors, genuinely mixed.
+ * @returns {string[]} 3 color names
+ */
     _pick3MostNeededColors: function() {
         var bowl = Game.state.player.yarnBowl;
         var sorted = CARDS.COLORS.slice().sort(function(a, b) {
@@ -1918,7 +1918,7 @@ var AI = {
         var bowl = player.yarnBowl;
         var profile = this._getProfile();
 
-        // Session 13 improvement: plan the 5 colors around the best craft we could
+        // improvement: plan the 5 colors around the best craft we could
         // make after getting them. Expert crafts with any colors on this space,
         // so simulate what the best item or SR to target would be.
 
@@ -1970,8 +1970,8 @@ var AI = {
         });
 
         // 2. If we have a target, pick colors that get us closest to affording it
-        //    Since Expert crafts with any colors, we just need enough total yarn.
-        //    Pick colors that also help our general needs (for future turns).
+        // Since Expert crafts with any colors, we just need enough total yarn.
+        // Pick colors that also help our general needs (for future turns).
         var needs = this._getNeededColors(player);
 
         // Sort colors by need score descending
@@ -2006,8 +2006,8 @@ var AI = {
     },
 
     /**
-     * Pick the most needed color for a specific player.
-     */
+ * Pick the most needed color for a specific player.
+ */
     _pickMostNeededColorForPlayer: function(player) {
         var needs = this._getNeededColors(player);
         var bestColor = CARDS.COLORS[0];
@@ -2033,8 +2033,8 @@ var AI = {
     },
 
     /**
-     * Pick the least-needed color from the bowl (for donation/exchange).
-     */
+ * Pick the least-needed color from the bowl (for donation/exchange).
+ */
     _pickLeastNeededColor: function(bowl) {
         var needs = this._getNeededColors(Game.state.player);
         var bestColor = null;
@@ -2053,8 +2053,8 @@ var AI = {
     },
 
     /**
-     * Sort colors by ascending need (least needed first).
-     */
+ * Sort colors by ascending need (least needed first).
+ */
     _colorsByNeed: function(bowl) {
         var needs = this._getNeededColors(Game.state.player);
         return CARDS.COLORS.slice().sort(function(a, b) {
@@ -2063,8 +2063,8 @@ var AI = {
     },
 
     /**
-     * Count how many items the AI can currently afford to craft.
-     */
+ * Count how many items the AI can currently afford to craft.
+ */
     _countAffordableCrafts: function(bowl) {
         var count = 0;
         var options = Game.getCraftOptions();
@@ -2075,9 +2075,9 @@ var AI = {
     },
 
     /**
-     * Count affordable crafts that are worth 3+ points (non-hat items, SRs).
-     * Used by Master Crafter to decide if Craft 4 is worth it.
-     */
+ * Count affordable crafts that are worth 3+ points (non-hat items, SRs).
+ * Used by Master Crafter to decide if Craft 4 is worth it.
+ */
     _countValuableCrafts: function(bowl) {
         var count = 0;
         var options = Game.getCraftOptions();
@@ -2090,9 +2090,9 @@ var AI = {
     },
 
     /**
-     * Evaluate how good the bazaar is for shopping N cards.
-     * Returns a bonus score.
-     */
+ * Evaluate how good the bazaar is for shopping N cards.
+ * Returns a bonus score.
+ */
     _evaluateBazaarValue: function(shopLimit) {
         var bazaar = Game.state.bazaar;
         var player = Game.state.player;
@@ -2112,9 +2112,9 @@ var AI = {
     },
 
     /**
-     * Calculate how mismatched the AI's yarn is for its goals.
-     * Higher = more mismatch = exchange more useful.
-     */
+ * Calculate how mismatched the AI's yarn is for its goals.
+ * Higher = more mismatch = exchange more useful.
+ */
     _yarnMismatchScore: function(bowl) {
         var needs = this._getNeededColors(Game.state.player);
         var mismatch = 0;
@@ -2130,10 +2130,10 @@ var AI = {
     },
 
     /**
-     * Give a bonus score to items that help complete visible projects.
-     * Session 16: Enhanced scaling — near-complete projects give much stronger signals,
-     * especially when only 1-2 items away from completion.
-     */
+ * Give a bonus score to items that help complete visible projects.
+ * Enhanced scaling — near-complete projects give much stronger signals,
+ * especially when only 1-2 items away from completion.
+ */
     _itemProjectBonus: function(itemId) {
         var player = Game.state.player;
         var bonus = 0;
@@ -2155,7 +2155,7 @@ var AI = {
                 var progress = totalHave / totalReqs;  // 0 to 1
                 var totalGap = totalReqs - totalHave;
 
-                // Session 16: Much steeper scaling for near-complete projects.
+                // Much steeper scaling for near-complete projects.
                 // 1 item away: bonus ≈ proj.points * 1.5 (was ~proj.points * 1.0)
                 // 2 items away: bonus ≈ proj.points * 1.0
                 // This ensures easy 1-item crafts to finish projects are strongly preferred.
@@ -2173,11 +2173,11 @@ var AI = {
     },
 
     /**
-     * Check if crafting one more of itemId would complete any visible project.
-     * Returns a massive bonus if so — this MUST dominate all other craft choices
-     * including favorite SRs (which get +100). Session 16: raised from
-     * (pts*3)+50 to (pts*3)+200 to guarantee project completion is top priority.
-     */
+ * Check if crafting one more of itemId would complete any visible project.
+ * Returns a massive bonus if so — this MUST dominate all other craft choices
+ * including favorite SRs (which get +100). raised from
+ * (pts*3)+50 to (pts*3)+200 to guarantee project completion is top priority.
+ */
     _wouldCompleteProject: function(itemId) {
         var player = Game.state.player;
         var items = player.items;
@@ -2200,7 +2200,7 @@ var AI = {
             });
 
             if (wouldComplete) {
-                // Session 16: Raised bonus massively so project completion ALWAYS wins
+                // Raised bonus massively so project completion ALWAYS wins
                 // over favorite SRs (+100) and everything else. A completed project is
                 // worth far more than any single craft action.
                 var bonus = (proj.points * 3) + 200;
@@ -2212,15 +2212,15 @@ var AI = {
     },
 
     /**
-     * Session 13: Maker bonus — check if an item appears 2+ times in any
-     * visible project requirement. Getting 2 copies at once is a huge efficiency win.
-     * Returns a bonus score if the double would significantly help a project.
-     */
+ * Maker bonus — check if an item appears 2+ times in any
+ * visible project requirement. Getting 2 copies at once is a huge efficiency win.
+ * Returns a bonus score if the double would significantly help a project.
+ */
     /**
-     * Session 13: Check if the best near-complete project only needs exactly 1
-     * more item (of any type). Used by Maker to avoid wasting the double.
-     * Returns true if a nearly-complete project has exactly 1 gap remaining.
-     */
+ * Check if the best near-complete project only needs exactly 1
+ * more item (of any type). Used by Maker to avoid wasting the double.
+ * Returns true if a nearly-complete project has exactly 1 gap remaining.
+ */
     _projectNeedsExactlyOne: function() {
         var player = Game.state.player;
         var found = false;
@@ -2263,11 +2263,11 @@ var AI = {
     },
 
     /**
-     * Check if using N craft actions could complete a visible project this turn.
-     * Simulates: what affordable items could I craft, and would the resulting
-     * inventory satisfy any project's requirements?
-     * Returns the best project's point value if completable, otherwise 0.
-     */
+ * Check if using N craft actions could complete a visible project this turn.
+ * Simulates: what affordable items could I craft, and would the resulting
+ * inventory satisfy any project's requirements?
+ * Returns the best project's point value if completable, otherwise 0.
+ */
     _craftCouldCompleteProject: function(craftCount) {
         var player = Game.state.player;
         var bowl = player.yarnBowl;
@@ -2306,7 +2306,7 @@ var AI = {
                 }
             });
 
-            // Session 13: Maker makeTwoItems — each craft produces 2 items,
+            // Maker makeTwoItems — each craft produces 2 items,
             // so effective output is craftCount * 2 (but only 1 type per craft action)
             var effectiveOutput = craftCount;
             if (Game.state.makeTwoItems) {
@@ -2396,8 +2396,8 @@ var AI = {
 
 
     /* =========================================================
-       STRING HELPERS
-       ========================================================= */
+ STRING HELPERS
+ ========================================================= */
 
     _cap: function(s) {
         return s.charAt(0).toUpperCase() + s.slice(1);

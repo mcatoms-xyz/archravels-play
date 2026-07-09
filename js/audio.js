@@ -1,6 +1,6 @@
 /* ArchRavels Digital — audio engine (Session: sound pass).
-   Map = Adam's sound-map.json (byEvent). Files live in /audio. Music sits under SFX.
-   Device volume controls absolute loudness; we only balance the mix + offer mute. */
+ Map = the sound-map.json (byEvent). Files live in /audio. Music sits under SFX.
+ Device volume controls absolute loudness; we only balance the mix + offer mute. */
 (function(){
   var BASE='audio/';
   var SFX_VOL=0.85, MUSIC_VOL=0.15;
@@ -12,8 +12,8 @@
   function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
   function url(f){ return BASE+encodeURI(f); }
   /* Shared AudioContext for BOTH music and SFX. iOS WKWebView ignores HTMLMediaElement
-     .volume, so SFX go through a GainNode too — played as decoded AudioBuffers so the
-     master SFX gain actually attenuates on-device (and overlapping plays just work). */
+ .volume, so SFX go through a GainNode too — played as decoded AudioBuffers so the
+ master SFX gain actually attenuates on-device (and overlapping plays just work). */
   var _ctx=null, _ctxTried=false;
   function getCtx(){
     if(_ctx||_ctxTried) return _ctx;
@@ -57,8 +57,8 @@
   }
   var music=(function(){
     /* iOS WKWebView IGNORES HTMLMediaElement.volume (it always reports/uses 1), so the
-       slider + mute did nothing there. Route music through a Web Audio GainNode — gain
-       DOES attenuate on iOS — and additionally pause() the element on mute / game-pause. */
+ slider + mute did nothing there. Route music through a Web Audio GainNode — gain
+ DOES attenuate on iOS — and additionally pause the element on mute / game-pause. */
     var el=null, idx=-1, started=false, pausedByGame=false;
     var ctx=null, gain=null, srcNode=null, graphTried=false;
     function buildGraph(){
@@ -119,7 +119,7 @@
     isMuted:function(){ return muted; }
   };
   function updateMuteUI(){ var b=document.getElementById('navMuteBtn'); if(!b)return; b.classList.toggle('nm-muted',muted); var l=b.querySelector('.nm-mute-label'); if(l){ l.textContent=(muted?'Sound Off':'Sound On'); } else { b.innerHTML=(muted?'🔇 Sound: Off':'🔊 Sound: On'); } }
-  // Session 38b: BROAD UI press-feedback — a subtle tick on every interactive element.
+  // BROAD UI press-feedback — a subtle tick on every interactive element.
   var INTERACTIVE='button,a,input,select,label,[onclick],[role="button"],.btn,.bazaar-slot,.nav-menu-item,.nav-menu-btn,.player-strip-card,[class*="slot"],[class*="token"],[class*="card"],[class*="tile"],[class*="space"],[class*="chip"],[class*="btn"]';
   var _lastTick=0;
   var AB_MAP=[['onTakeYarn','ab-take-yarn'],['showExchangeModal','ab-exchange'],['showLearnPatternModal','ab-learn'],['showFrogItModal','ab-frog'],['showFinishProjectModal','ab-finish'],['onEndActions','ab-end-actions'],['onEndRestockTurn','ab-end-turn'],['onSkipRestock','ab-skip-restock'],['onRestock','ab-restock'],['onEndFinalCraft','ab-done']];

@@ -1,5 +1,5 @@
 /* ui-modals1.js — UI module (split from the Session-40 LIVE monolith).
-   ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
+ ui-core.js declares `var UI`; the other ui-*.js files extend it via Object.assign. */
 Object.assign(UI, {
     onChangeSpace: function() {
         Game.undoSpaceChoice();
@@ -9,7 +9,7 @@ Object.assign(UI, {
         // Guard: only allow during chooseSpace phase, and not during AI turn
         if (Game.state.phase !== 'chooseSpace') return;
         if (Game.state.player && Game.state.player.isAI) return;
-        // Session 47n: if the marker is resting on last turn's space, it FLIES to the pick
+        // if the marker is resting on last turn's space, it FLIES to the pick
         var _rm = document.querySelector('.am-marker:not(.am-flying)');
         UI._amHopFrom = _rm ? _rm.getBoundingClientRect() : null;
         Game.chooseActionSpace(spaceIndex);
@@ -17,11 +17,11 @@ Object.assign(UI, {
         UI._afterSpaceEntered();
     },
 
-    /* Session 47: hop the marker to another legal space while the choice is soft. */
+    /* hop the marker to another legal space while the choice is soft. */
     onSwitchSpace: function(spaceIndex) {
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;
-        // Session 47n: capture take-off point so the marker flies to the new space
+        // capture take-off point so the marker flies to the new space
         var _mk = document.querySelector('.am-marker:not(.am-flying)');
         UI._amHopFrom = _mk ? _mk.getBoundingClientRect() : null;
         if (!Game.switchActionSpace(spaceIndex)) { UI._amHopFrom = null; return; }
@@ -30,8 +30,8 @@ Object.assign(UI, {
 
     /* Shared post-entry hook: entry-gain uniques pop their pickers. */
     _afterSpaceEntered: function() {
-        // Session 8c: take3Yarn — show color picker to gain 3 yarn before actions
-        // Session 47b: cancelable — nothing is confirmed yet, so backing out
+        // take3Yarn — show color picker to gain 3 yarn before actions
+        // cancelable — nothing is confirmed yet, so backing out
         // returns the choice to soft (marker back to resting, re-choose freely).
         if (Game.state.pendingTake3Yarn) {
             UI.showColorPicker(function(color) {
@@ -44,7 +44,7 @@ Object.assign(UI, {
             UI._addEntryGainCancel('colorPickerModal');
         }
 
-        // Session 13: take5AnyCraft1Any — show Take5 picker modal
+        // take5AnyCraft1Any — show Take5 picker modal
         if (Game.state.pendingTake5Any) {
             UI.showTake5Modal();
         }
@@ -52,19 +52,19 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       END ACTIONS / END TURN
-       ========================================================= */
+ END ACTIONS / END TURN
+ ========================================================= */
 
     /**
-     * "End Actions" button — finishes the player's actions and
-     * moves to the restock phase.
-     */
+ * "End Actions" button — finishes the player's actions and
+ * moves to the restock phase.
+ */
     onEndActions: function() {
         // Guard: only allow during playerActions phase
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;
 
-        // Playtest 6/29: end-turn guardrail. If the player still has a DOABLE
+        // end-turn guardrail. If the player still has a DOABLE
         // shop or craft action, warn before leaving the actions phase. Only
         // counts actions that are actually possible right now (cards in the
         // bazaar to shop / at least one affordable craft) so we never nag when
@@ -88,8 +88,8 @@ Object.assign(UI, {
     },
 
     /** Returns a list of still-doable actions (for the end-turn warning).
-     * Each item carries a count string mirroring the action bar's chips
-     * (Shop: selected/limit, Craft: used/limit). */
+ * Each item carries a count string mirroring the action bar's chips
+ * (Shop: selected/limit, Craft: used/limit). */
     _pendingEndActions: function() {
         var actions = Game.getAvailableActions();
         var pending = [];
@@ -148,7 +148,7 @@ Object.assign(UI, {
     },
 
     /** Hard block: shopping is mandatory + exact, so you can't end the turn
-     * with an unfinished shop. No "end anyway" — just send them back. */
+ * with an unfinished shop. No "end anyway" — just send them back. */
     _showMustShopWarning: function(n) {
         this._dismissEndActionsWarning();
         var overlay = document.createElement('div');
@@ -175,10 +175,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 43: Urgent Request (Snagged Project) blocked a project finish —
-     * explain the constraint + current progress. Same dynamic pattern as the
-     * must-shop warning.
-     */
+ * Urgent Request (Snagged Project) blocked a project finish —
+ * explain the constraint + current progress. Same dynamic pattern as the
+ * must-shop warning.
+ */
     _showSnagBlockWarning: function() {
         var rem = Game.state.activeSnagReminder;
         if (!rem) return;
@@ -224,9 +224,9 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 43: Emergency! Gnome Rule blocked a craft — the tagged SR must be
-     * crafted before anything else.
-     */
+ * Emergency! Gnome Rule blocked a craft — the tagged SR must be
+ * crafted before anything else.
+ */
     _showEmergencyBlockWarning: function() {
         var sr = Game.emergencyBlocks();
         if (!sr) return;
@@ -262,19 +262,19 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       TAKE YARN FLOW
-       1. Player clicks "Take Yarn"
-       2. If wild cards selected → color pickers open sequentially
-       3. Full confirmation modal shows all yarn (including wild choices)
-       4. Confirm → apply to bowl   |   Cancel → discard & go back
-       ========================================================= */
+ TAKE YARN FLOW
+ 1. Player clicks "Take Yarn"
+ 2. If wild cards selected → color pickers open sequentially
+ 3. Full confirmation modal shows all yarn (including wild choices)
+ 4. Confirm → apply to bowl | Cancel → discard & go back
+ ========================================================= */
 
     /** Pending take data, built during the flow */
     _pendingTake: null,
 
     /**
-     * "Take Yarn" button handler — kicks off the take flow.
-     */
+ * "Take Yarn" button handler — kicks off the take flow.
+ */
     onTakeYarn: function() {
         // Guard: only allow during playerActions when shop is available
         if (Game.state.phase !== 'playerActions') return;
@@ -291,7 +291,7 @@ Object.assign(UI, {
         sel.forEach(function(i) {
             var card = Game.state.bazaar[i];
             if (card === null) {
-                // Session 9: empty bazaar slot → treat as 1 any-color yarn (wild)
+                // empty bazaar slot → treat as 1 any-color yarn (wild)
                 wildCards.push({ card: { name: 'Empty Slot', img: '', yarn: { any: 1 }, type: 'empty' }, slot: i });
             } else if (card.yarn && card.yarn.any) {
                 wildCards.push({ card: card, slot: i });
@@ -334,11 +334,11 @@ Object.assign(UI, {
     },
 
     /**
-     * Sequentially collect color choices for wild card picks.
-     * Opens the color picker once per pick (a 2-any card = 2 picks).
-     */
-    /* Session 50 (Adam): minus zone on the tray wells - undo the LAST pick
-       of that color in the current wild multi-pick flow and step back. */
+ * Sequentially collect color choices for wild card picks.
+ * Opens the color picker once per pick (a 2-any card = 2 picks).
+ */
+    /* minus zone on the tray wells - undo the LAST pick
+ of that color in the current wild multi-pick flow and step back. */
     _wildConfirm: function() {
         var g = document.getElementById('colorPickerGrid');
         if (g) { g.classList.remove('cp-full'); g.classList.remove('cp-multi'); }
@@ -361,7 +361,7 @@ Object.assign(UI, {
         if (!pending) return;
 
         if (index >= pending.wildPicksTotal) {
-            // Session 50 (Adam): on tablet MULTI-pick flows, do NOT jump ahead -
+            // on tablet MULTI-pick flows, do NOT jump ahead -
             // stay in the picker in a REVIEW state (minus zones still live) with
             // an explicit Confirm that leads to the shopping summary.
             var _tabletMulti = pending.wildPicksTotal > 1 &&
@@ -400,11 +400,11 @@ Object.assign(UI, {
             pending.wildChoices.push(color);
             UI._collectWildChoices(index + 1);
         }, title, Game.state.player, true);
-        // Session 50 (Adam): tray wells get a minus zone in multi-pick flows
+        // tray wells get a minus zone in multi-pick flows
         var _cpGrid = document.getElementById('colorPickerGrid');
         if (_cpGrid) _cpGrid.classList.toggle('cp-multi', total > 1);
 
-        // Session 35: when more than one wild pick is needed, show a live
+        // when more than one wild pick is needed, show a live
         // "your picks" row so the player sees colors already chosen this take.
         if (total > 1) {
             var progEl = document.getElementById('colorPickerProgress');
@@ -426,8 +426,8 @@ Object.assign(UI, {
     },
 
     /**
-     * Build and show the Take Yarn confirmation modal.
-     */
+ * Build and show the Take Yarn confirmation modal.
+ */
     showConfirmTake: function() {
         var pending = this._pendingTake;
         if (!pending) return;
@@ -517,20 +517,20 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       RESTOCK FLOW — Session 6: Async Event/SR Resolution
-       ========================================================= */
+ RESTOCK FLOW — Async Event/SR Resolution
+ ========================================================= */
 
     /**
-     * "Restock" button handler.
-     * Fills slots then processes any Events/SRs sequentially before ending turn.
-     */
+ * "Restock" button handler.
+ * Fills slots then processes any Events/SRs sequentially before ending turn.
+ */
     onRestock: function() {
         // Guard: only allow during restock phase
         if (Game.state.phase !== 'restock') return;
         this._restockDone = true;
         var revealed = Game.restockBazaar();
 
-        // Session 42: Tangled Yarn cards that surfaced during restock queue up as reveals.
+        // Tangled Yarn cards that surfaced during restock queue up as reveals.
         // Play them (cat meow + yarn confetti), update the Gnome Rule slot, THEN the events/SRs.
         UI.renderGnomeRule();
         UI.playHankReveals(function() {
@@ -558,23 +558,23 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 9b: End the turn after restock phase actions are complete.
-     */
+ * End the turn after restock phase actions are complete.
+ */
     onEndRestockTurn: function() {
         // Guard: only allow during restock phase
         if (Game.state.phase !== 'restock') return;
         this._restockDone = false;
         Game.endTurn();
-        // Session 43: after a Hank match turn, dramatize his response (the "Hank Goes
+        // after a Hank match turn, dramatize his response (the "Hank Goes
         // Shopping" beat) before the player takes over.
         if (Game.state.hankAutoma && Game.state._hankBeat) UI.showHankTurnBeat();
     },
 
     /**
-     * Session 43: "Hank's Turn" modal — a 6s beat after you end your turn so the boss
-     * feels ALIVE (his +3 was invisible before). Shows his shopping haul, running score,
-     * a dramatic turn counter, an auto-countdown ring, and a "Your Turn →" button.
-     */
+ * "Hank's Turn" modal — a 6s beat after you end your turn so the boss
+ * feels ALIVE (his +3 was invisible before). Shows his shopping haul, running score,
+ * a dramatic turn counter, an auto-countdown ring, and a "Your Turn →" button.
+ */
     _hankBeatTimer: null,
     showHankTurnBeat: function() {
         var beat = Game.state._hankBeat; Game.state._hankBeat = null;
@@ -584,7 +584,7 @@ Object.assign(UI, {
         var SECS = 6;
         var YARN3 = { orange:'0000', blue:'0001', green:'0002', purple:'0003', red:'0004', yellow:'0005' };
         var c = (beat.colors && beat.colors[0]) || beat.color || 'blue';
-        // Session 43 (Adam): ONE Yarn3 "3-count" token — he grabbed 3 of a single color.
+        // ONE Yarn3 "3-count" token — he grabbed 3 of a single color.
         // (If a future ramp makes the amount ≠ 3, fall back to N single tokens.)
         var tokens;
         if (beat.amount === 3) {
@@ -623,9 +623,9 @@ Object.assign(UI, {
     },
 
     /**
-     * Show the final craft phase UI: the player gets 1 craft action
-     * (item or SR) with their existing yarn, then done.
-     */
+ * Show the final craft phase UI: the player gets 1 craft action
+ * (item or SR) with their existing yarn, then done.
+ */
     showFinalCraftPhase: function() {
         var bar = this.els.actionBar;
         if (!bar) return;
@@ -698,12 +698,12 @@ Object.assign(UI, {
     },
 
     /**
-     * Sequential processor for revealed Events and SRs during Restock.
-     * Shows a modal for each, waits for player, then moves to next.
-     * @param {Array}    queue — [{slot, card}] revealed events/SRs
-     * @param {number}   idx   — current index into queue
-     * @param {function} done  — called after last item resolved
-     */
+ * Sequential processor for revealed Events and SRs during Restock.
+ * Shows a modal for each, waits for player, then moves to next.
+ * @param {Array} queue — [{slot, card}] revealed events/SRs
+ * @param {number} idx — current index into queue
+ * @param {function} done — called after last item resolved
+ */
     _processRestockQueue: function(queue, idx, done) {
         if (idx >= queue.length) {
             done();
@@ -715,14 +715,14 @@ Object.assign(UI, {
         var slot = item.slot;
 
         if (card.type === 'event') {
-            // Session 19: Go straight to Event Modal (cut redundant pre-announce Game Moment)
+            // Go straight to Event Modal (cut redundant pre-announce Game Moment)
             UI.showEventModal(card, function() {
                 Game.resolveRestockCard(slot, card);
                 UI.renderBazaar();
                 UI._processRestockQueue(queue, idx + 1, done);
             });
         } else if (card.type === 'specialRequest') {
-            // Session 19: SR Take Modal is the one and only dialog for SR reveals.
+            // SR Take Modal is the one and only dialog for SR reveals.
             // No pre-announce, no post-decision celebration — the Take Modal does it all.
             UI.showSRTakeModal(card, function() {
                 Game.resolveRestockCard(slot, card);
@@ -737,9 +737,9 @@ Object.assign(UI, {
     },
 
     /**
-     * "Skip Restock" — bazaar is full or deck empty, no restock needed.
-     * Sets _restockDone so bonus actions (Finish Project, Learn Pattern, Frog It) appear.
-     */
+ * "Skip Restock" — bazaar is full or deck empty, no restock needed.
+ * Sets _restockDone so bonus actions (Finish Project, Learn Pattern, Frog It) appear.
+ */
     onSkipRestock: function() {
         if (Game.state.phase !== 'restock') return;
         this._restockDone = true;
@@ -750,26 +750,26 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 17: GAME MOMENT MODAL
-       Generic announcement overlay for key game moments.
-       Shows card image, title, description. Human clicks to
-       dismiss; AI auto-dismisses after a delay.
-       Config: { badge, badgeClass, img, title, desc, points }
-       ========================================================= */
+ SESSION 17: GAME MOMENT MODAL
+ Generic announcement overlay for key game moments.
+ Shows card image, title, description. Human clicks to
+ dismiss; AI auto-dismisses after a delay.
+ Config: { badge, badgeClass, img, title, desc, points }
+ ========================================================= */
 
     /**
-     * Session 42: Play the queued Hank automa reveals (Tangled Yarn instants + Snagged
-     * Projects) as game-moment modals — a cat meow + yarn-strand confetti per card. Chains
-     * through the whole queue, then fires callback. (Gnome Rules don't queue here — they
-     * slide into the board slot instead.)
-     */
+ * Play the queued Hank automa reveals (Tangled Yarn instants + Snagged
+ * Projects) as game-moment modals — a cat meow + yarn-strand confetti per card. Chains
+ * through the whole queue, then fires callback. (Gnome Rules don't queue here — they
+ * slide into the board slot instead.)
+ */
     playHankReveals: function(callback) {
         var q = (Game.state && Game.state.hankReveals) || [];
         if (!q.length) { if (callback) callback(); return; }
         var item = q.shift();
         var card = item.card || {};
 
-        // Session 43: Cat Nap placement — the human chooses where the cat sleeps.
+        // Cat Nap placement — the human chooses where the cat sleeps.
         // (AI/sim seats never place; enforcement is human-only anyway.)
         if (item.kind === 'catNapPick') {
             var nColors = (card.arg && card.arg.colors) || 1;   // built card: flat arg, boolean hard
@@ -794,7 +794,7 @@ Object.assign(UI, {
             return;
         }
 
-        // Session 43 (playtest fix): gnome-rule installs announce themselves too.
+        // (playtest fix): gnome-rule installs announce themselves too.
         var isGnome  = item.kind === 'gnomeRule';
         var isTangle = item.kind === 'tangledYarn' || isGnome;
         try { if (window.Sound) Sound.play('tangle-reveal'); } catch(e) {}
@@ -811,8 +811,8 @@ Object.assign(UI, {
     },
 
     /**
-     * Session 43: Cat Nap (Hard) — pick 2 ADJACENT colors (bowl order R·O·Y·G·B·P).
-     */
+ * Cat Nap (Hard) — pick 2 ADJACENT colors (bowl order R·O·Y·G·B·P).
+ */
     _showCatNapPairPicker: function(done) {
         var order = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
         var overlay = document.createElement('div');
@@ -851,10 +851,10 @@ Object.assign(UI, {
     _gameMomentCallback: null,
 
     /**
-     * Show a game moment announcement modal.
-     * @param {Object}   config   — { badge, badgeClass, img, title, desc, points }
-     * @param {function} callback — called after the moment is dismissed
-     */
+ * Show a game moment announcement modal.
+ * @param {Object} config — { badge, badgeClass, img, title, desc, points }
+ * @param {function} callback — called after the moment is dismissed
+ */
     showGameMoment: function(config, callback) {
         this._gameMomentCallback = callback || null;
 
@@ -893,7 +893,7 @@ Object.assign(UI, {
 
         modal.style.display = 'flex';
 
-        // Session 17: Spawn confetti particles behind the modal (Session 42: yarn strands).
+        // Spawn confetti particles behind the modal yarn strands).
         // Reference modals (e.g. the Gnome Rule card) pass noConfetti — no celebration.
         if (!config.noConfetti) UI._spawnConfetti(modal);
 
@@ -906,8 +906,8 @@ Object.assign(UI, {
     },
 
     /**
-     * Dismiss the game moment modal and fire the callback.
-     */
+ * Dismiss the game moment modal and fire the callback.
+ */
     _dismissGameMoment: function() {
         var modal = document.getElementById('gameMomentModal');
         modal.style.display = 'none';
@@ -921,10 +921,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Spawn confetti particles behind the game moment modal content.
-     * Particles are CSS-only, positioned in a layer behind the modal card.
-     * @param {HTMLElement} modal — the .game-moment-overlay element
-     */
+ * Spawn confetti particles behind the game moment modal content.
+ * Particles are CSS-only, positioned in a layer behind the modal card.
+ * @param {HTMLElement} modal — the .game-moment-overlay element
+ */
     _spawnConfetti: function(modal) {
         // Remove any old confetti layer
         var old = modal.querySelector('.gm-confetti-layer');
@@ -933,7 +933,7 @@ Object.assign(UI, {
         var layer = document.createElement('div');
         layer.className = 'gm-confetti-layer';
 
-        // Session 42: yarn-strand confetti — little tumbling snippets of yarn in the game's
+        // yarn-strand confetti — little tumbling snippets of yarn in the game's
         // six yarn-token colors. Some are straight strands, some curl like a loose loop.
         var colors = ['#d24b4b','#3b7dd8','#4fae5a','#e8c33f','#e2853a','#8b5cc0'];
         var count = 90;
@@ -979,10 +979,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Build a human-readable description of project requirements.
-     * @param {Object} requirements — { itemId: count }
-     * @returns {string}
-     */
+ * Build a human-readable description of project requirements.
+ * @param {Object} requirements — { itemId: count }
+ * @returns {string}
+ */
     _describeProjectReqs: function(requirements) {
         var parts = [];
         var order = ['hat', 'mittens', 'bear', 'scarf', 'blanket'];
@@ -996,10 +996,10 @@ Object.assign(UI, {
     },
 
     /**
-     * Build a human-readable description of SR yarn requirements.
-     * @param {Object} sr — the SR card/object
-     * @returns {string}
-     */
+ * Build a human-readable description of SR yarn requirements.
+ * @param {Object} sr — the SR card/object
+ * @returns {string}
+ */
     _describeSRYarn: function(sr) {
         if (sr.colorRule === 'specific' && sr.yarn) {
             var parts = [];
@@ -1031,22 +1031,22 @@ Object.assign(UI, {
     },
 
     /**
-     * Renders yarn cost as colored dot HTML for game moment modals.
-     * Replaces text descriptions with visual dots matching yarn colors.
-     * @param {Object} sr — the Special Request card object
-     * @returns {string} HTML string with colored dot spans
-     */
+ * Renders yarn cost as colored dot HTML for game moment modals.
+ * Replaces text descriptions with visual dots matching yarn colors.
+ * @param {Object} sr — the Special Request card object
+ * @returns {string} HTML string with colored dot spans
+ */
     _renderSRYarnDots: function(sr) {
         var hex = CARDS.COLOR_HEX;
         var gap = '<span class="gm-yarn-gap"></span>';
         var dot = function(color) {
             return '<span class="gm-yarn-dot" style="background:' + hex[color] + '" title="' + color + '" data-cb-color="' + color + '" aria-label="' + color + ' yarn"></span>';
         };
-        // Session 18: "any color" dots use rainbow gradient; gray for "one color" / "different"
+        // "any color" dots use rainbow gradient; gray for "one color" / "different"
         var rainbowDot = '<span class="gm-yarn-dot gm-yarn-dot-rainbow" title="any color" aria-label="any color yarn"></span>';
         var neutralDot = '<span class="gm-yarn-dot gm-yarn-dot-neutral" title="one color" aria-label="one color yarn"></span>';
 
-        // Session 18: Only chunk by 3 when total > 5; groups of 3-5 stay together
+        // Only chunk by 3 when total > 5; groups of 3-5 stay together
         var chunkedDots = function(count, dotFn) {
             var out = '';
             if (count <= 5) {
@@ -1063,7 +1063,7 @@ Object.assign(UI, {
         };
 
         // Helper: render sorted colored dots from a yarn object (most-needed color first).
-        // Session 18: Only chunk by 3 when total > 5
+        // Only chunk by 3 when total > 5
         var sortedColorDots = function(yarn) {
             var colors = Object.keys(yarn).filter(function(c) { return yarn[c] > 0; });
             colors.sort(function(a, b) {
@@ -1174,14 +1174,14 @@ Object.assign(UI, {
     },
 
     /**
-     * Returns SR description HTML for game moment modals.
-     * Active (human) player sees instructions; spectators see narration.
-     * @param {string} moment — 'completed' (Session 21: 'awarded' removed — handled by two-step flow)
-     * @param {Object} sr — the SR card object
-     * @param {string} name — active player's name
-     * @param {boolean} isAI — true if active player is AI
-     * @returns {string} HTML string
-     */
+ * Returns SR description HTML for game moment modals.
+ * Active (human) player sees instructions; spectators see narration.
+ * @param {string} moment — 'completed' 'awarded' removed — handled by two-step flow)
+ * @param {Object} sr — the SR card object
+ * @param {string} name — active player's name
+ * @param {boolean} isAI — true if active player is AI
+ * @returns {string} HTML string
+ */
     _getSRDesc: function(moment, sr, name, isAI) {
         var dots = this._renderSRYarnDots(sr);
         switch (moment) {
@@ -1198,12 +1198,12 @@ Object.assign(UI, {
     },
 
     /**
-     * Returns project completion description HTML for game moment modals.
-     * @param {Object} project — the project card object
-     * @param {string} name — player's name
-     * @param {boolean} isAI — true if active player is AI
-     * @returns {string} HTML string
-     */
+ * Returns project completion description HTML for game moment modals.
+ * @param {Object} project — the project card object
+ * @param {string} name — player's name
+ * @param {boolean} isAI — true if active player is AI
+ * @returns {string} HTML string
+ */
     _getProjectDesc: function(project, name, isAI) {
         var reqDesc = project ? UI._describeProjectReqs(project.requirements) : '';
         if (isAI) {
@@ -1213,13 +1213,13 @@ Object.assign(UI, {
     },
 
     /**
-     * Returns event description text for game moments.
-     * Active (human) player sees instructions; spectators see what the AI is doing.
-     * @param {string} effect — the event effect id
-     * @param {string} name — active player's name
-     * @param {boolean} isAI — true if the active player is AI (human is spectating)
-     * @returns {string}
-     */
+ * Returns event description text for game moments.
+ * Active (human) player sees instructions; spectators see what the AI is doing.
+ * @param {string} effect — the event effect id
+ * @param {string} name — active player's name
+ * @param {boolean} isAI — true if the active player is AI (human is spectating)
+ * @returns {string}
+ */
     _getEventDesc: function(effect, name, isAI) {
         switch (effect) {
             case 'tangledCat':
@@ -1245,17 +1245,17 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 6b: EVENT MODAL
-       Shows event card image + description, then dispatches to the
-       correct sub-modal for each of the 5 event types.
-       ========================================================= */
+ SESSION 6b: EVENT MODAL
+ Shows event card image + description, then dispatches to the
+ correct sub-modal for each of the 5 event types.
+ ========================================================= */
 
     _eventModalCallback: null,
 
     /**
-     * Show the event modal for the given card, then hand off to the
-     * correct sub-flow based on inputType.
-     */
+ * Show the event modal for the given card, then hand off to the
+ * correct sub-flow based on inputType.
+ */
     showEventModal: function(card, callback) {
         this._eventModalCallback = callback;
 
@@ -1308,13 +1308,13 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       TANGLED CAT MODAL
-       Active player chooses a player to lose crafting next turn.
-       SP: auto-targets the only player (no selection shown).
-       ========================================================= */
+ TANGLED CAT MODAL
+ Active player chooses a player to lose crafting next turn.
+ SP: auto-targets the only player (no selection shown).
+ ========================================================= */
 
     showTangledCatModal: function(callback) {
-        // Session 43 Hank automa: solo rule — Tangled Cat ALWAYS affects you.
+        // Hank automa: solo rule — Tangled Cat ALWAYS affects you.
         // (Hank takes no turns, so tangling him would be meaningless anyway.)
         if (Game.state.hankAutoma) {
             var humanIdx = Game.state.activePlayerIndex;
@@ -1335,7 +1335,7 @@ Object.assign(UI, {
             UI.renderActionBar();
             if (callback) callback();
         } else {
-            // Session 9: show player selector — pick another player to target
+            // show player selector — pick another player to target
             var activeIdx = Game.state.activePlayerIndex;
             var html = '<div class="restock-modal-msg">Choose a player who can\'t Craft next turn:</div>';
             html += '<div class="player-selector-grid">';
@@ -1380,10 +1380,10 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       FRIENDLY CLERK MODAL
-       Each player picks 1 yarn color and gains 1 token.
-       Iterates through all players in sequence.
-       ========================================================= */
+ FRIENDLY CLERK MODAL
+ Each player picks 1 yarn color and gains 1 token.
+ Iterates through all players in sequence.
+ ========================================================= */
 
     _friendlyClerkPlayerIdx: 0,
     _friendlyClerkCallback: null,
@@ -1405,7 +1405,7 @@ Object.assign(UI, {
 
         var player = Game.state.players[idx];
 
-        // Session 43 Hank automa: solo rule — Hank gets his +1 too, piled onto his
+        // Hank automa: solo rule — Hank gets his +1 too, piled onto his
         // most-stocked color (color is cosmetic for him: he crafts any-color and
         // leftover yarn scores 2:1).
         if (player.isAutoma) {
@@ -1417,7 +1417,7 @@ Object.assign(UI, {
             return;
         }
 
-        // Session 9b: AI players auto-resolve — pick most needed color
+        // AI players auto-resolve — pick most needed color
         if (player.isAI) {
             var color = AI._pickMostNeededColorForPlayer(player);
             Game.applyFriendlyClerk(idx, color);
@@ -1449,8 +1449,8 @@ Object.assign(UI, {
 
 
     /* =========================================================
-       SESSION 6b: YARN SALE MODAL
-       Player picks 3 colors to gain from the supply.
-       ========================================================= */
+ SESSION 6b: YARN SALE MODAL
+ Player picks 3 colors to gain from the supply.
+ ========================================================= */
 
 });

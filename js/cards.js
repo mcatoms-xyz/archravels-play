@@ -4,15 +4,15 @@
  * All card definitions for the game.
  *
  * Card types in the Yarn Deck:
- *   - Yarn cards (80 total) — give yarn tokens when taken via Shop
- *     Session 13: Updated per Magic Socks expansion deck edit.
- *     Removed all single-color Yarn 1 cards (gave 1 yarn).
- *     Breakdown: 36 single-color-2 + 12 existing dual + 18 new dual + 8 triple + 6 wild = 80
- *   - Event cards (12 total) — resolve immediately during Restock
- *   - Special Requests (26 base + 3 promos + 13 expansion = 42 total; S41 removed the duplicate promo "Everyone's Welcome") — shuffled into top half of deck during setup
+ * - Yarn cards (80 total) — give yarn tokens when taken via Shop
+ * Updated per Magic Socks expansion deck edit.
+ * Removed all single-color Yarn 1 cards (gave 1 yarn).
+ * Breakdown: 36 single-color-2 + 12 existing dual + 18 new dual + 8 triple + 6 wild = 80
+ * - Event cards (12 total) — resolve immediately during Restock
+ * - Special Requests (26 base + 3 promos + 13 expansion = 42 total; S41 removed the duplicate promo "Everyone's Welcome") — shuffled into top half of deck during setup
  *
  * Card types in the Project Deck (separate):
- *   - Project cards (16 total) — completed by turning in Item tokens
+ * - Project cards (16 total) — completed by turning in Item tokens
  *
  * Image paths are relative to index.html (root of the game folder).
  * =========================================================
@@ -20,14 +20,14 @@
 
 const CARDS = {
 
-    /* ----- Image paths ----- */
+    /* Image paths ----- */
     CARD_BACK: 'Square Cards PNG/AR_YarnEvents_Final_0028_Square_CardBack.png',
     PROJECT_BACK: 'Project Cards PNG/AR_ProjectCards_Back.png',
 
-    /* ----- 6 yarn colors in the game ----- */
+    /* 6 yarn colors in the game ----- */
     COLORS: ['red', 'blue', 'green', 'yellow', 'orange', 'purple'],
 
-    /* ----- Color hex values for UI rendering ----- */
+    /* Color hex values for UI rendering ----- */
     COLOR_HEX: {
         red:    '#c0392b',
         blue:   '#2874a6',
@@ -38,22 +38,22 @@ const CARDS = {
     },
 
     /* =========================================================
-       YARN CARDS — 80 total (Session 13: updated per Magic Socks expansion deck edit)
-       All single-color Yarn 1 cards removed.
-       Copy counts corrected to match production spreadsheet.
-       9 new dual-color combos added from expansion.
+ YARN CARDS — 80 total updated per Magic Socks expansion deck edit)
+ All single-color Yarn 1 cards removed.
+ Copy counts corrected to match production spreadsheet.
+ 9 new dual-color combos added from expansion.
 
-       Breakdown: 36 single-2 + 12 existing dual + 18 new dual + 8 triple + 6 wild = 80
+ Breakdown: 36 single-2 + 12 existing dual + 18 new dual + 8 triple + 6 wild = 80
 
-       Each definition has:
-         id      — unique identifier for this art variant
-         name    — display name
-         img     — image filename (inside "Square Cards PNG/")
-         yarn    — object mapping color → count gained
-         copies  — how many of this card go into the deck
-       ========================================================= */
+ Each definition has:
+ id — unique identifier for this art variant
+ name — display name
+ img — image filename (inside "Square Cards PNG/")
+ yarn — object mapping color → count gained
+ copies — how many of this card go into the deck
+ ========================================================= */
     yarn: [
-        /* --- Single color Yarn 2 (6 variants × 6 copies = 36) --- */
+        /* Single color Yarn 2 (6 variants × 6 copies = 36) --- */
         { id: 'blue2',    name: 'Blue',    img: 'AR_YarnEvents_Final_0006_Blue2.png',    yarn: { blue: 2 },    copies: 6 },
         { id: 'yellow2',  name: 'Yellow',  img: 'AR_YarnEvents_Final_0008_Yellow2.png',  yarn: { yellow: 2 },  copies: 6 },
         { id: 'red2',     name: 'Red',     img: 'AR_YarnEvents_Final_0010_Red2.png',     yarn: { red: 2 },     copies: 6 },
@@ -61,7 +61,7 @@ const CARDS = {
         { id: 'orange2',  name: 'Orange',  img: 'AR_YarnEvents_Final_0014_Orange2.png',  yarn: { orange: 2 },  copies: 6 },
         { id: 'green2',   name: 'Green',   img: 'AR_YarnEvents_Final_0016_Green2.png',   yarn: { green: 2 },   copies: 6 },
 
-        /* --- Existing dual color (6 variants × 2 copies = 12) --- */
+        /* Existing dual color (6 variants × 2 copies = 12) --- */
         { id: 'greenBlue',     name: 'Green & Blue',     img: 'AR_YarnEvents_Final_0017_GreenBlue.png',     yarn: { green: 1, blue: 1 },     copies: 2 },
         { id: 'purpleGreen',   name: 'Purple & Green',   img: 'AR_YarnEvents_Final_0018_PurpleGreen.png',   yarn: { purple: 1, green: 1 },   copies: 2 },
         { id: 'orangeYellow',  name: 'Orange & Yellow',  img: 'AR_YarnEvents_Final_0019_OrangeYellow.png',  yarn: { orange: 1, yellow: 1 },  copies: 2 },
@@ -69,7 +69,7 @@ const CARDS = {
         { id: 'yellowRed',     name: 'Yellow & Red',     img: 'AR_YarnEvents_Final_0021_YellowRed.png',     yarn: { yellow: 1, red: 1 },     copies: 2 },
         { id: 'redOrange',     name: 'Red & Orange',     img: 'AR_YarnEvents_Final_0022_RedOrange.png',     yarn: { red: 1, orange: 1 },     copies: 2 },
 
-        /* --- New dual color — Magic Socks expansion (9 variants × 2 copies = 18) --- */
+        /* New dual color — Magic Socks expansion (9 variants × 2 copies = 18) --- */
         { id: 'redBlue',       name: 'Red & Blue',       img: 'XYZ_ARMS_YarnCombos_0029_RedBlue.png',       yarn: { red: 1, blue: 1 },       copies: 2 },
         { id: 'redGreen',      name: 'Red & Green',      img: 'XYZ_ARMS_YarnCombos_0030_RedGreen.png',      yarn: { red: 1, green: 1 },      copies: 2 },
         { id: 'redPurple',     name: 'Red & Purple',     img: 'XYZ_ARMS_YarnCombos_0031_RedPurple.png',     yarn: { red: 1, purple: 1 },     copies: 2 },
@@ -80,22 +80,21 @@ const CARDS = {
         { id: 'purpleYellow',  name: 'Purple & Yellow',  img: 'XYZ_ARMS_YarnCombos_0036_PurpleYellow.png',  yarn: { purple: 1, yellow: 1 },  copies: 2 },
         { id: 'purpleOrange',  name: 'Purple & Orange',  img: 'XYZ_ARMS_YarnCombos_0037_PurpleOrange.png',  yarn: { purple: 1, orange: 1 },  copies: 2 },
 
-        /* --- Triple color (4 variants × 2 copies = 8) --- */
+        /* Triple color (4 variants × 2 copies = 8) --- */
         { id: 'purGreBlu',          name: 'Purple, Green & Blue',     img: 'AR_YarnEvents_Final_0023_PurGreBlu.png',          yarn: { purple: 1, green: 1, blue: 1 },     copies: 2 },
         { id: 'blueYellowRed',      name: 'Blue, Yellow & Red',       img: 'AR_YarnEvents_Final_0024_BlueYellowRed.png',      yarn: { blue: 1, yellow: 1, red: 1 },       copies: 2 },
         { id: 'redOrgYel',          name: 'Red, Orange & Yellow',     img: 'AR_YarnEvents_Final_0025_RedOrgYel.png',          yarn: { red: 1, orange: 1, yellow: 1 },     copies: 2 },
         { id: 'orangePurpleGreen',  name: 'Orange, Purple & Green',   img: 'AR_YarnEvents_Final_0026_OrangePurpleGreen.png',  yarn: { orange: 1, purple: 1, green: 1 },   copies: 2 },
 
-        /* --- Wild / Rainbow (6 copies) --- */
+        /* Wild / Rainbow (6 copies) --- */
         { id: 'anyColor', name: 'Any Color', img: 'AR_YarnEvents_Final_0027_AnyColor.png', yarn: { any: 2 }, copies: 6 },
     ],
 
     /* =========================================================
-       EVENT CARDS — 12 total
-       Events are shuffled into the Yarn Deck. When revealed
-       during Restock, they're resolved immediately and discarded.
-       Effect handling will be implemented in Session 6.
-       ========================================================= */
+ EVENT CARDS — 12 total
+ Events are shuffled into the Yarn Deck. When revealed
+ during Restock, they're resolved immediately and discarded.
+ Effect handling will be implemented in ========================================================= */
     events: [
         { id: 'tangledCat',   name: 'Tangled Cat',    img: 'AR_YarnEvents_Final_0000_Tangled-Cat.png',    effect: 'tangledCat',   copies: 3 },
         { id: 'yarnSale',     name: 'Yarn Sale',      img: 'AR_YarnEvents_Final_0001_Yarn-Sale.png',      effect: 'yarnSale',     copies: 3 },
@@ -106,12 +105,11 @@ const CARDS = {
 
 
     /* =========================================================
-       ITEMS — 5 craftable item types
-       Each item has a general color rule that defines the pattern.
-       Hat and Blanket are always general (no tile needed).
-       Bear, Mittens, Scarf start exact (tile front) and can be
-       learned to become general (tile back) in Session 7.
-       ========================================================= */
+ ITEMS — 5 craftable item types
+ Each item has a general color rule that defines the pattern.
+ Hat and Blanket are always general (no tile needed).
+ Bear, Mittens, Scarf start exact (tile front) and can be
+ learned to become general (tile back) in ========================================================= */
     items: [
         { id: 'hat',      name: 'Hat',      yarnCount: 2, points: 2, colorRule: 'different', img: 'Item Token PNG/Item_Tokens_Final_0000_hat.png',      backImg: 'Item Token PNG/Item_Tokens_Final_0005_hat-back.png',      hasTile: false, tileImg: 'Pattern Tiles PNG/hat_tile.png' },
         { id: 'bear',     name: 'Bear',     yarnCount: 3, points: 3, colorRule: 'oneColor',  img: 'Item Token PNG/Item_Tokens_Final_0001_bear.png',     backImg: 'Item Token PNG/Item_Tokens_Final_0006_bear-back.png',     hasTile: true },
@@ -121,22 +119,22 @@ const CARDS = {
     ],
 
     /**
-     * Get an item definition by id.
-     */
+ * Get an item definition by id.
+ */
     getItem: function(id) {
         return this.items.find(function(it) { return it.id === id; });
     },
 
 
     /* =========================================================
-       PATTERN TILES — 18 total (6 per type: bear, mittens, scarf)
-       Each tile has:
-         id        — unique identifier
-         itemId    — which item this pattern creates
-         exact     — object mapping color → count (exact requirement)
-         img       — front image (specific colors shown)
-         backImg   — back image (generic pattern shown)
-       ========================================================= */
+ PATTERN TILES — 18 total (6 per type: bear, mittens, scarf)
+ Each tile has:
+ id — unique identifier
+ itemId — which item this pattern creates
+ exact — object mapping color → count (exact requirement)
+ img — front image (specific colors shown)
+ backImg — back image (generic pattern shown)
+ ========================================================= */
     patternTiles: {
         bear: [
             { id: 'bear-ppp', itemId: 'bear', exact: { purple: 3 }, img: 'Pattern Tiles PNG/AR_Pattern_Tiles_0014_bear-ppp.png', backImg: 'Pattern Tiles PNG/AR_Pattern_Tiles_000_bear-back.png' },
@@ -165,9 +163,9 @@ const CARDS = {
     },
 
     /**
-     * Deal one random tile from each type for a player's starting set.
-     * Returns an array of 3 tile objects with a `learned` flag added.
-     */
+ * Deal one random tile from each type for a player's starting set.
+ * Returns an array of 3 tile objects with a `learned` flag added.
+ */
     dealPatternTiles: function() {
         var tiles = [];
         ['mittens', 'bear', 'scarf'].forEach(function(type) {
@@ -180,21 +178,20 @@ const CARDS = {
 
 
     /* =========================================================
-       CHARACTERS — 8 characters across 4 types
-       Each character has 4 action spaces. Action spaces define
-       which actions (and how many) are available that turn.
+ CHARACTERS — 8 characters across 4 types
+ Each character has 4 action spaces. Action spaces define
+ which actions (and how many) are available that turn.
 
-       Action types per space:
-         shop: N      — take N cards from Bazaar
-         craft: N     — craft up to N items
-         exchange: true — swap yarn (costs the whole turn)
-         unique: id   — character-specific action (future)
+ Action types per space:
+ shop: N — take N cards from Bazaar
+ craft: N — craft up to N items
+ exchange: true — swap yarn (costs the whole turn)
+ unique: id — character-specific action (future)
 
-       Action space values verified against player board artwork
-       and confirmed by the designer (Session 11).
-       Session 13: Added Maker (Jo/Noah) and Expert (Irene/Mauro) types.
-       Expert is unique — only 3 action spaces (no Exchange).
-       ========================================================= */
+ Action space values verified against player board artwork
+ and confirmed by the designer Added Maker (Jo/Noah) and Expert (Irene/Mauro) types.
+ Expert is unique — only 3 action spaces (no Exchange).
+ ========================================================= */
     characters: {
         rebecca: {
             id: 'rebecca', banner: 'Other Assets/Character Banners/banner-rebecca.png', name: 'Rebecca', type: 'thriftyShopper',
@@ -285,7 +282,7 @@ const CARDS = {
             ],
         },
 
-        /* --- Session 13: Maker type (Magic Socks expansion characters) --- */
+        /* Maker type (Magic Socks expansion characters) --- */
         jo: {
             id: 'jo', banner: 'Other Assets/Character Banners/banner-jo.png', name: 'Jo', type: 'maker',
             subtitle: 'Catnip Mouse',
@@ -309,7 +306,7 @@ const CARDS = {
             ],
         },
 
-        /* --- Session 13: Expert type (Magic Socks expansion characters) --- */
+        /* Expert type (Magic Socks expansion characters) --- */
         /* Expert is unique: only 3 action spaces, no Exchange */
         irene: {
             id: 'irene', banner: 'Other Assets/Character Banners/banner-irene.png', name: 'Irene', type: 'expert',
@@ -332,14 +329,14 @@ const CARDS = {
             ],
         },
 
-        /* --- Session 36: Hank, The Stitchmeister — Story Mode FINAL BOSS ---
-           AI automa only (the human never selects on his board). Two craft-only
-           action spaces; he bounces between them every turn. His special boss
-           rules live in game.js, keyed on the isHank flag:
-             1. Auto +3 yarn of one color at the start of every turn.
-             2. +5 on EVERY Special Request he completes (every SR is his favorite).
-             3. Leftover yarn SCORES +1 per 2 instead of the normal -1 penalty.
-             + starts with +3 yarn, and crafts ignoring color-matching (craftAnyColors). */
+        /* Hank, The Stitchmeister — Story Mode FINAL BOSS ---
+ AI automa only (the human never selects on his board). Two craft-only
+ action spaces; he bounces between them every turn. His special boss
+ rules live in game.js, keyed on the isHank flag:
+ 1. Auto +3 yarn of one color at the start of every turn.
+ 2. +5 on EVERY Special Request he completes (every SR is his favorite).
+ 3. Leftover yarn SCORES +1 per 2 instead of the normal -1 penalty.
+ + starts with +3 yarn, and crafts ignoring color-matching (craftAnyColors). */
         hank: {
             id: 'hank', name: 'Hank', type: 'hank', isHank: true,
             subtitle: 'The Stitchmeister',
@@ -352,43 +349,43 @@ const CARDS = {
     },
 
     /**
-     * Get a character definition by id.
-     */
+ * Get a character definition by id.
+ */
     getCharacter: function(id) {
         return this.characters[id] || null;
     },
 
 
     /* =========================================================
-       SPECIAL REQUEST CARDS — 26 base + 4 promos + 13 expansion = 43 total
-       Shuffled into the top half of the Yarn Deck during setup.
-       Each character has a Favorite Request (matching their subtitle).
-       When revealed during Restock, active player keeps it or gives
-       it to another player — it's always taken by someone.
-       Crafting earns points; leaving unfinished loses points.
+ SPECIAL REQUEST CARDS — 26 base + 4 promos + 13 expansion = 43 total
+ Shuffled into the top half of the Yarn Deck during setup.
+ Each character has a Favorite Request (matching their subtitle).
+ When revealed during Restock, active player keeps it or gives
+ it to another player — it's always taken by someone.
+ Crafting earns points; leaving unfinished loses points.
 
-       Each SR has a colorRule that governs how the yarn cost works:
-         'specific'        — exact colors; use the yarn:{} object
-         'any'             — any color combo; yarnCount = total needed
-         'sameColor'       — all yarn must be the same color; yarnCount = total
-         'different'       — each yarn must be a different color; yarnCount = total
-         'give'            — give yarnCount yarn from stash to each other player
-                             (SP: yarn goes to supply instead)
-         'sameColorPlus'   — Session 13: N same color + specific extras;
-                             yarnCount = same portion, plusYarn:{} = extras.
-                             Same color CANNOT be any of the plusYarn colors.
-         'specificPlusAny'  — Session 13: specific colors + N of any other color;
-                             yarn:{} = specific, anyCount = other portion.
-                             "Other" = any color NOT in the yarn:{} object.
-         'specificPlusSame' — Session 13: specific colors + N of one color;
-                             yarn:{} = specific, sameCount = same portion.
-                             Same color CAN be one of the specific colors or different.
+ Each SR has a colorRule that governs how the yarn cost works:
+ 'specific' — exact colors; use the yarn:{} object
+ 'any' — any color combo; yarnCount = total needed
+ 'sameColor' — all yarn must be the same color; yarnCount = total
+ 'different' — each yarn must be a different color; yarnCount = total
+ 'give' — give yarnCount yarn from stash to each other player
+ (SP: yarn goes to supply instead)
+ 'sameColorPlus' — N same color + specific extras;
+ yarnCount = same portion, plusYarn:{} = extras.
+ Same color CANNOT be any of the plusYarn colors.
+ 'specificPlusAny' — specific colors + N of any other color;
+ yarn:{} = specific, anyCount = other portion.
+ "Other" = any color NOT in the yarn:{} object.
+ 'specificPlusSame' — specific colors + N of one color;
+ yarn:{} = specific, sameCount = same portion.
+ Same color CAN be one of the specific colors or different.
 
-       All rules verified against physical card art.
-       ========================================================= */
+ All rules verified against physical card art.
+ ========================================================= */
     specialRequests: [
 
-        /* --- Character Favorites (match character subtitles exactly) --- */
+        /* Character Favorites (match character subtitles exactly) --- */
         { id: 'snugglesaurus',  name: 'Snugglesaurus',        favoriteOf: 'rebecca', colorRule: 'any',      yarnCount: 9,                                                          points: 13,   img: 'Square Cards PNG/AR_Special_Requests_Snugglesaurus.png' },
         { id: 'wristWarmers',   name: 'Wrist Warmers',        favoriteOf: 'theo',    colorRule: 'specific', yarn: { green: 2, orange: 2 },                                         points: 8,    img: 'Square Cards PNG/AR_Special_Requests_WristWarmers.png' },
         { id: 'prodCowl',       name: 'Prodigy Cowl',         favoriteOf: 'derrick', colorRule: 'specific', yarn: { blue: 4 },                                                     points: 8,    img: 'Square Cards PNG/AR_Special_Requests_ProdCowl.png' },
@@ -398,7 +395,7 @@ const CARDS = {
         { id: 'octopus',        name: 'Octopus',              favoriteOf: 'ted',     colorRule: 'specific', yarn: { purple: 4 },                                                   points: 8,    img: 'Square Cards PNG/AR_Special_Requests_Octopus.png' },
         { id: 'robot',          name: 'Robot',                favoriteOf: 'eliza',   colorRule: 'sameColor', yarnCount: 5,                                                         points: 9,    img: 'Square Cards PNG/AR_Special_Requests_Robot.png' },
 
-        /* --- Other Special Requests (base game) --- */
+        /* Other Special Requests (base game) --- */
         { id: 'buttonEye',       name: 'Button Eye Sweater',  favoriteOf: null, colorRule: 'specific',  yarn: { blue: 5, yellow: 1 },                                              points: 9,    img: 'Square Cards PNG/AR_Special_Requests_ButtonEye.png' },
         { id: 'friendship',      name: 'Friendship Bracelets',favoriteOf: null, colorRule: 'give',      yarnCount: 2,                                                              points: 7,    img: 'Square Cards PNG/AR_Special_Requests_Friendship.png' },
         { id: 'trogdor',         name: 'Trogdor (Dagron)',    favoriteOf: null, colorRule: 'specific',  yarn: { green: 3, red: 1, orange: 1, yellow: 1 },                          points: 9,    img: 'Square Cards PNG/AR_SpecialReq_Final_Dragon.png' },
@@ -418,22 +415,22 @@ const CARDS = {
         { id: 'undone',          name: 'Undone',              favoriteOf: null, colorRule: 'specific',  yarn: { blue: 5 },                                                         points: 10,   img: 'Square Cards PNG/AR_SpecialReq_Final_Undone.png' },
         { id: 'spaceSuit',       name: 'Space Suit',          favoriteOf: null, colorRule: 'specific',  yarn: { red: 2, green: 2, blue: 2 },                                       points: 9,    img: "Square Cards PNG/AR_SpecialReq_Final_Ziggy's-Suit.png" },
 
-        /* --- Promo Special Requests (Dice Tower Kickstarter) --- */
+        /* Promo Special Requests (Dice Tower Kickstarter) --- */
         { id: 'diceTower',       name: 'The Dice Tower',      favoriteOf: null, colorRule: 'specific',  yarn: { blue: 5, red: 1 },                                                 points: 10,   img: 'Square Cards PNG/XYZ_AR_SR_DTPROMO_The-Dice-Tower.png' },
         { id: 'shinyMathRocks',  name: 'Shiny Math Rocks',    favoriteOf: null, colorRule: 'sameColor', yarnCount: 6,                                                              points: 13,   img: 'Square Cards PNG/XYZ_AR_SR_DTPROMO_Math-Rocks.png' },
         { id: 'tomsHat',         name: "Tom's Hat",           favoriteOf: null, colorRule: 'specific',  yarn: { red: 4, orange: 1 },                                               points: 9,    img: "Square Cards PNG/XYZ_AR_SR_DTPROMO_Tom's-Hat.png" },
-        /* Session 41: the promo "Everyone's Welcome" (DTPROMO) was a DUPLICATE of the
-           product version (everyonesWelcomeExp, in the Magic Socks block below). Removed
-           from the digital game per Adam — we keep the real product version, which is the
-           Story Mode reward for beating Hank. */
+        /* the promo "Everyone's Welcome" (DTPROMO) was a DUPLICATE of the
+ product version (everyonesWelcomeExp, in the Magic Socks block below). Removed
+ from the digital game — we keep the real product version, which is the
+ Story Mode reward for beating Hank. */
 
-        /* --- Session 13: Magic Socks expansion — New character favorites --- */
+        /* Magic Socks expansion — New character favorites --- */
         { id: 'catnipMouse',      name: 'Catnip Mouse',       favoriteOf: 'jo',     colorRule: 'specific',         yarn: { blue: 3, yellow: 1 },                                   points: 7,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0009_Catnip-Mouse.png' },
         { id: 'pigsInABlanket',   name: 'Pigs in a Blanket',  favoriteOf: 'noah',   colorRule: 'specific',         yarn: { red: 2, orange: 2, yellow: 2 },                         points: 9,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0012_Pigs-in-a-Blanket.png' },
         { id: 'duckSocks',        name: 'Duck Socks',         favoriteOf: 'irene',  colorRule: 'sameColor',        yarnCount: 4,                                                    points: 7,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0011_Duck-Socks.png' },
         { id: 'dogBandana',       name: 'Dog Bandana',        favoriteOf: 'mauro',  colorRule: 'specificPlusSame', yarn: { purple: 3 }, sameCount: 2,                               points: 8,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0010_Dog-Bandana.png' },
 
-        /* --- Session 13: Magic Socks expansion — Non-favorite SRs --- */
+        /* Magic Socks expansion — Non-favorite SRs --- */
         { id: 'turtle',           name: 'Turtle',             favoriteOf: null, colorRule: 'specific',         yarn: { green: 3, red: 3 },                                          points: 9,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0001_Turtle.png' },
         { id: 'platypus',         name: 'Platypus',           favoriteOf: null, colorRule: 'specific',         yarn: { blue: 3, yellow: 2 },                                        points: 8,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0002_Platypus.png' },
         { id: 'koi',              name: 'Koi',                favoriteOf: null, colorRule: 'specificPlusAny',  yarn: { orange: 3 }, anyCount: 2,                                    points: 8,    img: 'Square Cards PNG/XYZ_ARMS_SpReq__0003_Koi.png' },
@@ -446,18 +443,18 @@ const CARDS = {
     ],
 
     /**
-     * Get a special request definition by id.
-     */
+ * Get a special request definition by id.
+ */
     getSpecialRequest: function(id) {
         return this.specialRequests.find(function(sr) { return sr.id === id; });
     },
 
     /**
-     * Build the Special Request pool for a single character at setup.
-     * Rules (p.5): Take the character's Favorite Request + 1 additional per player.
-     * For single-player: 1 favorite + 1 random = 2 total.
-     * Returns an array of SR card objects ready to shuffle into the deck.
-     */
+ * Build the Special Request pool for a single character at setup.
+ * Rules (p.5): Take the character's Favorite Request + 1 additional per player.
+ * For single-player: 1 favorite + 1 random = 2 total.
+ * Returns an array of SR card objects ready to shuffle into the deck.
+ */
     buildSpecialRequestsForSetup: function(characterId, numPlayers, enabledIds) {
         numPlayers = numPlayers || 1;
         var allSRs = this.specialRequests;
@@ -466,7 +463,7 @@ const CARDS = {
         var favorite = allSRs.find(function(sr) { return sr.favoriteOf === characterId; });
         var others = allSRs.filter(function(sr) { return sr.favoriteOf !== characterId; });
 
-        // Session 41 (Story SR Board): if an enabled-set is supplied, the non-favorite
+        // (Story SR Board): if an enabled-set is supplied, the non-favorite
         // pool is limited to the player's enabled SRs. The character's favorite is always
         // guaranteed regardless. Quick Play passes nothing → full pool (unchanged).
         // Safety: if filtering leaves nothing, fall back to the full pool so a game is
@@ -507,7 +504,7 @@ const CARDS = {
             // Pass through whichever cost field this SR uses
             if (def.yarn)      card.yarn      = Object.assign({}, def.yarn);
             if (def.yarnCount) card.yarnCount = def.yarnCount;
-            // Session 13: Pass through new colorRule fields
+            // Pass through new colorRule fields
             if (def.anyCount)  card.anyCount  = def.anyCount;
             if (def.plusYarn)   card.plusYarn   = Object.assign({}, def.plusYarn);
             if (def.sameCount) card.sameCount = def.sameCount;
@@ -516,11 +513,11 @@ const CARDS = {
     },
 
     /**
-     * Session 9: Build the Special Request pool for multiplayer.
-     * Rules: Each character's Favorite goes in + 1 additional SR per player.
-     * @param {string[]} characterIds — array of character IDs in play
-     * @returns {Array} SR card objects ready to shuffle into the deck
-     */
+ * Build the Special Request pool for multiplayer.
+ * Rules: Each character's Favorite goes in + 1 additional SR per player.
+ * @param {string[]} characterIds — array of character IDs in play
+ * @returns {Array} SR card objects ready to shuffle into the deck
+ */
     buildSpecialRequestsForMultiplayer: function(characterIds, enabledIds) {
         var allSRs = this.specialRequests;
         var numPlayers = characterIds.length;
@@ -536,7 +533,7 @@ const CARDS = {
             }
         });
 
-        // Session 41 (Story SR Board): limit the non-favorite pool to the player's
+        // (Story SR Board): limit the non-favorite pool to the player's
         // enabled SRs when supplied (Story Mode). Every participating character's
         // favorite is still guaranteed. Quick Play passes nothing → full pool.
         // Safety fallback to the full pool if the filter empties it.
@@ -571,7 +568,7 @@ const CARDS = {
             };
             if (def.yarn)      card.yarn      = Object.assign({}, def.yarn);
             if (def.yarnCount) card.yarnCount = def.yarnCount;
-            // Session 13: Pass through new colorRule fields
+            // Pass through new colorRule fields
             if (def.anyCount)  card.anyCount  = def.anyCount;
             if (def.plusYarn)   card.plusYarn   = Object.assign({}, def.plusYarn);
             if (def.sameCount) card.sameCount = def.sameCount;
@@ -581,13 +578,12 @@ const CARDS = {
 
 
     /* =========================================================
-       PROJECT CARDS — 16 total
-       Separate deck displayed 3 face-up beside the board.
-       Completed during Restock by turning in the exact item tokens.
-       Requirements list item types and how many of each are needed.
+ PROJECT CARDS — 16 total
+ Separate deck displayed 3 face-up beside the board.
+ Completed during Restock by turning in the exact item tokens.
+ Requirements list item types and how many of each are needed.
 
-       All data verified against physical spreadsheet (Session 7).
-       ========================================================= */
+ All data verified against physical spreadsheet ========================================================= */
     projects: [
         { id: 'lumberjack',    name: 'Lumberjack',       requirements: { hat:1, scarf:1 },                       points: 13, img: 'Project Cards PNG/AR_ProjectCards_Mask_0000_Lumberjack.png' },
         { id: 'snowDay',       name: 'Snow Day',          requirements: { hat:1, mittens:1, scarf:1 },            points: 20, img: 'Project Cards PNG/AR_ProjectCards_Mask_0001_Snow-Day.png' },
@@ -608,9 +604,9 @@ const CARDS = {
     ],
 
     /**
-     * Build a shuffled copy of the project deck.
-     * Returns 16 project card objects with a uid added.
-     */
+ * Build a shuffled copy of the project deck.
+ * Returns 16 project card objects with a uid added.
+ */
     buildProjectDeck: function() {
         var deck = this.projects.map(function(def) {
             return {
@@ -633,12 +629,12 @@ const CARDS = {
 
 
     /* =========================================================
-       HELPER: Build a shuffled deck from card definitions
-       Expands each definition's `copies` into individual
-       card instances, each with a unique `uid`.
-       Returns the Yarn + Event deck only.
-       Special Requests are handled separately (buildSpecialRequestsForSetup).
-       ========================================================= */
+ HELPER: Build a shuffled deck from card definitions
+ Expands each definition's `copies` into individual
+ card instances, each with a unique `uid`.
+ Returns the Yarn + Event deck only.
+ Special Requests are handled separately (buildSpecialRequestsForSetup).
+ ========================================================= */
     buildDeck: function() {
         var deck = [];
         var uid = 0;
@@ -675,21 +671,21 @@ const CARDS = {
     },
 
     /* =========================================================
-       AWARDS SEASON SOLO AUTOMA — Tangled Yarn + Snagged Projects
-       Session 42 (P2). Spec: zAR Digital Test/HANK_AUTOMA_SPEC.md,
-       source: ARME Awards Season SOLO Rulebook v7.
-       These drive the Hank final-boss automa. Each card carries a
-       machine-readable `fx` (effect id) + `arg` the game.js resolver
-       reads, plus human `text`. Themed tangles + snagged projects are
-       double-sided: Light(green)/Hard(red) tangles, Easy(green)/Hard(red)
-       snagged — the side chosen at seed time sets the difficulty.
-       ========================================================= */
+ AWARDS SEASON SOLO AUTOMA — Tangled Yarn + Snagged Projects
+ (P2). Spec: 
+ source: ARME Awards Season SOLO Rulebook v7.
+ These drive the Hank final-boss automa. Each card carries a
+ machine-readable `fx` (effect id) + `arg` the game.js resolver
+ reads, plus human `text`. Themed tangles + snagged projects are
+ double-sided: Light(green)/Hard(red) tangles, Easy(green)/Hard(red)
+ snagged — the side chosen at seed time sets the difficulty.
+ ========================================================= */
     TANGLED_ART: 'Other Assets/ARME/Awards Season/Tangled Yarn (Square Cards)/',
     SNAGGED_ART: 'Other Assets/ARME/Awards Season/Snagged Projects/',
 
     // kind: 'instant' (resolve + discard) | 'gnome' (ongoing rule, one active) | 'reminder' (persistent snag)
     tangledYarn: [
-        /* ----- Basic (yellow, single-sided) — always the same ----- */
+        /* Basic (yellow, single-sided) — always the same ----- */
         { id:'remodeling', code:'B4', name:'Remodeling', tier:'basic', kind:'instant',
           file:'AR_ME_AwSea_TangledYarn_B4---Remodeling---Basic.png',
           fx:'remodeling',
@@ -707,7 +703,7 @@ const CARDS = {
           fx:'grumpyShopper',
           text:'Discard the events Friendly Clerk, Yarn Sale, Craft Circle as soon as revealed, without resolving.' },
 
-        /* ----- Themed (double-sided Light green / Hard red) ----- */
+        /* Themed (double-sided Light green / Hard red) ----- */
         { id:'blazingNeedles', code:'T1', name:'Blazing Needles', tier:'themed', kind:'instant',
           fileLight:'AR_ME_AwSea_TangledYarn_T1---Blazing-Needles---Light.png',
           fileHard: 'AR_ME_AwSea_TangledYarn_T1---Blazing-Needles---Heavy.png',
@@ -769,10 +765,10 @@ const CARDS = {
     ],
 
     /**
-     * Instantiate one Tangled Yarn card on a given side.
-     * @param {object} def  — an entry from CARDS.tangledYarn
-     * @param {string} side — 'light' | 'hard' (ignored for basic/single-sided)
-     */
+ * Instantiate one Tangled Yarn card on a given side.
+ * @param {object} def — an entry from CARDS.tangledYarn
+ * @param {string} side — 'light' | 'hard' (ignored for basic/single-sided)
+ */
     makeTangledCard: function(def, side) {
         var basic = (def.tier === 'basic');
         var s = basic ? null : (side === 'hard' ? 'hard' : 'light');
@@ -796,9 +792,9 @@ const CARDS = {
     },
 
     /**
-     * Instantiate one Snagged Project on a given side.
-     * @param {string} side — 'easy' | 'hard'
-     */
+ * Instantiate one Snagged Project on a given side.
+ * @param {string} side — 'easy' | 'hard'
+ */
     makeSnaggedCard: function(def, side) {
         var s = (side === 'hard') ? 'hard' : 'easy';
         var eff = def[s];
@@ -821,7 +817,7 @@ const CARDS = {
     // score Hank (finish-project instants) + 2 that pressure the player (Gnome Rules).
     // Cat Nap, Lessons Learned are defined + ready; which 4 seed is a P5 tuning knob
     // (the difficulty ladder will rotate/expand the set).
-    // Session 43 (Adam's playtest call): It's Gone!? is OUT of the base mix — its
+    // It's Gone!? is OUT of the base mix — its
     // row-wipe "came outta nowhere and just ended the game" at R0. Where'd It Go?
     // replaces it: same Hank-snipes-a-project beat, but the rest of the row shuffles
     // BACK into the deck (no wipe, no surprise game-end). It's Gone!? becomes a
@@ -834,12 +830,12 @@ const CARDS = {
                        'itsGone'],
 
     /**
-     * Assemble the Hank automa card set for a match.
-     * @param {number} redCount — number of Hard(red) cards in play (0 = first fight, all green).
-     * @returns {{ tangles: object[], snagged: object[] }}
-     *   tangles: 4 basic + 4 themed (8 total). snagged: 4.
-     * Difficulty selection is intentionally simple for P2; the full ladder is P5.
-     */
+ * Assemble the Hank automa card set for a match.
+ * @param {number} redCount — number of Hard(red) cards in play (0 = first fight, all green).
+ * @returns {{ tangles: object[], snagged: object[] }}
+ * tangles: 4 basic + 4 themed (8 total). snagged: 4.
+ * Difficulty selection is intentionally simple for P2; the full ladder is P5.
+ */
     buildHankAutomaCards: function(redCount) {
         var self = this;
         redCount = Math.max(0, redCount || 0);
