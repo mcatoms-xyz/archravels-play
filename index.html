@@ -13,7 +13,7 @@
     <!-- Game fonts loaded via @font-face in style.css -->
 
     <!-- Game stylesheet -->
-    <link rel="stylesheet" href="css/style.css?v=105">
+    <link rel="stylesheet" href="css/style.css?v=106">
 </head>
 
 <body class="ar-pregame">
@@ -633,18 +633,18 @@
  GAME SCRIPTS
  Load order matters: cards.js (data) → game.js (logic) → ui.js (rendering + boot)
  ============================================================= -->
-    <script src="js/cards.js?v=105"></script>
-    <script src="js/game.js?v=105"></script>
-    <script src="js/audio.js?v=105"></script>
-    <script src="js/ai.js?v=105"></script>
+    <script src="js/cards.js?v=106"></script>
+    <script src="js/game.js?v=106"></script>
+    <script src="js/audio.js?v=106"></script>
+    <script src="js/ai.js?v=106"></script>
     <!-- UI module split from the 6,168-line monolith). ui-core.js MUST
  load first — it declares `var UI`; the rest extend it via Object.assign. -->
-    <script src="js/ui-core.js?v=105"></script>
-    <script src="js/ui-modals1.js?v=105"></script>
-    <script src="js/ui-modals2.js?v=105"></script>
-    <script src="js/ui-panels1.js?v=105"></script>
-    <script src="js/ui-panels2.js?v=105"></script>
-    <script src="js/ui-extra.js?v=105"></script>
+    <script src="js/ui-core.js?v=106"></script>
+    <script src="js/ui-modals1.js?v=106"></script>
+    <script src="js/ui-modals2.js?v=106"></script>
+    <script src="js/ui-panels1.js?v=106"></script>
+    <script src="js/ui-panels2.js?v=106"></script>
+    <script src="js/ui-extra.js?v=106"></script>
 
     <!-- Online multiplayer — DORMANT architecture pass).
  The live game is solo + pass-and-play, with zero dependency on this layer
@@ -652,13 +652,13 @@
  online experiment (lobby.html / mcatoms-xyz/archravels-online) but NOT loaded
  here. Re-add to revive online play from this page.
  <script src="/socket.io/socket.io.js" onerror="console.log('Socket.io not available — local mode')"></script>
- <script src="js/network.js?v=105"></script>
- <script src="js/online-bridge.js?v=105"></script>
+ <script src="js/network.js?v=106"></script>
+ <script src="js/online-bridge.js?v=106"></script>
  -->
 
     <!-- Story Mode (overlay layer) + Supabase auth/save -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/story.js?v=105"></script>
+    <script src="js/story.js?v=106"></script>
     <script>(function(){function go(){ if(window.Story) Story.init(); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();})();</script>
 
     <!-- ⚙️ VERSION STAMP — single source for the footer build badge.
@@ -682,7 +682,7 @@
                 });
             }
         } catch (e) {}
-        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 105 };
+        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 106 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build + (AR_VERSION.rev ? '.' + AR_VERSION.rev : '');
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; var el4 = document.getElementById('landingBuild'); if (el4) el4.textContent = label; }
@@ -774,6 +774,7 @@
                     <button class="nm-row nm-game-only" onclick="UI.onNavMenuToggle();UI.pauseGame()"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pause Game</button>
                     <button class="nm-row" id="navScoresBtn" style="display:none" onclick="UI.onNavMenuToggle();UI.showGameOverModal()"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M6 4h12v5a6 6 0 0 1-12 0V4z"/><path d="M6 6H4v2a3 3 0 0 0 2 2.8M18 6h2v2a3 3 0 0 1-2 2.8"/></svg>View Scores</button>
                     <button class="nm-row" id="navHistoryBtn" style="display:none" onclick="UI.onNavMenuToggle();UI.showTurnHistory()"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/></svg>Turn History</button>
+                    <button class="nm-row" onclick="UI.onNavMenuToggle();UI.showWhatIsThis()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>What is ArchRavels?</button>
                     <button class="nm-row" onclick="UI.onNavMenuToggle();UI.showHowToPlay()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.7 2.7 0 1 1 3.7 2.5c-.8.3-1 .9-1 1.8"/><path d="M12 17h.01"/></svg>How to Play</button>
                     <button class="nm-row" onclick="UI.onNavMenuToggle();UI.showStoryIntro()"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h11v18H6a2 2 0 0 1-2-2V5z"/><path d="M9 3v18"/></svg>What is Story Mode?</button>
 
@@ -810,7 +811,7 @@
                     <div class="nm-ar-line"><img src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels"><span class="nm-name">Digital<span class="nm-beta">Beta</span></span></div>
                     <div class="nm-credits">Designed by <b>Adam McCrimmon</b><br>Art by <b>Rochelle Steder</b></div>
                     <div class="nm-ver" id="navMenuVer">v0.9 Beta</div>
-                    <div class="nm-legal"><a href="https://archravels.xyzgamelabs.com/privacy.html" target="_blank" rel="noopener" onclick="if(window.Capacitor&amp;&amp;Capacitor.isNativePlatform&amp;&amp;Capacitor.isNativePlatform()){event.preventDefault();window.open(this.href,'_system');}">Privacy Policy</a><span>&middot;</span><a href="https://archravels.xyzgamelabs.com/terms.html" target="_blank" rel="noopener" onclick="if(window.Capacitor&amp;&amp;Capacitor.isNativePlatform&amp;&amp;Capacitor.isNativePlatform()){event.preventDefault();window.open(this.href,'_system');}">Terms of Use</a></div>
+                    <div class="nm-legal"><a href="privacy.html" rel="noopener" onclick="return openLegal('privacy','Privacy Policy')">Privacy Policy</a><span>&middot;</span><a href="terms.html" rel="noopener" onclick="return openLegal('terms','Terms of Use')">Terms of Use</a></div>
                 </div>
                 <a class="nm-footer-bar" href="https://xyzgamelabs.com" target="_blank" rel="noopener">
                     <img src="Other Images Textures Details/XYZ biz assets/XYZ Logo/XYZ_logo_white_nobg.png" alt="XYZ Game Labs">
@@ -850,5 +851,10 @@
         var ov = document.getElementById('nmExitOverlay'); if (ov) ov.addEventListener('click', function (e) { if (e.target === ov) NMExit.close(); });
     });
     </script>
+<script>
+window.openLegal=function(w,t){var n=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());if(!n){window.open(w+".html","_blank","noopener");return false;}var f=document.getElementById("legalFrame");if(f)f.src=w+".html?embed=1";var e=document.getElementById("legalTitle");if(e)e.textContent=t||"";var m=document.getElementById("legalModal");if(m)m.style.display="flex";return false;};
+window.closeLegal=function(){var m=document.getElementById("legalModal");if(m)m.style.display="none";var f=document.getElementById("legalFrame");if(f)f.src="about:blank";};
+</script>
+<div id="legalModal" class="legal-modal" onclick="if(event.target===this)closeLegal()"><div class="legal-modal-card"><div class="legal-modal-head"><span id="legalTitle">Privacy Policy</span><button type="button" class="legal-modal-close" onclick="closeLegal()" aria-label="Close">&times;</button></div><iframe id="legalFrame" title="Legal document" src="about:blank"></iframe></div></div>
 </body>
 </html>

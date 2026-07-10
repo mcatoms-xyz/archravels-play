@@ -7,48 +7,73 @@
 <title>AR Digital Beta Stats</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  body { font-family: -apple-system, 'Segoe UI', sans-serif; background: #241b12; color: #fdf6e8; margin: 0; padding: 26px; }
-  h1 { font-size: 1.2rem; margin: 0 0 2px; }
-  .sub { color: #cbb891; font-size: .82rem; margin-bottom: 22px; }
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; max-width: 900px; }
-  .tile { background: #3a2d1f; border: 1.5px solid #584730; border-radius: 14px; padding: 16px 18px; }
-  .tile .v { font-size: 2.1rem; font-weight: 900; color: #ffd37a; line-height: 1.1; }
-  .tile .l { font-size: .78rem; color: #cbb891; margin-top: 4px; letter-spacing: .04em; text-transform: uppercase; }
-  .tile.today .v { color: #9fe6a0; }
-  .note { margin-top: 22px; color: #8a7a68; font-size: .78rem; max-width: 640px; line-height: 1.5; }
-  .err { color: #e08b7b; margin-top: 18px; font-size: .9rem; white-space: pre-wrap; }
-  button { background: #3769BE; color: #fff; border: none; border-radius: 10px; padding: 9px 16px; font-weight: 700; cursor: pointer; margin-top: 18px; }
+  :root{--bg:#241b12;--card:#3a2d1f;--line:#584730;--ink:#fdf6e8;--muted:#cbb891;--gold:#ffd37a;--green:#9fe6a0;--blue:#3769BE}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0 auto;padding:26px;max-width:1000px}
+  h1{font-size:1.25rem;margin:0 0 2px}
+  h2{font-size:.95rem;margin:30px 0 12px;color:var(--gold)}
+  h2 span{font-weight:400;color:#8a7a68;font-size:.74rem}
+  .sub{color:var(--muted);font-size:.82rem;margin-bottom:6px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .tile{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px}
+  .tile .v{font-size:1.9rem;font-weight:900;color:var(--gold);line-height:1.1}
+  .tile.today .v{color:var(--green)}
+  .tile .l{font-size:.72rem;color:var(--muted);margin-top:4px;letter-spacing:.04em;text-transform:uppercase}
+  .row{display:flex;flex-wrap:wrap;gap:8px 22px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.86rem;margin-top:12px}
+  .row b{color:var(--gold)}
+  .bar{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  a.btn{background:#4a3a22;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-weight:700;text-decoration:none;font-size:.85rem}
+  button{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:.85rem}
+  .note{margin-top:16px;color:#8a7a68;font-size:.76rem;line-height:1.55}
+  .err{color:#e08b7b;margin-top:12px;font-size:.85rem;white-space:pre-wrap}
 </style>
 </head>
 <body>
 <h1>🧶 ArchRavels Digital · Beta Stats</h1>
-<div class="sub" id="asOf">loading…</div>
+<div class="sub" id="asOf">loading game stats…</div>
+
+<h2>🎮 Gameplay <span>· live from Supabase · web + iOS combined</span></h2>
 <div class="tiles" id="tiles"></div>
 <div class="err" id="err"></div>
-<button onclick="load()">↻ Refresh</button>
-<div class="note">Signups = story profiles saved to the cloud. Plays are counted from Build 49.2 onward (older builds didn't ping). Traffic (pageviews/referrers) lives in GoatCounter once it's wired.</div>
+
+<h2>📈 Traffic <span>· GoatCounter snapshot · last 7 days, as of Jul 9 2026</span></h2>
+<div class="tiles">
+  <div class="tile"><div class="v">41</div><div class="l">Visits (7d)</div></div>
+  <div class="tile"><div class="v">16</div><div class="l">iOS visits</div></div>
+  <div class="tile"><div class="v">10</div><div class="l">Android visits</div></div>
+  <div class="tile"><div class="v">10</div><div class="l">Via Facebook</div></div>
+</div>
+<div class="row">
+  <span><b>Top referrers:</b> direct/unknown 25 · Facebook 10 · Google 2</span>
+  <span><b>Devices:</b> phones 24 · monitors 14 · tablets 3</span>
+  <span><b>Places:</b> US 37 · Singapore 3 · Netherlands 1</span>
+</div>
+<div class="bar">
+  <a class="btn" href="https://ardigital.goatcounter.com" target="_blank" rel="noopener">📊 Open live GoatCounter →</a>
+  <span style="color:#8a7a68;font-size:.76rem">live traffic is one click away</span>
+</div>
+
+<div class="bar" style="margin-top:22px"><button onclick="load()">↻ Refresh game stats</button></div>
+<div class="note">
+  <b>Signups</b> = cloud story profiles. <b>Plays</b> counted from Build 49.2 onward (older builds didn't ping); gameplay includes web + the iOS app.<br>
+  Traffic numbers are a <b>snapshot</b> — GoatCounter's API can't be read from a browser page directly, so click through for live figures (or ask Johnny to refresh the snapshot).<br>
+  Player emails aren't shown here (row-level security correctly blocks the public key) — see Supabase → Authentication → Users for the list.
+</div>
+
 <script>
   var SB = supabase.createClient('https://ingppffghqsajdrgahcm.supabase.co', 'sb_publishable__41r1k47DJnKmtbmVNqYKQ_yOL98eTd');
-  function tile(v, l, today) { return '<div class="tile' + (today ? ' today' : '') + '"><div class="v">' + (v === null || v === undefined ? '?' : v) + '</div><div class="l">' + l + '</div></div>'; }
-  async function load() {
-    document.getElementById('err').textContent = '';
-    try {
-      var r = await SB.rpc('ar_public_stats');
-      if (r.error) throw r.error;
-      var s = r.data;
-      document.getElementById('tiles').innerHTML =
-        tile(s.signups, 'Signups (cloud profiles)') +
-        tile(s.starts_total, 'Games started') +
-        tile(s.finishes_total, 'Games finished') +
-        tile(s.story_total, 'Story mode plays') +
-        tile(s.quick_total, 'Quick plays') +
-        tile(s.starts_today, 'Started today', true) +
-        tile(s.finishes_today, 'Finished today', true) +
-        tile(s.signups_today, 'Signups today', true);
-      document.getElementById('asOf').textContent = 'as of ' + new Date().toLocaleString();
-    } catch (e) {
-      document.getElementById('err').textContent = 'Stats backend not set up yet.\nAdam: paste the SQL block Johnny gave you into the Supabase SQL editor, then refresh.\n\n(' + (e.message || e) + ')';
-    }
+  function tile(v,l,today){return '<div class="tile'+(today?' today':'')+'"><div class="v">'+(v==null?'?':v)+'</div><div class="l">'+l+'</div></div>';}
+  async function load(){
+    document.getElementById('err').textContent='';
+    try{
+      var r=await SB.rpc('ar_public_stats'); if(r.error) throw r.error;
+      var s=r.data;
+      document.getElementById('tiles').innerHTML=
+        tile(s.signups,'Signups')+tile(s.starts_total,'Games started')+tile(s.finishes_total,'Games finished')+
+        tile(s.story_total,'Story plays')+tile(s.quick_total,'Quick plays')+
+        tile(s.starts_today,'Started today',true)+tile(s.finishes_today,'Finished today',true)+tile(s.signups_today,'Signups today',true);
+      document.getElementById('asOf').textContent='game stats as of '+new Date().toLocaleString();
+    }catch(e){ document.getElementById('err').textContent='Stats backend error: '+(e.message||e); }
   }
   load();
 </script>

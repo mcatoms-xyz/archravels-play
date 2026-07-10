@@ -1104,7 +1104,7 @@ var UI = {
                     bc.style.pointerEvents = 'auto';
                     bc.style.cursor = 'pointer';
                     bc.title = 'Don’t poke the cat…';
-                    bc.addEventListener('click', function () {
+                    bc.addEventListener('pointerup', function () {
                         try { if (window.Sound) Sound.play('ev-tangled-cat'); } catch (e) {}
                     });
                     wrap.appendChild(bc);
@@ -2111,6 +2111,8 @@ var UI = {
         // 1) Invalidate any in-flight game/AI turn so stray renders + SOUNDS stop firing
         Game._gen = (Game._gen || 0) + 1;
         if (Game.state && Game.state._timerInterval) { clearInterval(Game.state._timerInterval); Game.state._timerInterval = null; }
+        // Halt any match music — it should not bleed into the menu/landing.
+        try { if (window.Sound && Sound.music && Sound.music.stop) Sound.music.stop(); } catch (e) {}
         // 2) Exit Story mode
         if (window.Story) { Story.storyGame = false; Story.active = false; }
         // 3) Close the nav menu + any open modals / dropdowns

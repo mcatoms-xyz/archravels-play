@@ -89,6 +89,7 @@
       setMuted:function(m){ muted=m; applyVol(); if(el){ if(m){ try{ el.pause(); }catch(e){} } else if(started && !pausedByGame){ resumeCtx(); el.play().catch(function(){}); } } },
       pause:function(){ pausedByGame=true; if(el){ try{ el.pause(); }catch(e){} } },
       resume:function(){ pausedByGame=false; if(el && started && !muted){ resumeCtx(); el.play().catch(function(){}); } },
+      stop:function(){ started=false; pausedByGame=false; if(el){ try{ el.pause(); el.currentTime=0; }catch(e){} } },
       resumeCtx:resumeCtx
     };
   })();

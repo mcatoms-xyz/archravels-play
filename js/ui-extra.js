@@ -1663,3 +1663,50 @@ Object.assign(UI, {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
 })();
+
+
+/* What is ArchRavels? overlay (main-nav newcomer overview) */
+Object.assign(UI, {
+    showWhatIsThis: function () {
+        var ov = document.getElementById('whatIsModal');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = 'whatIsModal';
+            ov.className = 'wit-back';
+            ov.innerHTML =
+              '<div class="wit" role="dialog" aria-label="What is ArchRavels?">' +
+                '<button class="wit-x" aria-label="Close">&times;</button>' +
+                '<div class="wit-head">' +
+                  '<img class="wit-logo" src="Other Images Textures Details/AR Logo Final Aug2019.png" alt="ArchRavels">' +
+                  '<h2>What is ArchRavels?</h2>' +
+                  '<div class="wit-lead">Spin into the colorful world of fiber arts!<br>Collect, Craft, &amp; Compete in this cozy strategy game.</div>' +
+                '</div>' +
+                '<div class="wit-body">' +
+                  '<p class="wit-p">Welcome to the colorful &amp; crafty world of fiber art! Hit the <b>Yarn Bazaar</b> for the perfect colors, craft cozy items, and race your friendly rivals to finish projects before the list runs out. This is the digital edition of <b>ArchRavels</b>, the Dice Tower Approved fiber-arts board game from XYZ Game Labs.</p>' +
+                  '<div class="wit-h">The gist</div>' +
+                  '<p class="wit-p">On your turn you shop for yarn, spend it to craft items, and turn those in to finish projects. Learn patterns and fill special requests to rack up points, but watch your stash! Leftover yarn counts against your score.</p>' +
+                  '<div class="wit-win">🏆 Most points when the project list runs dry <b>wins</b>. Watch for events and the pesky <b>Tangled Cat</b> along the way.</div>' +
+                  '<div class="wit-h">Ways to play</div>' +
+                  '<div class="wit-modes">' +
+                    '<div class="wit-mode"><span class="em">🎯</span><div><div class="mt">Quick Play</div><div class="md">Jump into a solo match against a crafty AI.</div></div></div>' +
+                    '<div class="wit-mode"><span class="em">👥</span><div><div class="mt">Pass &amp; Play up to 6 Players!</div><div class="md">Share one device and take turns with up to 5 friends.</div></div></div>' +
+                    '<div class="wit-mode"><span class="em">📖</span><div><div class="mt">Story Mode</div><div class="md">Climb through a cast of friendly rivals, each with their own vibe.</div></div></div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="wit-cta">' +
+                  '<button class="wit-btn primary" type="button">📚 How to Play</button>' +
+                  '<button class="wit-btn ghost" type="button">🛒 Buy the Physical Game</button>' +
+                '</div>' +
+                '<div class="wit-foot">An early Beta we’re bringing to Gen Con 2026. <b>Let’s get crafty!</b> 🧶<br>Find this any time in the ☰ menu.</div>' +
+              '</div>';
+            document.body.appendChild(ov);
+            var close = function () { ov.classList.remove('open'); };
+            ov.querySelector('.wit-x').addEventListener('click', close);
+            ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+            var btns = ov.querySelectorAll('.wit-btn');
+            if (btns[0]) btns[0].addEventListener('click', function () { close(); if (UI.showHowToPlay) UI.showHowToPlay(); });
+            if (btns[1]) btns[1].addEventListener('click', function () { try { window.open('https://shop.xyzgamelabs.com', '_blank'); } catch (e) {} });
+        }
+        ov.classList.add('open');
+    }
+});

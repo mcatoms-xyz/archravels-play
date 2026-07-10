@@ -261,7 +261,7 @@ var Story = {
   },
 
   open: function(){ this.root.style.display='block'; document.body.classList.add('story-open'); window.scrollTo(0,0); },
-  hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); if(this._syncingRoute!==true) this._setHash(''); },
+  hide: function(){ this.root.style.display='none'; document.body.classList.remove('story-open'); try{ if(window.Sound&&Sound.music&&Sound.music.stop) Sound.music.stop(); }catch(e){} if(this._syncingRoute!==true) this._setHash(''); },
 
   /* ==================== HASH ROUTER ====================
  Gives every browsable Story destination a real URL (#/story, #/profile, …) so
@@ -625,6 +625,7 @@ var Story = {
   pickAvatar: function(t,v){ this.profile=this.profile||{}; this.profile.avatar=(t==='yarn')?{t:'yarn',c:v}:{t:'char',id:v}; if(this.save) this.save(); this.renderChip(); var ba=document.querySelector('#story-root .big-av'); if(ba) ba.innerHTML=this.avatarInner()+'<span class="big-av-edit">✎</span>'; this.openAvatarPicker(); },
 
   goTypes: function(){ this._back='Story.hide()';
+    try{ if(window.Sound&&Sound.music&&Sound.music.stop) Sound.music.stop(); }catch(e){}
     var self=this;
     var cards = Object.keys(this.TYPE_META).map(function(tid){
       var m=self.TYPE_META[tid];
@@ -1079,16 +1080,16 @@ var Story = {
       ['👑','Hank the Stitchmeister','The final boss — and the 13-red-card challenge ladder to the Woolen Crown'],
       ['🧶','All 12 crafters','Every playstyle, including the Makers and the Experts'],
       ['🏅','The full Achievement + Special Request Boards','Collect, curate, complete'],
-      ['📦','All future content packs included','Magic Socks, Rivals!, Award Season'],
+      ['📦','All future content packs included','Magic Socks, Rivals!, Awards Season'],
     ].map(function(p){ return '<div class="up-perk"><span class="up-ico">'+p[0]+'</span><div><b>'+p[1]+'</b><span>'+p[2]+'</span></div></div>'; }).join('');
-    this.screen(head+
+    this.screen('<div class="up-sheet">'+head+
       '<div class="up-hank"><img src="'+this.portrait('hank')+'" alt="Hank"><div class="up-hank-lock">🔒</div></div>'+
       '<div class="up-perks">'+perks+'</div>'+
       '<div class="match-actions">'+
         '<button class="btn btn-gold" onclick="Story.buyFullGame()">Unlock the Full Game · $4.99</button>'+
         '<button class="btn btn-ghost" onclick="Story.restorePurchases()">Restore Purchase</button>'+
       '</div>'+
-      '<div class="si-msg" id="upMsg"></div>'+
+      '<div class="si-msg" id="upMsg"></div></div>'+
       this.backBar('Story.goTypes()','← Keep playing free'));
   },
   /* IAP stubs — real StoreKit plumbing lands with the Apple account (plugin +
