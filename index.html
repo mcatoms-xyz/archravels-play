@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ArchRavels Digital Prototype</title>
+    <title>ArchRavels — Play the Cozy Board Game Free in Your Browser</title>
+    <meta name="description" content="ArchRavels — the cozy fiber arts board game, free in your browser. Shop the Yarn Bazaar, craft hats, scarves &amp; bears, and out-stitch your rivals. Solo &amp; pass-and-play, no download.">
+    <!-- Open Graph / social share cards -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="XYZ Game Labs">
+    <meta property="og:title" content="ArchRavels — The Cozy Board Game, Free in Your Browser">
+    <meta property="og:description" content="Shop the Yarn Bazaar, craft cozy things, out-stitch your rivals. Solo &amp; pass-and-play. No download, no signup.">
+    <meta property="og:url" content="https://archravels.xyzgamelabs.com/">
+    <meta property="og:image" content="https://archravels.xyzgamelabs.com/og-share.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ArchRavels — The Cozy Board Game, Free in Your Browser">
+    <meta name="twitter:description" content="Shop the Yarn Bazaar, craft cozy things, out-stitch your rivals. Free in your browser — no download.">
+    <meta name="twitter:image" content="https://archravels.xyzgamelabs.com/og-share.jpg">
     <!-- GoatCounter traffic analytics -->
     <script data-goatcounter="https://ardigital.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -682,7 +696,7 @@
                 });
             }
         } catch (e) {}
-        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 106 };
+        var AR_VERSION = { v: '1.0', channel: 'Beta', build: 50, rev: 107 };
         window.AR_VERSION = AR_VERSION;
         var label = 'v' + AR_VERSION.v + (AR_VERSION.channel ? ' ' + AR_VERSION.channel : '') + ' · Build ' + AR_VERSION.build + (AR_VERSION.rev ? '.' + AR_VERSION.rev : '');
         function stamp(){ var el = document.getElementById('footerBuild'); if (el) el.textContent = label; var el2 = document.getElementById('infoVersion'); if (el2) el2.textContent = label; var el3 = document.getElementById('navMenuVer'); if (el3) el3.textContent = label; var el4 = document.getElementById('landingBuild'); if (el4) el4.textContent = label; }
