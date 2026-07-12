@@ -976,6 +976,7 @@ var UI = {
  * Handle click on a Bazaar card slot.
  */
     onBazaarClick: function(index) {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // Guard: only allow clicks during playerActions (shopping)
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;  // Ignore clicks during AI turn
@@ -1148,6 +1149,16 @@ var UI = {
 
     // archetype ACTION MARKERS — the physical wooden markers, digital.
     // Dropped onto the chosen action space each turn (tabletop feel). Spec: changelog S45.
+    /** (CPU-turn input lock): true only when the ACTIVE seat is the
+     * human's. Every player-initiated game action funnels through this —
+     * during AI/automa turns their markers, crafting and modals are inert. */
+    humanTurnActive: function() {
+        var p = window.Game && Game.state && Game.state.player;
+        // NOTE: Hank's automa seat is deliberately NOT locked — the human
+        // physically resolves his cards in Solo Mode.
+        return !!(p && !p.isAI && !p.isAutoma);
+    },
+
     _actionMarkers: {
         thriftyShopper:  'marker-thrifty.png',
         masterCrafter:   'marker-fiber.png',
@@ -1483,8 +1494,8 @@ var UI = {
                 var moreNeeded = shopReq - selCount;
                 buttonsHtml += '<button class="btn btn-primary" disabled ' +
                     'style="opacity:.5;cursor:not-allowed" ' +
-                    'title="You must take all ' + shopReq + ' cards">Take ' + shopReq +
-                    ' (pick ' + moreNeeded + ' more)</button>';
+                    'title="You must take all ' + shopReq + ' cards">Shop ' + shopReq +
+                    ' (' + moreNeeded + ')</button>';
             }
         }
         if (actions.canExchange) {

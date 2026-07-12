@@ -27,6 +27,7 @@ Object.assign(UI, {
         // selections + button in a ROW ABOVE the tray - the
         // modal was running too tall with them below.
         html += '<div class="ys-controls-row">' +
+            '<span class="cpp-instr">Choose 3 Yarn</span>' +
             '<div class="xc-balance' + (total === need ? ' ok' : '') + '"><span class="xc-tot">' + total + '</span> / ' + need + ' yarn' +
                 (total === need ? '<span class="xc-hint ok">Ready ✓</span>' : '<span class="xc-hint">Pick ' + (need - total) + ' more</span>') + UI._selectedYarnChips(sel) + '</div>' +
             '<div class="event-pick-controls"><button class="btn btn-primary" onclick="UI._yarnSaleConfirm()" ' + (total === need ? '' : 'disabled') + '>Take Yarn</button></div>' +
@@ -769,6 +770,7 @@ Object.assign(UI, {
     },
 
     showCraftOptionsModal: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // show ALL of the player's patterns + held SRs, dimming the ones
         // they can't currently afford — rather than silently dropping them. Keeps the
         // list consistent (all 3 patterns always visible) instead of one vanishing.
@@ -934,6 +936,7 @@ Object.assign(UI, {
     },
 
     onCraftClick: function(option) {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         if (!option.canAfford) return;
 
         var actions = Game.getAvailableActions();

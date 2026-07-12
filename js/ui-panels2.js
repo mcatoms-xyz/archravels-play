@@ -98,6 +98,7 @@ Object.assign(UI, {
  ========================================================= */
 
     showFinishProjectModal: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         var completable = Game.getCompletableProjects();
         var body = this.els.finishProjectBody;
         if (!body) return;
@@ -179,6 +180,7 @@ Object.assign(UI, {
  ========================================================= */
 
     showLearnPatternModal: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         var learnable = Game.getLearnablePatterns();
         var body = this.els.learnPatternBody;
         if (!body) return;
@@ -247,6 +249,7 @@ Object.assign(UI, {
  ========================================================= */
 
     showFrogItModal: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         var frogable = Game.getFrogItItems();
         var body = this.els.frogItBody;
         if (!body) return;
@@ -695,6 +698,7 @@ Object.assign(UI, {
             if (titleEl) titleEl.style.display = '';
         }
         // reset multi-pick progress; _collectWildChoices repopulates it.
+        if (UI._cppTitleRestore) UI._cppTitleRestore();   // un-hide the title on every fresh open
         var progReset = document.getElementById('colorPickerProgress');
         if (progReset) { progReset.innerHTML = ''; progReset.style.display = 'none'; }
         this.els.colorModal.style.display = 'flex';

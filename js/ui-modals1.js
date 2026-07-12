@@ -5,7 +5,21 @@ Object.assign(UI, {
         Game.undoSpaceChoice();
     },
 
+    /** picker mini-action-bar: instruction text pulled from the modal title. */
+    _cppInstr: function() {
+        try {
+            var t = document.querySelector('#colorPickerModal .modal-title');
+            if (!t) return '';
+            t.style.display = 'none';   // the bar carries the instruction now
+            return t.textContent ? '<span class="cpp-instr">' + t.textContent + '</span>' : '';
+        } catch (e) { return ''; }
+    },
+    /** restore the standalone title when the picks bar is hidden (single-pick flows). */
+    _cppTitleRestore: function() {
+        try { var t = document.querySelector('#colorPickerModal .modal-title'); if (t) t.style.display = ''; } catch (e) {}
+    },
     onChooseSpace: function(spaceIndex) {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // Guard: only allow during chooseSpace phase, and not during AI turn
         if (Game.state.phase !== 'chooseSpace') return;
         if (Game.state.player && Game.state.player.isAI) return;
@@ -19,6 +33,7 @@ Object.assign(UI, {
 
     /* hop the marker to another legal space while the choice is soft. */
     onSwitchSpace: function(spaceIndex) {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;
         // capture take-off point so the marker flies to the new space
@@ -60,6 +75,7 @@ Object.assign(UI, {
  * moves to the restock phase.
  */
     onEndActions: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // Guard: only allow during playerActions phase
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.player && Game.state.player.isAI) return;
@@ -276,6 +292,7 @@ Object.assign(UI, {
  * "Take Yarn" button handler — kicks off the take flow.
  */
     onTakeYarn: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // Guard: only allow during playerActions when shop is available
         if (Game.state.phase !== 'playerActions') return;
         if (Game.state.turn.shopDone) return;
@@ -377,7 +394,7 @@ Object.assign(UI, {
             if (_g) { _g.classList.add('cp-multi'); _g.classList.add('cp-full'); }
             var _pe = document.getElementById('colorPickerProgress');
             if (_pe) {
-                var _ph = '<span class="cpp-label">Your picks:</span>';
+                var _ph = UI._cppInstr() + '<span class="cpp-label">Your picks:</span>';
                 pending.wildChoices.forEach(function(col) {
                     var hex = CARDS.COLOR_HEX[col] || '#888';
                     _ph += '<span class="confirm-yarn-tag" style="background:' + hex + '">+1 ' +
@@ -392,9 +409,9 @@ Object.assign(UI, {
         var _gClr = document.getElementById('colorPickerGrid');
         if (_gClr) _gClr.classList.remove('cp-full');
 
-        var pickNum = index + 1;
         var total = pending.wildPicksTotal;
-        var title = 'Choose Yarn Color' + (total > 1 ? ' (' + pickNum + ' of ' + total + ')' : '');
+        // counter = picks MADE so far (0/2 before any pick), not "which pick you're on"
+        var title = 'Choose Yarn' + (total > 1 ? ' (' + index + '/' + total + ')' : '');
 
         this.showColorPicker(function(color) {
             pending.wildChoices.push(color);
@@ -410,7 +427,7 @@ Object.assign(UI, {
             var progEl = document.getElementById('colorPickerProgress');
             if (progEl) {
                 var chosen = pending.wildChoices;   // colors chosen so far (length === index)
-                var ph = '<span class="cpp-label">Your picks:</span>';
+                var ph = UI._cppInstr() + '<span class="cpp-label">Your picks:</span>';
                 chosen.forEach(function(col) {
                     var hex = CARDS.COLOR_HEX[col] || '#888';
                     ph += '<span class="confirm-yarn-tag" style="background:' + hex + '">+1 ' +
@@ -525,6 +542,7 @@ Object.assign(UI, {
  * Fills slots then processes any Events/SRs sequentially before ending turn.
  */
     onRestock: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // Guard: only allow during restock phase
         if (Game.state.phase !== 'restock') return;
         this._restockDone = true;
@@ -561,6 +579,7 @@ Object.assign(UI, {
  * End the turn after restock phase actions are complete.
  */
     onEndRestockTurn: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         // Guard: only allow during restock phase
         if (Game.state.phase !== 'restock') return;
         this._restockDone = false;
@@ -741,6 +760,7 @@ Object.assign(UI, {
  * Sets _restockDone so bonus actions (Finish Project, Learn Pattern, Frog It) appear.
  */
     onSkipRestock: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         if (Game.state.phase !== 'restock') return;
         this._restockDone = true;
         UI.renderBazaar();

@@ -121,6 +121,7 @@ Object.assign(UI, {
  * Routes to color picker for non-specific colorRules.
  */
     onSRCraftClick: function(sr) {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         var actions = Game.getAvailableActions();
         if (!actions.canCraft) return;
 
@@ -648,6 +649,7 @@ Object.assign(UI, {
     _exchangeReceive: {},
 
     showExchangeModal: function() {
+        if (!UI.humanTurnActive()) return;   // CPU-turn input lock
         this._exchangeGive = {};
         this._exchangeReceive = {};
         CARDS.COLORS.forEach(function(c) {
@@ -794,7 +796,17 @@ Object.assign(UI, {
         el.style.display = 'flex';
         el.innerHTML = '';
 
-        player.specialRequests.forEach(function(sr) {
+        // 7/12 (Adam): real ROW wrappers, 3 cards max per row. Container is
+        // column-reverse, so the FIRST row renders at the BOTTOM and later
+        // rows stack upward. Cards size to 1/3 of the row via CSS.
+        var _srRow = null;
+
+        player.specialRequests.forEach(function(sr, _srIdx) {
+            if (_srIdx % 3 === 0) {
+                _srRow = document.createElement('div');
+                _srRow.className = 'sr-reminder-row';
+                el.appendChild(_srRow);
+            }
             var card = document.createElement('div');
             card.className = 'sr-reminder-card' + (sr.isFavorite ? ' sr-reminder-fav' : '');
 
@@ -886,6 +898,13 @@ Object.assign(UI, {
             tooltip.appendChild(info);
             card.appendChild(tooltip);
 
+            // Desktop QA 7/12 (C): the preview pops UPWARD and clipped off the
+            // top of the viewport when the card sits high — flip it BELOW then.
+            card.addEventListener('mouseenter', function() {
+                var r = card.getBoundingClientRect();
+                tooltip.classList.toggle('sr-flip-below', r.top < 320);
+            });
+
             // Mobile (cap-native): tapping the card goes STRAIGHT to the craft module
             // for this SR (the hover tooltip is hidden in the app via CSS). onSRCraftClick
             // self-guards on craft availability, so it's safe to wire unconditionally.
@@ -895,7 +914,7 @@ Object.assign(UI, {
                 });
             })(sr);
 
-            el.appendChild(card);
+            _srRow.appendChild(card);
         });
     },
 

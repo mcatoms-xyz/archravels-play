@@ -377,6 +377,16 @@ var Story = {
   loadProfile: async function(){
     this.profile = await SaveAPISafe(this);
     this.renderChip();
+    // After an EXPLICIT sign-in (any method), always land on the profile page.
+    // Intent is marked when the player taps a sign-in action; a 10-min TTL keeps
+    // an abandoned attempt from hijacking a later app launch. Web OAuth/magic-link
+    // reload the page, so the intent persists via localStorage across the redirect.
+    var intentTs=0; try{ intentTs=+localStorage.getItem('ar_signin_intent')||0; }catch(e){}
+    if(this.currentUser && (this._signInIntent || (intentTs && Date.now()-intentTs<1800000))){
+      this._signInIntent=false; try{ localStorage.removeItem('ar_signin_intent'); }catch(e){}
+      this.open(); this.goStats();
+      return;
+    }
     if(this.root && this.root.style.display!=='none'){
       var scr=document.getElementById('story-screen');
       // fix: the S43 profile redesign changed the page markup, so the old
@@ -514,6 +524,11 @@ var Story = {
     }
     this.screen(html);
   },
+  /** Mark that the player explicitly chose to sign in → route to profile on success. */
+  _markSignInIntent: function(){
+    this._signInIntent=true;
+    try{ localStorage.setItem('ar_signin_intent', String(Date.now())); }catch(e){}
+  },
   /* ( scaffolding): native-app auth. All of this is a NO-OP
  until the Capacitor plugins + Supabase provider config land — the buttons degrade to a friendly "not enabled yet". */
   isNativeApp: function(){
@@ -538,6 +553,7 @@ var Story = {
       // Nonce: SHA-256 hash goes to Apple, the RAW nonce goes to Supabase.
       var raw = this._genNonce();
       var hashed = await this._sha256Hex(raw);
+      this._markSignInIntent();
       var res = await SIA.authorize({
         clientId: 'com.xyzgamelabs.archravels',
         redirectURI: 'https://archravels.xyzgamelabs.com',
@@ -568,6 +584,7 @@ var Story = {
     if(!email){ if(msg) msg.textContent='Enter your email first.'; return; }
     if(!this.sb){ if(msg) msg.textContent='Not connected yet.'; return; }
     if(msg) msg.textContent='Sending…';
+    this._markSignInIntent();
     try{ var r=await this.sb.auth.signInWithOtp({email:email, options:{emailRedirectTo:window.location.origin + window.location.pathname}});
       if(msg) msg.textContent=r.error?('Error: '+r.error.message):'Check your email for a sign-in link!';
     }catch(e){ if(msg) msg.textContent='Something went wrong.'; }
@@ -575,12 +592,26 @@ var Story = {
   signInGoogle: async function(){
     if(!this.sb) return;
     var msg = document.getElementById('siMsg');
+    this._markSignInIntent();
     // native app → native Google sheet + signInWithIdToken
     // (web OAuth can't redirect back into capacitor://localhost). Web keeps OAuth.
     if(this.isNativeApp()){
       try{
         var GA = (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.GoogleAuth) || window.GoogleAuth;
         if(!GA){ if(msg) msg.textContent='Google sign-in arrives with the next app update!'; return; }
+        // GoogleAuth REQUIRES initialize() before signIn() — skipping it
+        // crashes the native side (nil config). Lazy-init once, guarded.
+        if(!this._gaInit && GA.initialize){
+          try{
+            await GA.initialize({
+              clientId: '583697004014-16lgi97f4rp2bic32m9cenr16ol93v6h.apps.googleusercontent.com',
+              scopes: ['profile','email'],
+              serverClientId: '583697004014-ml9168dlalol383k3bcfbccljloc8gnb.apps.googleusercontent.com',
+              grantOfflineAccess: false
+            });
+          }catch(e){}
+          this._gaInit = true;
+        }
         var u = await GA.signIn();
         var token = u && ((u.authentication && u.authentication.idToken) || u.idToken);
         if(!token){ if(msg) msg.textContent='Google sign-in was cancelled.'; return; }
@@ -597,6 +628,11 @@ var Story = {
   },
   signOut: async function(){
     if(this.sb){ try{ await this.sb.auth.signOut(); }catch(e){} }
+    // (cross-account leak fix): explicit sign-out drops the device copy of this
+    // account's profile so it can't bleed into the next guest session or a
+    // different sign-in. (Session EXPIRY does not come through here, so the
+    // mid-match progress-loss protection is unaffected.)
+    try{ localStorage.removeItem('ar_story_profile'); localStorage.removeItem('ar_profile_owner'); }catch(e){}
     this.currentUser=null; this.profile=null; this.renderChip();
     // only swap the overlay screen if the overlay is actually open (e.g. signed out from stats);
     // signing out from the landing front door just updates the landing in place.
@@ -1089,6 +1125,9 @@ var Story = {
         '<button class="btn btn-gold" onclick="Story.buyFullGame()">Unlock the Full Game · $4.99</button>'+
         '<button class="btn btn-ghost" onclick="Story.restorePurchases()">Restore Purchase</button>'+
       '</div>'+
+      '<div class="up-code"><button class="up-code-link" onclick="Story.toggleCodeEntry()">Have a code?</button>'+
+        '<div id="upCodeRow"><input type="text" id="upCode" placeholder="ENTER CODE" autocapitalize="characters" autocorrect="off" autocomplete="off" spellcheck="false" maxlength="24">'+
+        '<button class="btn btn-gold" onclick="Story.redeemCode()">Redeem</button></div></div>'+
       '<div class="si-msg" id="upMsg"></div></div>'+
       this.backBar('Story.goTypes()','← Keep playing free'));
   },
@@ -1107,6 +1146,45 @@ var Story = {
     if(!IAP){ if(msg) msg.textContent='Nothing to restore yet — purchases arrive with the App Store release!'; return; }
     // TODO (IAP plumbing): restore → verify → this.grantFullUnlock
     if(msg) msg.textContent='Restore flow not configured yet.';
+  },
+  /* unlock codes — promotional/comp unlocks (friends, media, con specials).
+ Server-validated via the redeem_unlock_code RPC; the unlock lands on the
+ ACCOUNT (profile.fullUnlock, set server-side) so it follows the player to
+ every device + web. Requires sign-in for exactly that reason. */
+  toggleCodeEntry: function(){
+    var r=document.getElementById('upCodeRow'); if(!r) return;
+    var open = r.style.display==='flex';
+    r.style.display = open ? 'none' : 'flex';
+    if(!open){ var i=document.getElementById('upCode'); if(i) i.focus(); }
+  },
+  redeemCode: async function(){
+    var msg=document.getElementById('upMsg');
+    var inp=document.getElementById('upCode');
+    var code=((inp&&inp.value)||'').trim();
+    if(!code){ if(msg) msg.textContent='Type your code first.'; return; }
+    if(!this.sb){ if(msg) msg.textContent='Not connected — try again in a moment.'; return; }
+    if(!this.currentUser){
+      if(msg) msg.textContent='Sign in first — the unlock attaches to your account so it follows you everywhere.';
+      var self0=this; setTimeout(function(){ self0.goSignIn(); }, 1600);
+      return;
+    }
+    if(msg) msg.textContent='Checking your code…';
+    try{
+      var r=await this.sb.rpc('redeem_unlock_code', { p_code: code });
+      var d=r && r.data;
+      if(r.error){ if(msg) msg.textContent='Hmm, that didn’t go through — try again in a moment.'; return; }
+      if(!d || !d.ok){
+        var why={ invalid:'That code isn’t recognized — double-check the spelling.',
+                  expired:'That code has expired.',
+                  exhausted:'That code has been fully used up.',
+                  not_signed_in:'Sign in first so the unlock can follow your account.' }[(d&&d.error)||'']
+                || 'That code didn’t work.';
+        if(msg) msg.textContent=why; return;
+      }
+      this.grantFullUnlock();
+      if(msg) msg.innerHTML='🎉 <b>The Full Craft Circle is yours!</b> Eleven rivals and one smug gnome await…';
+      var self=this; setTimeout(function(){ self.goTypes(); }, 1800);
+    }catch(e){ if(msg) msg.textContent='Something went wrong — try again.'; }
   },
 
   /* random line pools. kind='win' (you won — rival concedes) or 'lose'.
@@ -2060,7 +2138,12 @@ var Story = {
   save: async function(){
     if(!this.profile) return;
     this.profile._savedAt = Date.now();   // merge anchor
-    try{ localStorage.setItem('ar_story_profile', JSON.stringify(this.profile)); }catch(e){}
+    try{
+      localStorage.setItem('ar_story_profile', JSON.stringify(this.profile));
+      // (cross-account leak fix): tag WHOSE profile the device copy is, so a later
+      // sign-in by a DIFFERENT account can't absorb it via the safety merge.
+      localStorage.setItem('ar_profile_owner', this.currentUser ? this.currentUser.id : 'guest');
+    }catch(e){}
     if(this.sb){
       // session may have silently expired mid-match (the 'Sign In'
       // flip Adam hit) — re-check before deciding we're a guest, so wins keep
@@ -2085,20 +2168,32 @@ var Story = {
 // Now the newer profile is the base and the
 // older one's monotonic progress is folded in, then saved back to both stores.
 async function SaveAPISafe(S){
-  var local=null;
+  var local=null, owner=null;
   try{ local=JSON.parse(localStorage.getItem('ar_story_profile')||'null'); }catch(e){ local=null; }
+  try{ owner=localStorage.getItem('ar_profile_owner'); }catch(e){}
   if(local && typeof local!=='object') local=null;
   if(S.sb && S.currentUser){
+    var uid=S.currentUser.id;
+    // (cross-account leak fix): device-local data that belongs to a DIFFERENT
+    // signed account must NEVER merge into this one (Adam hit this switching
+    // adam@xyz -> amccrim on the iPad: the residue merged into the new account's
+    // cloud). Guest/untagged local = the intended "played first, signed in
+    // after" onboarding merge — that path stays.
+    if(local && owner && owner!=='guest' && owner!==uid) local=null;
     var cloud=null;
-    try{ var r=await S.sb.from('profiles').select('data').eq('id',S.currentUser.id).maybeSingle(); if(r.data&&r.data.data) cloud=r.data.data; }catch(e){}
+    try{ var r=await S.sb.from('profiles').select('data').eq('id',uid).maybeSingle(); if(r.data&&r.data.data) cloud=r.data.data; }catch(e){}
     if(cloud && local && local._savedAt){
       var merged=MergeStoryProfiles(cloud, local);
       // persist the healed profile to BOTH stores right away
-      try{ localStorage.setItem('ar_story_profile', JSON.stringify(merged)); }catch(e){}
-      try{ await S.sb.from('profiles').upsert({ id:S.currentUser.id, data:merged, updated_at:new Date().toISOString() }); }catch(e){}
+      try{ localStorage.setItem('ar_story_profile', JSON.stringify(merged)); localStorage.setItem('ar_profile_owner', uid); }catch(e){}
+      try{ await S.sb.from('profiles').upsert({ id:uid, data:merged, updated_at:new Date().toISOString() }); }catch(e){}
       return merged;
     }
-    if(cloud) return cloud;
+    if(cloud){
+      // refresh the device cache so it holds THIS account's data, correctly tagged
+      try{ localStorage.setItem('ar_story_profile', JSON.stringify(cloud)); localStorage.setItem('ar_profile_owner', uid); }catch(e){}
+      return cloud;
+    }
     if(local) return local;   // first save uploads it
     return {};
   }
@@ -2146,6 +2241,9 @@ function MergeStoryProfiles(a, b){
       if(out.matches.length>75) out.matches=out.matches.slice(0,75);
     }
     if(!out.handle && older.handle) out.handle=older.handle;
+    // entitlement: an unlock on EITHER side survives the merge (never lose a purchase/code)
+    if(older.fullUnlock) out.fullUnlock=true;
+    if(!out.unlockVia && older.unlockVia) out.unlockVia=older.unlockVia;
     out._mergedAt=Date.now();
   }catch(e){}
   return out;
